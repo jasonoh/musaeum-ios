@@ -1,0 +1,31 @@
+BASELINE  MusaeumTests/LibraryQueryTests: exit=0  Executed 6 tests, with 0 failures (0 unexpected) in 1.493 (1.497) seconds
+BASELINE  MusaeumTests/LibrarySortTests: exit=0  Executed 8 tests, with 0 failures (0 unexpected) in 0.010 (0.013) seconds
+RED (killed)    page two of a search loses the narrowing
+                suite=MusaeumTests/LibraryQueryTests restored=True
+                Executed 6 tests, with 3 failures (0 unexpected) in 1.521 (1.525) seconds
+RED (killed)    a superseded search lands (the generation guard, success path)
+                suite=MusaeumTests/LibraryQueryTests restored=True
+                Executed 6 tests, with 1 failure (0 unexpected) in 1.490 (1.492) seconds
+RED (killed)    a whitespace-only term travels as a search
+                suite=MusaeumTests/LibrarySortTests restored=True
+                Executed 8 tests, with 6 failures (0 unexpected) in 0.031 (0.034) seconds
+RED (killed)    an empty library and a term that matched nothing are the same screen
+                suite=MusaeumTests/LibraryQueryTests restored=True
+                Executed 6 tests, with 1 failure (0 unexpected) in 1.503 (1.506) seconds
+RED (killed)    the stored sort is written but never read
+                suite=MusaeumTests/LibrarySortTests restored=True
+                Executed 8 tests, with 2 failures (0 unexpected) in 0.037 (0.040) seconds
+RED (killed)    an unknown stored sort falls back to something other than the default
+                suite=MusaeumTests/LibrarySortTests restored=True
+                Executed 8 tests, with 6 failures (0 unexpected) in 0.036 (0.039) seconds
+RED (killed)    the sort and its direction never reach the wire
+                suite=MusaeumTests/LibraryQueryTests restored=True
+                Executed 6 tests, with 5 failures (0 unexpected) in 1.517 (1.521) seconds
+RED (killed)    choosing a sort remembers the default instead
+                suite=MusaeumTests/LibraryQueryTests restored=True
+                Executed 6 tests, with 1 failure (0 unexpected) in 1.521 (1.525) seconds
+RED (killed)    a search that changes nothing still asks the Mac
+                suite=MusaeumTests/LibraryQueryTests restored=True
+                Executed 6 tests, with 1 failure (0 unexpected) in 1.510 (1.514) seconds
+
+killed 9/9

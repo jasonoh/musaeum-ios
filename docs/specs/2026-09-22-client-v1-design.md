@@ -1,7 +1,7 @@
 # Musaeum iOS — a reading client for the Mac's library (v1)
 
 **Date:** 2026-09-22
-**Status:** **slice 2 is built, gated and probed** (2026-09-23) — not yet committed; the owner commits this repo himself. Slice 1 landed as `ed7abf6` (*initial ios app*, 44 files, 4,803 insertions) and its numbers are in *Built — slice 1* at the end of this document, together with the corrections that build made to its own commands; the probe's frames are committed at `docs/evidence/slice1/`. Slice 2 (the upward path) is complete against its annex `docs/plans/2026-09-22-slice2-upward.md`: **build exit 0, 61 cases across 9 suites, 0 failures**, and three live probe runs against a real Musaeum — the numbers are in *Built — slice 2* below and its frames at `docs/evidence/slice2/`. That closes CD8's own scope: the design has no slice 3. What comes next is the deferred list's, revived only by its stated condition. The three forks slice 1 rests on were settled by the owner on 2026-09-22 (CD1, CD2 and the slice boundary) — Readium for v1, iOS 18, and slice 1 is the whole *downward* path.
+**Status:** **slice 3a is built, gated and probed** (2026-09-23) — not yet committed; the owner commits this repo himself. *Stage 3a of slice 3 — the phone's own order and its search* — is in the tree: build exit 0, **75 cases across 11 suites, 0 failures**, nine mutations all killed, five live probe runs, its frames at `docs/evidence/slice3/`, and its numbers in *Built — slice 3a* at the end of this document. Stage 3b (the filter chips) is scheduled, in the same annex. Slice 1 landed as `ed7abf6` (*initial ios app*, 44 files, 4,803 insertions) and its numbers are in *Built — slice 1* at the end of this document, together with the corrections that build made to its own commands; the probe's frames are committed at `docs/evidence/slice1/`. Slice 2 (the upward path) is complete against its annex `docs/plans/2026-09-22-slice2-upward.md`: **build exit 0, 61 cases across 9 suites, 0 failures**, and three live probe runs against a real Musaeum — the numbers are in *Built — slice 2* below and its frames at `docs/evidence/slice2/`. That closed CD8's own scope — v1 was drawn as two slices and there was no slice 3 at the time. What came next was the deferred list's, each item revived only by its own stated condition, **and one has since fired**: *Search and filters in the client*, revived the first time the owner reached for search on the phone and it was not there, is **slice 3** — whose stage 3a is the status above and whose stage 3b is scheduled. The three forks slice 1 rests on were settled by the owner on 2026-09-22 (CD1, CD2 and the slice boundary) — Readium for v1, iOS 18, and slice 1 is the whole *downward* path.
 **Scope:** a SwiftUI app that talks to a running Musaeum on the Mac over the tailnet: configure (base URL + token), connect-check, the paginated library as a cover grid, a book's detail, a download into the app's own storage, the reader opening at the fraction the Mac holds (slice 1), and the fraction written back when the reader closes or the app leaves the foreground, queued while the Mac cannot take it (slice 2). **Not in v1:** resumable downloads, search UI, facets/filters UI, metadata edits, device sends, annotations.
 **Depends on (both read, neither restated):** `musaeum/docs/rest-api.md` — the frozen contract, API version 1, written against commit `0a0bdd4`; and `musaeum/docs/superpowers/specs/2026-09-22-ios-companion-design.md` — the workstream's design, whose D1 (bespoke app, own repo), D5 (the fraction is the member that travels), D6 (a report is ordered by its clock), D12 (the contract is provable without a phone), D14 (the Mac must be running; the client caches so that *reading* does not need it) and D15 (Range) are decisions this document **inherits and does not re-open**.
 **Supersedes:** nothing.
@@ -157,7 +157,7 @@ The slice-1 count is stated rather than discovered: the owner chose the bigger s
 
 - **A local library cache (SQLite/SwiftData/JSON).** Rejected (CD3): a second source of truth for data that is one cheap request away. Revived when the library is slow enough to page through on every launch, or when browsing with the Mac asleep is wanted for its own sake.
 - **Resumable downloads** (CD6) — deferred; the wire supports `Range` today, so this is client-only work. Revived by one transfer large enough to hurt.
-- **Search and filters in the client.** The contract serves both (`q`, `sort`, facets). Deferred to its own slice because the list slice is already the whole downward path; revived the first time the owner reaches for search on the phone and it is not there.
+- **Search and filters in the client.** **Revived 2026-09-23 — its own condition fired and it is now slice 3** (`docs/plans/2026-09-23-slice3-search-sort-and-filters.md`: stage 3a sort + search, stage 3b filters). The contract serves both (`q`, `sort`, facets). Deferred to its own slice because the list slice is already the whole downward path; revived the first time the owner reaches for search on the phone and it is not there.
 - **The Mac's `musaeum://` cover semantics on the phone** — not applicable: the phone asks the REST route and decodes `image/jpeg`.
 - **Reading PDF on the phone.** The library holds 1,798 books with a PDF and the wire serves them; Readium can render PDF through a separate navigator and a PDFium/`PDFDocument` factory, which is not wired here. Revived when an owner's book that is PDF-only is wanted on the phone.
 - **A sync/refresh policy that pulls unread books in the background** — the parent spec already names this as the cheap later answer and not v1 (D14).
@@ -329,4 +329,96 @@ Both are wiring, not product: the annex's own table is the ground, and neither t
 - **`Range` resume is still not built** and CD6's own revival condition has not fired: the probe profile's books are ~660 KB.
 - **The probe profile's final state**, so the next session reproduces from here: the Mac's row for `ef91875e-…` is `reading` at `0.419826517967782` with `reading_position` null; the phone holds the EPUB (660,053 bytes), its cover, its own `positions.json` at `0.4198265179677819`, and an **empty** `reports.json`.
 - **The Mac's app was started and stopped four times, all by this session on purpose**, entirely on the probe profile at `~/.hermes/profiles/dev/cache/scratch/ios-probe`. No process of the owner's own profile or library was involved at any point.
+
+---
+
+## Built — slice 3a (2026-09-23)
+
+The library's own order, and its search. **Stage 3a of Slice 3**; stage 3b (the filter chips) is not built and its files are named in the annex.
+
+Three new app-side files — `Core/API/LibraryQuery.swift` (the sort, the query and the empty-state rules, as pure values so each has a decider that needs no screen), `Tests/MusaeumTests/LibrarySortTests.swift`, `Tests/MusaeumTests/LibraryQueryTests.swift` — and three edited: `Features/Library/LibraryScreen.swift` (the model's `query`/`sort` and a **generation counter**, every request composed from them, the sort menu, the search field, the two empty cards), `Core/Store/SettingsStore.swift` (the remembered sort, one key beside the base URL), `Core/Support/Probe.swift` (`MUSAEUM_PROBE_SORT` / `MUSAEUM_PROBE_QUERY`). Plus `Musaeum.xcodeproj/project.pbxproj` (regenerated), `scripts/live-probe.sh`, the annex, and four documents.
+
+**No design decision was re-opened** — CD1–CD8 are closed and this build changed none of them. **And no contract change, no Mac-repo slice:** `GET /api/library` already accepted `sort`, `dir` and `q`, and `MusaeumClient.library(limit:offset:sort:direction:query:)` already composed all three. What was missing was entirely the phone's own state, which called `client.library(limit:offset:)` and dropped them.
+
+### Gates
+
+| Instrument | Result |
+| ---------- | ------ |
+| `xcodegen generate`, then `xcodebuild build` | **exit 0.** One warning in the whole log and it is Apple's `appintentsmetadataprocessor` (*no AppIntents.framework dependency found*), not a file of ours |
+| `xcodebuild test` | **exit 0 — 75 cases, 0 failures, across 11 suites** |
+| `../musaeum/scripts/api-smoke.sh` | **passed 56, failed 0** against the same server |
+| AC13's source walk, re-run on this tree | clean: no `file://` in `Musaeum/` or `Tests/`, nothing logs a token, and the token's whole life is `Probe` → Keychain (`musaeum.token`) → the one `Authorization` header |
+| **Mutation campaign** (9 mutations, one per criterion that has a unit decider) | **9/9 killed**, every file restored and sha256-verified — `docs/evidence/slice3/slice3a-campaign.log` |
+
+Per file, because a total is not a decider. Slice 1's and slice 2's 61 cases are unchanged and sit inside this table:
+
+| Suite (file) | Cases | |
+| ------------ | ----- | - |
+| `ClientTests` | 14 | |
+| `ContractDecodeTests` | 11 | |
+| `CoverPipelineTests` | 3 | |
+| `InitialFractionTests` | 7 | |
+| `LibraryPagingTests` | 2 | |
+| `LibraryQueryTests` **(new)** | 6 | the model over a stub: what each request carries, the race, the two empty screens, the persistence funnel |
+| `LibrarySortTests` **(new)** | 8 | the pure rules: the eight options, the labels, the wire pairs, the stored guard, the trim rule |
+| `ReadingReporterTests` | 8 | |
+| `ReadingWriteTests` | 6 | |
+| `ReportQueueTests` | 4 | |
+| `StoreTests` | 6 | |
+
+### The campaign
+
+Each criterion with a unit decider was mutated one at a time and its focused suite required to redden, with the named suites run green first so a red row means an assertion failed rather than a suite that does not exist.
+
+| Mutated | Decider | Failures |
+| ------- | ------- | -------- |
+| page two of a search loses the narrowing (`loadNextPageIfNeeded` composes its own request) | `LibraryQueryTests` | 3 |
+| a superseded search lands (the generation guard, success path) | `LibraryQueryTests` | 1 |
+| a whitespace-only term travels as a search | `LibrarySortTests` | 6 |
+| an empty library and a term that matched nothing are the same screen | `LibraryQueryTests` | 1 |
+| the stored sort is written but never read | `LibrarySortTests` | 2 |
+| an unknown stored sort falls back to something other than the default | `LibrarySortTests` | 6 |
+| the sort and its direction never reach the wire | `LibraryQueryTests` | 5 |
+| choosing a sort remembers the default instead | `LibraryQueryTests` | 1 |
+| a search that changes nothing still asks the Mac | `LibraryQueryTests` | 1 |
+
+**The counts reconcile with their mutants, which is the point of printing them.** The page-2 row reddens exactly 3 assertions, and 3 is exactly what page 2 loses — `sort`, `dir` and `q`, and nothing else. The generation-guard row reddens **1**, which is the race itself rather than a broad failure. The two 6s are the guard and the trim rule, each of which several cases touch on purpose. A row whose count could not be derived from its mutation would be a row I would not believe.
+
+### The live probe
+
+Five runs against a real Musaeum on slice 1's isolated profile (8 EPUBs, iPhone 17 Pro / iOS 26.1), committed under `docs/evidence/slice3/`. **The port is 8789, not slice 1's 8788**: the owner's own packaged Musaeum was running and holding 8788 for the whole of this work, so the probe profile was moved rather than colliding with it. It was never touched and never signalled — it answered `401` to this profile's token, which is how the two servers were told apart.
+
+| # | Run | What the app logged |
+| - | --- | ------------------- |
+| 1 | `TAG=library SORT=title:asc` | `library page count=8 total=8 limit=100 offline=online sort=title:asc q=- first=Caliban's war \| Dragon Wing \| The Hidden Palace` |
+| 2 | `TAG=sort SORT=author:desc` | `sort=author:desc q=- first=The Self-Driven Child \| Dragon Wing \| The Hidden Palace` |
+| 3 | `TAG=kept`, **no `SORT` at all** | one line, `sort=author:desc q=- first=The Self-Driven Child \| …` |
+| 4 | `TAG=search QUERY=negotiation` | `count=1 total=1 … sort=author:desc q=negotiation first=Negotiation Genius` |
+| 5 | `TAG=nomatch QUERY=zzzz` | `count=0 total=0 … q=zzzz first=` then `library empty kind=noMatches("zzzz") macBooks=8` |
+
+Run 3 is the persistence and the only run that can decide it: it named **nothing**, and the phone came up on the order run 2 had left. Run 4's total is the **server's** 1 rather than the library's 8, which is what separates a search from a reordering of the page in hand. Run 5's `macBooks=8` is what makes it *no matches* rather than *empty library* — the two screens differ by a fact the app already holds.
+
+**And the question the slice started from, answered by measurement rather than by reading code: `q` is not title-only.** It searches title, author, tags — the `series:` tags included — *and* description. On this same 8-book profile: a word chosen to appear only in one book's description (`dragonlance`, from *Dragon Wing*) finds that book; `Kotler` (an author) finds one; `interplanetary` and `expanse` (tags) each find one; a word in nothing finds none. So descriptions are not something this slice builds — they are part of the path the phone was pointed at, which is why the phone and the Mac agree on what a search finds.
+
+### The readings this slice settled for itself
+
+**1. A frame is not the decider for an order; the app's own log line is.** The first version of these runs reported the order only in the frame, and one run's frame disagreed with its own log — a *mid-flight* read 25 s after launch, showing the previous order while the log already recorded the new one. Nothing about the frame said so, and by looking alone it was indistinguishable from a real defect. So the log line now carries `first=` (the first three titles of the array the screen renders), and the frame is corroboration. This is the slice-1 lesson in a new costume: an instrument that cannot fail loudly will be believed when it is wrong.
+
+**2. The sort control's label has to be a `HStack`, and two cheaper spellings were measured and rejected.** A `Label` in a toolbar renders icon-only; so does the same `Label` with `.labelStyle(.titleAndIcon)`. Each build shipped a bare ⇅ glyph and each time it was a *committed frame* that caught it. It is a defect rather than a nitpick because the sort is remembered: with no label, the app can open reordered and the reader has no on-screen cause for it — which is exactly the dissonance that made the fork go the way it did. The label is the other half of "remember the sort".
+
+### Corrections and traps this build paid for
+
+1. **The annex named a file that does not exist.** Its file list said `Musaeum/Core/API/LibrarySort.swift`; the file landed as **`LibraryQuery.swift`**, because it carries the query and the empty-state rules as well as the sort, and naming it for one of its three parts would have been a name that fights its contents. The annex and its *Start here* block are corrected in place rather than left for the next session to grep for a file that was never written.
+2. **A comment that named the other app's behaviour was wrong, and only grepping the other app could show it.** `LibrarySort.storedKey`'s docblock claimed its `field:direction` shape was "the same shape the Mac's own preference uses". The Mac persists a `BookSort` **object** and guards it with `isBookSort` (`src/types/book.types.ts:218-226`); `key(sort)` in `Toolbar.tsx` is a React key, not storage. The vocabulary and the guard's *effect* are shared; the encoding is the phone's own. This is slice 2's trap 8 in another form — a sentence about the other app is undecidable by any test in this repo, so it has to be read out of that repo.
+3. **The contract *refuses* a bad sort rather than defaulting it, which is what makes the stored guard load-bearing.** Measured on the probe server: `?sort=athor` → **400 `{"error":"bad request"}`**, `?dir=sideways` likewise. A stored preference from a build that no longer knows a field would therefore reach the reader as a *broken library*, not as the wrong order — so `stored(_:)` falls back to the default, and the probe seam logs when it does (`probe: sort '<raw>' is not one this build knows`).
+4. **`q` of bare whitespace is not an error, and the phone still does not send it.** The server answers `q="   "` with the whole library, so the client's trim rule (`LibraryQuery.term`) agrees with the server's own handling rather than merely avoiding a crash — the two produce the same result, which is the stronger thing to be able to say.
+5. **Twelve labels, eight shortcuts — and the two lists are different questions.** The menu offers the Mac's eight curated pairs, but a *restored* preference may name any of the twelve the labels cover (the Mac's own `Toolbar.tsx:133-135` appends the current sort when it is not one of the eight, for the same reason). All twelve were read off `SORT_LABELS` in the Mac's source and compared verbatim, en-dashes included, rather than paraphrased.
+
+### Handed to the owner's own judgement, and the residuals
+
+- **No tap is measured; three claims are for a human frame.** `simctl` can neither open the sort menu nor type in the search field, so *the menu opens*, *the field accepts typing* and *a cover tap from a sorted library opens the right book* are claims only a person can settle. What the probe decides is the app's own path — state → request → rendered order — which is the same honest split slice 2 recorded for the background door.
+- **Stage 3b — the filter chips — is not built.** Its files and its own criteria (3.10–3.13) are in the annex; the readings it leans on (facets fetched when the sheet opens, an empty selection omits its parameter rather than sending an empty one) are already settled there. Nothing in 3a forecloses it: `LibraryQuery` is where those fields will compose, and the same "every page, and never `formats=`" trap is named in its AC.
+- **A search still needs the Mac.** CD3's line holds — there is no local library cache — so with the Mac asleep the app can *read* and cannot *search*. This slice is what makes that newly visible rather than newly true, and it is the standing argument for the cache rather than a debt this slice left.
+- **The probe profile's final state**, so the next session reproduces from here: `rest_api_port` is **8789** (moved off 8788 for the reason above) and `base.txt` reads `http://100.125.135.108:8789`; the 8 books are untouched; the phone's stored sort is **`author:desc`**. A 3b probe run should start by putting the phone back with `SORT=title:asc` if it wants the title-order frames.
+- **The owner's own app was never touched and never signalled.** It held 8788 when this session began and for the whole of the probe work, which is why the probe profile moved to 8789. It was **no longer running by the end of the session** — and that is not this session's doing: the only processes signalled here were the probe profile's own server (started once, stopped once, by listener pid — which took a second `TERM`, the dev bundle being slower to exit than its listener) and nothing else. His library and profile were never read or written at any point.
 

@@ -4,6 +4,7 @@
 
 ### Added
 
+- **The library can be sorted and searched from the phone.** A sort menu with the Mac's own eight orders — Title A–Z through Read Status — and a search field that runs the Mac's own full-text search, so the same query returns the same books in the same order on both machines. The order you pick is remembered between launches; the search is not, so the app never opens looking like a much smaller library with nothing on screen to explain why. A search that matches nothing now says *that*, instead of claiming the library is empty.
 - **Where you stop on the phone now travels back to the Mac.** Closing the book — or putting the phone away mid-page — sends where you got to, so the same book opens on the Mac at the place you left it on the phone.
 - The reading is **kept when the Mac cannot take it**: with it asleep, shut, or off the network the report waits on the phone and is sent the next time the Mac answers, so nothing read on the phone is lost to a closed lid.
 - The position that travels is the one the reader is actually at, not the one the app asked for — a Mac holding a *different* number gets the phone's, which is what makes the two machines meet somewhere real.

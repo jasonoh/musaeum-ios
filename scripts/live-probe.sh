@@ -49,6 +49,23 @@
 #   #   … start the Mac …
 #   TAG=flushed BOOK=<id> ./scripts/live-probe.sh                # the queue drains
 #
+# The library's own ordering and search (slice 3) is four runs, and **the order
+# matters** — the sort is *remembered* on the phone (the Mac's own rule: sorting is
+# a preference, so it is restored; the query is not), so the run that names one
+# leaves it stored for the run after it:
+#
+#   TAG=library SORT=title:asc   ./scripts/live-probe.sh   # the control: 8 books, title order
+#   TAG=sort    SORT=author:desc ./scripts/live-probe.sh   # the order reverses — and is stored
+#   TAG=kept                       ./scripts/live-probe.sh   # no SORT: `sort=author:desc` in the
+#                                                          # log is the persistence, decided
+#   TAG=search  QUERY=negotiate  ./scripts/live-probe.sh   # a total below the library's own
+#   TAG=nomatch QUERY=zzzz       ./scripts/live-probe.sh   # the frame says "Nothing matches"
+#
+# Each line reports `sort=<field>:<direction> q=<term>` (or `q=-`) so the two halves
+# of a search are readable without a frame: what was asked for, and what came back.
+# A QUERY is never stored, a SORT always is — `SORT=title:asc` is also how you put
+# the phone back.
+#
 # Every run prints the Mac's own row for $BOOK at the end, read straight out of the
 # probe profile's SQLite — so the decider is the Mac's number rather than the app's.
 #
@@ -90,6 +107,8 @@ SIMCTL_CHILD_MUSAEUM_PROBE_BASE="$BASE" \
 SIMCTL_CHILD_MUSAEUM_PROBE_TOKEN="${TOKEN:-$(cat "$ROOT/token.txt")}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_OPEN="${BOOK:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_ACTION="$ACTION" \
+SIMCTL_CHILD_MUSAEUM_PROBE_QUERY="${QUERY:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_SORT="${SORT:-}" \
   xcrun simctl launch "$DEV" "$BUNDLE" | cat
 sleep "$WAIT"
 

@@ -1,0 +1,65 @@
+[
+  {
+    "mutation": "page two of a search loses the narrowing",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "old": "            let page = try await request(offset: nextOffset)",
+    "new": "            let page = try await client.library(limit: Self.pageSize, offset: nextOffset)",
+    "test": "MusaeumTests/LibraryQueryTests"
+  },
+  {
+    "mutation": "a superseded search lands (the generation guard, success path)",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "old": "            let page = try await request(offset: 0)\n            guard mine == generation else { return }\n            self.health = health",
+    "new": "            let page = try await request(offset: 0)\n            self.health = health",
+    "test": "MusaeumTests/LibraryQueryTests"
+  },
+  {
+    "mutation": "a whitespace-only term travels as a search",
+    "file": "Musaeum/Core/API/LibraryQuery.swift",
+    "old": "        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)\n        return trimmed.isEmpty ? nil : trimmed",
+    "new": "        text.isEmpty ? nil : text",
+    "test": "MusaeumTests/LibrarySortTests"
+  },
+  {
+    "mutation": "an empty library and a term that matched nothing are the same screen",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "old": "        LibraryEmptyState.of(query, isEmpty: books.isEmpty)",
+    "new": "        LibraryEmptyState.of(LibraryQuery(), isEmpty: books.isEmpty)",
+    "test": "MusaeumTests/LibraryQueryTests"
+  },
+  {
+    "mutation": "the stored sort is written but never read",
+    "file": "Musaeum/Core/Store/SettingsStore.swift",
+    "old": "        librarySort = LibrarySort.stored(defaults.string(forKey: Self.librarySortKey))",
+    "new": "        librarySort = .default",
+    "test": "MusaeumTests/LibrarySortTests"
+  },
+  {
+    "mutation": "an unknown stored sort falls back to something other than the default",
+    "file": "Musaeum/Core/API/LibraryQuery.swift",
+    "old": "        else { return .default }\n        return LibrarySort(field: field, direction: direction)",
+    "new": "        else { return LibrarySort(field: .title, direction: .desc) }\n        return LibrarySort(field: field, direction: direction)",
+    "test": "MusaeumTests/LibrarySortTests"
+  },
+  {
+    "mutation": "the sort and its direction never reach the wire",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "old": "            sort: query.sort.wireField,\n            direction: query.sort.wireDirection,",
+    "new": "            sort: nil,\n            direction: nil,",
+    "test": "MusaeumTests/LibraryQueryTests"
+  },
+  {
+    "mutation": "choosing a sort remembers the default instead",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "old": "        query.sort = sort\n        persistSort(sort)\n        await start()",
+    "new": "        query.sort = sort\n        persistSort(.default)\n        await start()",
+    "test": "MusaeumTests/LibraryQueryTests"
+  },
+  {
+    "mutation": "a search that changes nothing still asks the Mac",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "old": "        guard text != query.text else { return }\n        query.text = text",
+    "new": "        query.text = text",
+    "test": "MusaeumTests/LibraryQueryTests"
+  }
+]

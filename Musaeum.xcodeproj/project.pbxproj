@@ -25,6 +25,8 @@
 		47BFB54BA90D0B5E417BDE89 /* book.json in Resources */ = {isa = PBXBuildFile; fileRef = C7D6F6DBD356A9E3F800BB88 /* book.json */; };
 		5148A3A8EBBE6D270180EAC7 /* Probe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81EA6E53A91ED976505C5CFC /* Probe.swift */; };
 		518067CF6248F5842A387B43 /* ReadiumShared in Frameworks */ = {isa = PBXBuildFile; productRef = 0E91009E879C6C21C398DC2B /* ReadiumShared */; };
+		7526287B8E561E72C5D5CFFD /* LibraryQueryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD07CD9819EF6B777F0EADE /* LibraryQueryTests.swift */; };
+		77C027784AE592406CF67195 /* LibraryQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C957F7C9CA1ACDCF066C5C /* LibraryQuery.swift */; };
 		79737DCC0AB8F1BDA8D0E565 /* ReadingWriteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97DC4A0276A80BFF0F49EE5B /* ReadingWriteTests.swift */; };
 		7C4EF58A56676EE54814444C /* DownloadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3302895D182A0DB5A577D4 /* DownloadStore.swift */; };
 		80C44FF6E6A280EBDADABA85 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2560A771DBF4AD1074DF4EF /* SettingsStore.swift */; };
@@ -43,6 +45,7 @@
 		DA04AA684999665A0C182DED /* CoverPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016D9C9511EC68185420617F /* CoverPipeline.swift */; };
 		DE9054036A3365FB6858FED3 /* MusaeumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */; };
 		DE98447DF4AAA183B74466D2 /* error.json in Resources */ = {isa = PBXBuildFile; fileRef = 6D4512DC0B93D19548F957A5 /* error.json */; };
+		E23A2D8E666CF6D9D3A2262E /* LibrarySortTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1290B0CBF1415714055A5839 /* LibrarySortTests.swift */; };
 		F43AF4504F0943A0B57DC7E5 /* LocalPositions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFFAD5FA5ED4645B36A7414 /* LocalPositions.swift */; };
 		FE28E74879CEC4A4D0021234 /* ContractModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */; };
 /* End PBXBuildFile section */
@@ -63,6 +66,8 @@
 		09C784056B0BD23C40F84B65 /* StoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreTests.swift; sourceTree = "<group>"; };
 		0DF767FE2BB07C60C7DEAE9F /* LibraryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScreen.swift; sourceTree = "<group>"; };
 		105384EF3C60158460BBCFDA /* ContractDecodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractDecodeTests.swift; sourceTree = "<group>"; };
+		1290B0CBF1415714055A5839 /* LibrarySortTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySortTests.swift; sourceTree = "<group>"; };
+		17C957F7C9CA1ACDCF066C5C /* LibraryQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryQuery.swift; sourceTree = "<group>"; };
 		3599D559223B796E5E027836 /* InitialFractionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialFractionTests.swift; sourceTree = "<group>"; };
 		4651E4E29334A9A7C4CCFC40 /* MusaeumTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MusaeumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5590CD7BEEBDDD7E56AC28BD /* ReaderScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderScreen.swift; sourceTree = "<group>"; };
@@ -82,6 +87,7 @@
 		9FDD0012F3D8415AC1C59F55 /* InitialFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialFraction.swift; sourceTree = "<group>"; };
 		A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractModels.swift; sourceTree = "<group>"; };
 		AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryPagingTests.swift; sourceTree = "<group>"; };
+		AFD07CD9819EF6B777F0EADE /* LibraryQueryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryQueryTests.swift; sourceTree = "<group>"; };
 		B371196CB66C88935EAF1104 /* reading.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = reading.json; sourceTree = "<group>"; };
 		C05FDE9002FE0B8A9DCA644F /* ReadingReporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingReporterTests.swift; sourceTree = "<group>"; };
 		C7D6F6DBD356A9E3F800BB88 /* book.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = book.json; sourceTree = "<group>"; };
@@ -152,6 +158,8 @@
 				096300ACDD30C93737BCE6D2 /* CoverPipelineTests.swift */,
 				3599D559223B796E5E027836 /* InitialFractionTests.swift */,
 				AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */,
+				AFD07CD9819EF6B777F0EADE /* LibraryQueryTests.swift */,
+				1290B0CBF1415714055A5839 /* LibrarySortTests.swift */,
 				C05FDE9002FE0B8A9DCA644F /* ReadingReporterTests.swift */,
 				97DC4A0276A80BFF0F49EE5B /* ReadingWriteTests.swift */,
 				570575F5B94F8F6CA63028C9 /* ReportQueueTests.swift */,
@@ -205,6 +213,7 @@
 			children = (
 				A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */,
 				016D9C9511EC68185420617F /* CoverPipeline.swift */,
+				17C957F7C9CA1ACDCF066C5C /* LibraryQuery.swift */,
 				64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */,
 				FCFB7B06790C00536FDD1F8C /* ReadingReport.swift */,
 			);
@@ -415,6 +424,7 @@
 				7C4EF58A56676EE54814444C /* DownloadStore.swift in Sources */,
 				A955D005F98F32B8AC1BD626 /* DownloadsScreen.swift in Sources */,
 				3897F8B16DE196FF21634649 /* InitialFraction.swift in Sources */,
+				77C027784AE592406CF67195 /* LibraryQuery.swift in Sources */,
 				2AC785C64C006D4D186CD905 /* LibraryScreen.swift in Sources */,
 				F43AF4504F0943A0B57DC7E5 /* LocalPositions.swift in Sources */,
 				C8AB6A38F37AF361E83DFB63 /* MusaeumApp.swift in Sources */,
@@ -439,6 +449,8 @@
 				25512185A79BD14C74DAAF76 /* CoverPipelineTests.swift in Sources */,
 				0CC5A047D7CEE77CE7E64147 /* InitialFractionTests.swift in Sources */,
 				161D4DF43BAA3CFFA539978D /* LibraryPagingTests.swift in Sources */,
+				7526287B8E561E72C5D5CFFD /* LibraryQueryTests.swift in Sources */,
+				E23A2D8E666CF6D9D3A2262E /* LibrarySortTests.swift in Sources */,
 				13987E2006B73C01DCACD52C /* ReadingReporterTests.swift in Sources */,
 				79737DCC0AB8F1BDA8D0E565 /* ReadingWriteTests.swift in Sources */,
 				2C10AF9FE06BA08C44C831F5 /* ReportQueueTests.swift in Sources */,

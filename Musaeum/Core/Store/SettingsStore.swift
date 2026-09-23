@@ -11,15 +11,29 @@ final class SettingsStore {
     private let defaults: UserDefaults
     private static let baseURLKey = "musaeum.baseURL"
     private static let tokenAccount = "musaeum.token"
+    private static let librarySortKey = "musaeum.librarySort"
 
     private(set) var baseURLString: String
     private(set) var token: String
+
+    /// The library's sort, and **the one durable view preference this app keeps**
+    /// — the Mac's own rule (`src/stores/library.store.ts`): sorting is a
+    /// preference, so it is restored; the query and the filters are *narrowings*,
+    /// and neither is stored, because "reopening to a filtered library that looks
+    /// like a much smaller one is the kind of state a user can't see the cause of".
+    ///
+    /// Read through `LibrarySort.stored`, which guards it. The contract refuses an
+    /// unknown `sort` with a 400 rather than defaulting it, so a preference from a
+    /// build whose fields differed would reach the wire as a library that looks
+    /// broken rather than as one in the wrong order.
+    private(set) var librarySort: LibrarySort
 
     init(defaults: UserDefaults = .standard, keychain: KeychainStore = .init()) {
         self.defaults = defaults
         self.keychain = keychain
         baseURLString = defaults.string(forKey: Self.baseURLKey) ?? ""
         token = keychain.read(Self.tokenAccount) ?? ""
+        librarySort = LibrarySort.stored(defaults.string(forKey: Self.librarySortKey))
         // A probe run carries its own URL and token so it needs no human to paste
         // one. Nothing is persisted: the app's stored settings are untouched.
         if let probeBase = Probe.base { baseURLString = probeBase }
@@ -45,6 +59,17 @@ final class SettingsStore {
         token = newToken.trimmingCharacters(in: .whitespacesAndNewlines)
         defaults.set(normalized, forKey: Self.baseURLKey)
         keychain.write(token, account: Self.tokenAccount)
+    }
+
+    /// Choosing a sort is remembering it — one funnel, so no path can change the
+    /// order without recording which order it chose.
+    ///
+    /// Deliberately **not** undone by `clear()`: that clears a *credential* (the
+    /// address and the token), and which order you like your library in is not
+    /// one.
+    func save(librarySort sort: LibrarySort) {
+        librarySort = sort
+        defaults.set(sort.storedKey, forKey: Self.librarySortKey)
     }
 
     func clear() {

@@ -25,6 +25,18 @@ enum Probe {
     /// A book to fetch, download and open without a tap.
     static var openBookID: String? { value("MUSAEUM_PROBE_OPEN") }
 
+    /// A library search term, so a search can be driven with no tap — the library
+    /// grid's decider for slice 3a, which `simctl` could otherwise not reach: it
+    /// can launch an app and take a frame, never type in it.
+    static var query: String? { value("MUSAEUM_PROBE_QUERY") }
+
+    /// A library sort, as `field:direction` (`author:desc`), parsed by the app's
+    /// own `LibrarySort.stored`. Applied through the same path a tap takes, so a
+    /// run that sets one **remembers** it — which is what makes "the sort you
+    /// picked is still there next launch" decidable by two probe runs instead of
+    /// by a human looking at a menu.
+    static var sort: String? { value("MUSAEUM_PROBE_SORT") }
+
     /// What the probe is exercising, so `library` and `read` runs are distinct.
     /// `write` additionally reports the fraction the reader landed at **through
     /// the app's own door** and reads the row back — the upward path's live
