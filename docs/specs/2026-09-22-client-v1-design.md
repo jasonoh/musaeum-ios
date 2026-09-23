@@ -1,7 +1,7 @@
 # Musaeum iOS — a reading client for the Mac's library (v1)
 
 **Date:** 2026-09-22
-**Status:** **slice 3a is built, gated and probed** (2026-09-23) — not yet committed; the owner commits this repo himself. *Stage 3a of slice 3 — the phone's own order and its search* — is in the tree: build exit 0, **75 cases across 11 suites, 0 failures**, nine mutations all killed, five live probe runs, its frames at `docs/evidence/slice3/`, and its numbers in *Built — slice 3a* at the end of this document. Stage 3b (the filter chips) is scheduled, in the same annex. Slice 1 landed as `ed7abf6` (*initial ios app*, 44 files, 4,803 insertions) and its numbers are in *Built — slice 1* at the end of this document, together with the corrections that build made to its own commands; the probe's frames are committed at `docs/evidence/slice1/`. Slice 2 (the upward path) is complete against its annex `docs/plans/2026-09-22-slice2-upward.md`: **build exit 0, 61 cases across 9 suites, 0 failures**, and three live probe runs against a real Musaeum — the numbers are in *Built — slice 2* below and its frames at `docs/evidence/slice2/`. That closed CD8's own scope — v1 was drawn as two slices and there was no slice 3 at the time. What came next was the deferred list's, each item revived only by its own stated condition, **and one has since fired**: *Search and filters in the client*, revived the first time the owner reached for search on the phone and it was not there, is **slice 3** — whose stage 3a is the status above and whose stage 3b is scheduled. The three forks slice 1 rests on were settled by the owner on 2026-09-22 (CD1, CD2 and the slice boundary) — Readium for v1, iOS 18, and slice 1 is the whole *downward* path.
+**Status:** **slices 3a and 3b are built, gated and probed** (2026-09-23) — not yet committed; the owner commits this repo himself. *Stage 3a of slice 3 — the phone's own order and its search* — is in the tree: build exit 0, **75 cases across 11 suites, 0 failures**, nine mutations all killed, five live probe runs, its frames at `docs/evidence/slice3/`, and its numbers in *Built — slice 3a* at the end of this document. Stage 3b (the filter chips) is **built** against the same annex — so slice 3 is complete, and with it the deferred item that revived it. Slice 1 landed as `ed7abf6` (*initial ios app*, 44 files, 4,803 insertions) and its numbers are in *Built — slice 1* at the end of this document, together with the corrections that build made to its own commands; the probe's frames are committed at `docs/evidence/slice1/`. Slice 2 (the upward path) is complete against its annex `docs/plans/2026-09-22-slice2-upward.md`: **build exit 0, 61 cases across 9 suites, 0 failures**, and three live probe runs against a real Musaeum — the numbers are in *Built — slice 2* below and its frames at `docs/evidence/slice2/`. That closed CD8's own scope — v1 was drawn as two slices and there was no slice 3 at the time. What came next was the deferred list's, each item revived only by its own stated condition, **and one has since fired**: *Search and filters in the client*, revived the first time the owner reached for search on the phone and it was not there, is **slice 3** — whose stages 3a and 3b are the status above. The three forks slice 1 rests on were settled by the owner on 2026-09-22 (CD1, CD2 and the slice boundary) — Readium for v1, iOS 18, and slice 1 is the whole *downward* path.
 **Scope:** a SwiftUI app that talks to a running Musaeum on the Mac over the tailnet: configure (base URL + token), connect-check, the paginated library as a cover grid, a book's detail, a download into the app's own storage, the reader opening at the fraction the Mac holds (slice 1), and the fraction written back when the reader closes or the app leaves the foreground, queued while the Mac cannot take it (slice 2). **Not in v1:** resumable downloads, search UI, facets/filters UI, metadata edits, device sends, annotations.
 **Depends on (both read, neither restated):** `musaeum/docs/rest-api.md` — the frozen contract, API version 1, written against commit `0a0bdd4`; and `musaeum/docs/superpowers/specs/2026-09-22-ios-companion-design.md` — the workstream's design, whose D1 (bespoke app, own repo), D5 (the fraction is the member that travels), D6 (a report is ordered by its clock), D12 (the contract is provable without a phone), D14 (the Mac must be running; the client caches so that *reading* does not need it) and D15 (Range) are decisions this document **inherits and does not re-open**.
 **Supersedes:** nothing.
@@ -334,7 +334,7 @@ Both are wiring, not product: the annex's own table is the ground, and neither t
 
 ## Built — slice 3a (2026-09-23)
 
-The library's own order, and its search. **Stage 3a of Slice 3**; stage 3b (the filter chips) is not built and its files are named in the annex.
+The library's own order, and its search. **Stage 3a of Slice 3**; stage 3b (the filter chips) was still to come when this record was written and its files are named in the annex — **it has since landed: see *Built — slice 3b* below.**
 
 Three new app-side files — `Core/API/LibraryQuery.swift` (the sort, the query and the empty-state rules, as pure values so each has a decider that needs no screen), `Tests/MusaeumTests/LibrarySortTests.swift`, `Tests/MusaeumTests/LibraryQueryTests.swift` — and three edited: `Features/Library/LibraryScreen.swift` (the model's `query`/`sort` and a **generation counter**, every request composed from them, the sort menu, the search field, the two empty cards), `Core/Store/SettingsStore.swift` (the remembered sort, one key beside the base URL), `Core/Support/Probe.swift` (`MUSAEUM_PROBE_SORT` / `MUSAEUM_PROBE_QUERY`). Plus `Musaeum.xcodeproj/project.pbxproj` (regenerated), `scripts/live-probe.sh`, the annex, and four documents.
 
@@ -417,8 +417,117 @@ Run 3 is the persistence and the only run that can decide it: it named **nothing
 ### Handed to the owner's own judgement, and the residuals
 
 - **No tap is measured; three claims are for a human frame.** `simctl` can neither open the sort menu nor type in the search field, so *the menu opens*, *the field accepts typing* and *a cover tap from a sorted library opens the right book* are claims only a person can settle. What the probe decides is the app's own path — state → request → rendered order — which is the same honest split slice 2 recorded for the background door.
-- **Stage 3b — the filter chips — is not built.** Its files and its own criteria (3.10–3.13) are in the annex; the readings it leans on (facets fetched when the sheet opens, an empty selection omits its parameter rather than sending an empty one) are already settled there. Nothing in 3a forecloses it: `LibraryQuery` is where those fields will compose, and the same "every page, and never `formats=`" trap is named in its AC.
+- **Stage 3b — the filter chips — was not built by this stage** (it landed the same day: see *Built — slice 3b* below). Its files and its own criteria (3.10–3.13) are in the annex; the readings it leans on (facets fetched when the sheet opens, an empty selection omits its parameter rather than sending an empty one) are already settled there. Nothing in 3a forecloses it: `LibraryQuery` is where those fields will compose, and the same "every page, and never `formats=`" trap is named in its AC.
 - **A search still needs the Mac.** CD3's line holds — there is no local library cache — so with the Mac asleep the app can *read* and cannot *search*. This slice is what makes that newly visible rather than newly true, and it is the standing argument for the cache rather than a debt this slice left.
 - **The probe profile's final state**, so the next session reproduces from here: `rest_api_port` is **8789** (moved off 8788 for the reason above) and `base.txt` reads `http://100.125.135.108:8789`; the 8 books are untouched; the phone's stored sort is **`author:desc`**. A 3b probe run should start by putting the phone back with `SORT=title:asc` if it wants the title-order frames.
 - **The owner's own app was never touched and never signalled.** It held 8788 when this session began and for the whole of the probe work, which is why the probe profile moved to 8789. It was **no longer running by the end of the session** — and that is not this session's doing: the only processes signalled here were the probe profile's own server (started once, stopped once, by listener pid — which took a second `TERM`, the dev bundle being slower to exit than its listener) and nothing else. His library and profile were never read or written at any point.
 
+## Built — slice 3b (2026-09-23)
+
+The library's own narrowing — read status, format, a rating floor, and the library's own authors, series and tags. **Stage 3b of slice 3**; with it **slice 3 is complete** (3a's sort and search landed earlier the same day) and the deferred item that revived slice 3 is closed. The app icon travels in the same working tree as unrelated work and has its own section below.
+
+Three new files — `Core/API/LibraryFilters.swift` (the filter model, its wire composition, and the probe's own encoding of a set), `Features/Library/FilterSheet.swift` (the sheet: two vocabulary rows, the rating floor, three facet rows), `Tests/MusaeumTests/LibraryFilterTests.swift` (15 cases) — and three edited: `Core/API/LibraryQuery.swift` (the query carries a filter set), `Core/API/MusaeumClient.swift` (the parameters ride every request), `Features/Library/LibraryScreen.swift` (the filter state and its one funnel, the sheet, the toolbar indicator, the bar, the filtered-empty card). Plus `Core/Support/Probe.swift` and `scripts/live-probe.sh` (`MUSAEUM_PROBE_FILTERS` / `MUSAEUM_PROBE_SHEET`), `Musaeum/Resources/Assets.xcassets` + `project.yml` (the icon), `Musaeum.xcodeproj` (regenerated), the annex, and four documents.
+
+**No design decision was re-opened** — CD1–CD8 are closed and this build changed none of them. **And no contract change, no Mac-repo slice:** `GET /api/library` already accepted `readStatus`, `formats`, `minRating`, `authors`, `series` and `tags`, and `GET /api/library/facets` already served the counts the sheet draws. What was missing was entirely the phone's own state, which composed every request from a query that had no filters in it.
+
+### Gates
+
+| Instrument | Result |
+| ---------- | ------ |
+| `xcodegen generate`, then `xcodebuild build` | **exit 0**, and no warning in this repo's own files — the 1024 icon compiles without the alpha warning an RGBA icon raises |
+| `xcodebuild test` (with the icon in the target) | **exit 0 — 90 cases, 0 failures, across 12 suites** |
+| `../musaeum/scripts/api-smoke.sh` | **passed 56, failed 0**, against the same server |
+| AC 3.14's source walk, re-run on this tree | clean: no `file://` in `Musaeum/` or `Tests/`, the only `print(` is `Probe.log`, and the token's whole life is `SettingsStore` → the Keychain → the one `Authorization` header (`MusaeumClient.swift:89`) |
+| **Mutation campaign** (14 mutations) | **14/14 killed**, every file restored — `docs/evidence/slice3/slice3b-campaign.log` |
+| **The icon** | `CFBundleIconName = AppIcon`, `Assets.car` + `AppIcon60x60@2x.png` in the built bundle, and the home-screen frame |
+
+Per file, because a total is not a decider (each read off the run's own per-suite line):
+
+| Suite (file) | Cases | |
+| ------------ | ----- | - |
+| `ClientTests` | 14 | |
+| `ContractDecodeTests` | 11 | |
+| `CoverPipelineTests` | 3 | |
+| `InitialFractionTests` | 7 | |
+| `LibraryFilterTests` **(new)** | 15 | the pure rules — what a selection becomes on the wire, what an empty one omits — and the model half: page 2, clearing, the indicator, the filtered-empty state |
+| `LibraryPagingTests` | 2 | |
+| `LibraryQueryTests` | 6 | |
+| `LibrarySortTests` | 8 | |
+| `ReadingReporterTests` | 8 | |
+| `ReadingWriteTests` | 6 | |
+| `ReportQueueTests` | 4 | |
+| `StoreTests` | 6 | |
+
+### The campaign
+
+Each mutation applied one at a time, its focused suite required to redden, with the same suite run green first so a red row means an assertion failed rather than a suite that does not exist. Failures are the runner's own count; the case list is beside it for the reason below.
+
+| Mutated | Failures | Cases that reddened |
+| ------- | -------- | ------------------- |
+| an axis with nothing in it travels as an empty parameter | 15 | **5** — every case that observes a composed request |
+| the client joins values with the server's separator | 2 | 1 — `testEachSelectedValueIsItsOwnQueryItem` |
+| filters dropped from page two only | 1 | 1 — `testTheFiltersRideOnThePageAfterTheFirstToo` |
+| clearing the filters forgets one axis | 4 | 1 — `testClearingTheFiltersAsksForTheWholeLibraryAgain` |
+| a filter change that changes nothing still asks the Mac | 2 | 1 — `testAFilterChangeThatChangesNothingAsksTheMacForNothing` |
+| the indicator counts axes rather than values | 1 | 1 — `testTheIndicatorCountsEveryValueAcrossEveryAxis` |
+| a filter that matched nothing reads as an empty library | 2 | 1 — `testAFilterThatMatchedNothingIsNotAnEmptyLibrary` |
+| the format vocabulary needs the facets after all | 2 | 2 — both vocabulary-row cases |
+| a failed facet fetch reads as a loaded one | 1 | 1 — `testAFailedFacetFetchLeavesTheVocabularyRowsUsable` |
+| the probe parser drops a token it cannot read | 1 | 1 — `testTheProbeParserSaysWhatItCouldNotUse` |
+| the status row lists the contract's three in another order | 3 | 2 — the vocabulary case and the no-facets row |
+| two axes read each other's list | 2 | 1 — `testTheFacetAxesAreTheContractsOwnListsInItsOwnOrder` |
+| a filter change re-fetches the counts | 1 | 1 — `testTheFacetsAreFetchedWhenTheSheetAsksAndNeverWithALibraryPage` |
+| the encoder's separator drifts from the parser's | 2 | 1 — `testTheProbeEncodingRoundTripsThroughTheAppsOwnParser` |
+
+**Every one of the suite's 15 cases is reddened by at least one row, and it took a second campaign for that to be true.** The first ten rows were aimed at what criteria 3.10–3.13 name, and four cases survived all of them with no row pointed at their own subject: the vocabulary, the facet axis lists, the facet-fetch trigger, and the encoder half of the probe round trip. Four rows were then written **at those four cases' own subjects** (the last four above), and each reddened exactly its own. A case no mutation can reach is a decider that is green and untested, so this campaign is reported against all fifteen cases rather than against the ten that were obvious.
+
+**The counts reconcile with their mutants, and one of them is why the count must be read with the cases beside it.** Row 1 prints *15 failures* and reddens *5* cases: the mutation removes the omit-when-empty rule from every axis, so every case that observes a composed request fails, and XCTest's number is an **assertion** count (4+1+7+1+2 across those five), not a count of cases. Read alone it is exactly the shape of a suite that has gone red everywhere — which is also the shape a masked survivor hides in — so the campaign script now prints `| N cases reddened: …` beside the runner's own line.
+
+### The live probe
+
+Five runs against the same isolated profile as 3a (8 EPUBs, iPhone 17 Pro / iOS 26.1) at `http://100.125.135.108:8789`, committed under `docs/evidence/slice3/`. Filters are never stored, so the only state these runs leave behind is the sort run 1 names — which puts the phone back on `title:asc`, closing 3a's own residual. Two further runs measured the facet finding (reading 3).
+
+| # | Run | What the app logged |
+| - | --- | ------------------- |
+| 1 | `TAG=filters SORT=title:asc FILTERS=status=reading` | `count=2 total=2 … sort=title:asc q=- filters=status=reading first=Caliban's war \| Negotiation Genius` |
+| 2 | `TAG=narrow FILTERS=status=unread;format=epub` | `count=6 total=6 … filters=status=unread;format=epub first=Dragon Wing \| The Hidden Palace \| In Defense of Selfishness` |
+| 3 | `TAG=filter-empty FILTERS=status=read` | `count=0 total=0 … filters=status=read first=` then `library empty kind=noFilterMatches(1) macBooks=8` |
+| 4 | `TAG=sheet SHEET=1` | `facets authors=8 series=2 tags=27 formats=epub:8 statuses=unread:6,reading:2` |
+| 5 | `TAG=unknown FILTERS=nonsense=1` | `probe: filters 'nonsense=1' carried nonsense=1, which this build does not know` |
+
+Run 3's `macBooks=8` is what makes it *no filter matches* rather than *empty library* — the same fact 3a's `nomatch` run used, one cause over. Run 5 is the seam refusing to read as a run that found nothing: the app names the token it could not use and applies nothing. And run 1's `total=2` is the **server's** own answer for that parameter, measured directly before the runs (`readStatus=reading` → 2, `readStatus=unread` + `formats=epub` → 6), so these runs are not the phone agreeing with itself.
+
+### The readings this slice settled for itself
+
+**1. An empty selection is the *client's* rule, not the server's — and the annex said otherwise.** The annex's file list claimed "the contract refuses a bad *value* with 400, and `formats=` is a bad value". Measured on the probe server: **`formats=` answers the whole 8-book library**, and only a value the parameter cannot parse (`formats=docx`) is refused with 400. So 3.11 stands — an empty selection composes no item — but on the client's own hygiene rather than as a request the server would punish. This is 3a's trap in a new place: *a sentence about what the server does is decidable, and the way to decide it is to ask the server.*
+
+**2. A parameter *name* the server does not know is ignored, not refused.** `?status=reading` — the wrong name — returns all 8 books, where `?readStatus=reading` returns 2. So a typo in a parameter name is **invisible on the wire**: it cannot produce an error, only a request that quietly asks for less. No stub-backed case can catch that either, since the stub answers whatever it is asked; what catches it is a case reading the *composed request* (`testAClearedSelectionComposesNoParametersAtAll` and its neighbours) and the seam's own report of what it carried.
+
+**3. A facet value can be a filter that finds nothing, and the comma is why.** The Authors row is the Mac's own list, and on this profile one of its eight values is **`William Stixrud, PhD`** — drawn with a count of 1. A filter naming it, through the app's own path, returns **0**; a filter naming the comma-less `Steven Kotler` from the same list returns **1**. The multi-value parameter is comma-separated — the same separator this client joins with — so a value containing a comma cannot be expressed through it. This is upstream of this slice (the desktop's sidebar is drawn from the same list over the same wire) and it is **not fixed here**: recorded because it is the one place a filter the sheet *offers* is a filter that finds nothing, and because the honest fix is an encoding the contract does not have.
+
+**4. Filters are not remembered, and these runs decide it rather than assert it.** Run 2 named a filter and run 3's first line reads `filters=-`: the app came up unfiltered, where run 2's `SORT` survived into every run after it. That is CD3's inventory behaving — a sort is a preference, a filter is a narrowing of the moment — and no single run could show it.
+
+**5. 3.13's warning was honoured, and the frame is what says so.** That criterion exists because a toolbar renders a `Label` icon-only, which cost 3a two builds. The active-filter indicator is an explicit `HStack` (glyph, then the count), and `filters-status-reading.png` shows it **gold, with its `1`**, beside the sort control's own label: an active filter with a visible cause, which is the whole content of the criterion.
+
+### Corrections and traps this build paid for
+
+1. **A run that returns the expected number for the wrong reason.** The first measurement of reading 3 used `William Stri**x**rud, PhD` — a misspelling of a facet value, which the app composed and the server matched against nothing. It returned 0, which is what the run was *looking* for, and the finding looked confirmed. The contrast run exposed it: comparing against the facet's own strings showed the value is `Stixrud`. The number that mattered was never the 0 but the **pair** (0 for the comma value, 1 for the comma-less one), and one run cannot produce a pair.
+2. **A row's failure count is XCTest's assertion count, not a count of cases** — see *The campaign*. The campaign script now prints the cases beside the count, because a 15-failure row that reddens 5 cases reads like a suite gone red everywhere.
+3. **`xcodebuild test` stages a simulator sysdiagnose on every *failing* row** (`simctl diagnose -l -b --timeout=600`) unless `-collect-test-diagnostics never` is passed: about ten minutes of collection per red row, indistinguishable from a hung build — one row sat eight minutes with no count line before this was found. The script passes the flag now, which is what makes a 14-row campaign minutes rather than an afternoon.
+4. **Killing a campaign mid-row leaves the mutant in the tree.** The restore is the loop's `finally` and a `kill` skips it — and on this repo the slice's files are still *untracked*, so `git checkout -- <file>` restores nothing at all. Found by killing a run to diagnose trap 2; recovered by reversing the one mutant by hand, then re-checking every row's anchor (counting `old` and `new` across the files) before touching anything.
+
+### The icon
+
+The app carries the desktop app's own artwork — the owner's call, so the two clients read as one product on the home screen. The master, `musaeum`'s `build/icon.png`, is a **macOS** icon: a squircle inset about 10% inside a transparent canvas. Shipped as it stands it would be rounded twice — once by the artwork's own baked corners, once by iOS's mask — and iOS would composite that transparent margin black.
+
+`Musaeum/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` is therefore that artwork **cropped to its own bounds, filled to the frame with each row's own edge colour, and scaled to 1024²**. The crop is the load-bearing step: it puts the artwork's corner radius (≈22.4% of the side, the fraction both platforms mask at) on iOS's own mask radius, so the corners the fill invents are exactly the corners iOS cuts away, and what the home screen shows is the master's own composition. The PNG carries **no alpha** — an iOS icon with one is a build warning and a black-composited icon.
+
+Measured rather than intended: the built app's `Info.plist` reads `CFBundleIconName = AppIcon` and `CFBundleIconFiles = [AppIcon60x60]`; the bundle holds `Assets.car` and `AppIcon60x60@2x.png` (120×120); and `app-icon-before-after.png` is the same home-screen page before and after the install, Musaeum in the last slot and rounded by the same mask as its neighbours. **No dark or tinted variant is declared**: one icon serves all three appearances (iOS 18 tints it itself) rather than a second set this workstream would have to keep in step with the Mac's by hand.
+
+### Handed to the owner's own judgement, and the residuals
+
+- **No tap is measured; the sheet's own controls are a human frame.** The probe seam can *open* the sheet (run 4), but `simctl` cannot tick a chip, so *a tick applies immediately*, *Clear all empties every row* and *tapping an author narrows the list* are claims for a person. What is decided is the app's own path — state → request → rendered results — and that the sheet draws the contract's vocabulary and the Mac's counts.
+- **Reading 3 is a real, if small, defect and it is left standing.** A filter the sheet offers that finds nothing has one honest fix, an encoding the wire does not have, and that belongs to a contract change rather than to this slice. Worth the owner knowing it exists: the book it belongs to, *The Self-Driven Child*, is in his library.
+- **Filters, like search, need the Mac.** CD3's line holds — there is no local library cache — so with the Mac asleep the app can *read* and cannot filter.
+- **The probe profile's final state**, so the next session reproduces from here: the port is **8789** and `base.txt` reads `http://100.125.135.108:8789`; the 8 books are untouched; the phone's stored sort is back to **`title:asc`** (run 1 put it there — 3a's residual, closed); and the filters leave nothing stored at all.
+- **The owner's own packaged app held 8788 for the whole of this slice's work** — it was running, as 3a recorded, and every run here used the probe profile on 8789. The two servers never met, his instance was never touched or signalled, and his own library and profile were never read or written.

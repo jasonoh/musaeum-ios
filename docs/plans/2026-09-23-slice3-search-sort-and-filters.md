@@ -77,7 +77,7 @@ The count is honest rather than imagined, and the split is named here rather tha
 
 | # | Path | What changes |
 | - | ---- | ------------ |
-| 12 | `Musaeum/Core/API/LibraryFilters.swift` **(new)** | The filter model and its wire composition: read status, format, rating floor, plus the author/series/tag selections — and the rule that an **empty** selection omits its parameter rather than sending an empty one (the contract refuses a bad *value* with 400, and `formats=` is a bad value) |
+| 12 | `Musaeum/Core/API/LibraryFilters.swift` **(new)** | The filter model and its wire composition: read status, format, rating floor, plus the author/series/tag selections — and the rule that an **empty** selection omits its parameter rather than sending an empty one (the contract refuses a bad *value* with 400 — `formats=docx` — but **not** `formats=`, which it reads as absent: measured 2026-09-23 against the probe server, it answers the whole 8-book library) |
 | 13 | `Musaeum/Features/Library/FilterSheet.swift` **(new)** | The sheet: two segmented rows (read status, format), a rating row, and **one** reusable facet picker used by author, series and tags — a count-ordered list with a narrow-as-you-type field, because 3,727 authors is not a browsable list |
 | 14 | `Musaeum/Features/Library/LibraryScreen.swift` | Facets fetched when the sheet opens; the active-filter state carried into every page request like the query; the toolbar gains the indicator and its clear control |
 | 15 | `Tests/MusaeumTests/LibraryFilterTests.swift` **(new)** | The pure rules (empty omits, values are the contract's own, `minRating` is a whole number in range) plus the model half: filters ride on page 2, and clearing them restores the unfiltered library |
@@ -144,6 +144,12 @@ Two things this settles that no unit case can. The phone's two orders must be **
 
 Also measured, and kept because it is why the guard in `LibrarySort.stored` is load-bearing rather than tidy: `GET /api/library?sort=athor` answers **400 `{"error":"bad request"}`**, and `?dir=sideways` likewise. The contract *refuses* rather than defaulting, so a stored preference this build no longer knows would reach the reader as a broken library instead of the wrong order.
 
+**3b's own runs, measured the same way before they were taken** (filters are independent of a term and of a sort, so they run in any order; the decider is again the last `library page` line): `FILTERS='status=reading'` → `count=2 total=2 filters=status=reading`; `FILTERS='status=unread;format=epub'` → `count=6 total=6` (two axes **ANDed**); `FILTERS='status=read'` → `count=0 total=0` and then `library empty kind=noFilterMatches(1) macBooks=8`; `SHEET=1` → `facets authors=8 series=2 tags=27 formats=epub:8 statuses=unread:6,reading:2`. All five landed as written. Three things they settled that no unit case could, and the record of each is in *Built — slice 3b*:
+
+- **The multi-value parameter is comma-separated, so a facet value containing a comma cannot be expressed through it.** The Authors row is the Mac's own list, and one of its eight values on this profile is `William Stixrud, PhD`. A filter naming it returns **0** (measured through the app: `count=0 … filters=author=William Stixrud, PhD`), where the comma-less `Steven Kotler` from the same list returns **1**. Left standing — the fix is an encoding the contract does not have — and worth knowing because it is the one place a filter the sheet *offers* is a filter that finds nothing.
+- **A parameter *name* the server does not know is ignored, not refused**: `?status=reading` returns all 8 where `?readStatus=reading` returns 2. A typo in a name therefore cannot produce an error, only a request that quietly asks for less — which is why the probe seam reports the token it carried (`TAG=unknown FILTERS=nonsense=1` logs `probe: filters 'nonsense=1' carried nonsense=1, which this build does not know`).
+- **An empty selection composes no parameter, but the server would not have punished one**: `formats=` answers the whole library. 3.11 is the client's own hygiene, not a rule the server enforces — the correction above.
+
 And one reading that answers the question the slice started from: **`q` is not title-only.** It searches title, author, tags — the `series:` tags included — *and* description. Evidence, on the same 8 books: a word chosen to exist only in one description (`dragonlance`, from `Dragon Wing`) finds that book; `Kotler` (an author) finds one; `interplanetary` and `expanse` (tags) each find one; `zzzz` finds none. So descriptions are not something this slice builds — they are part of the path the phone was pointed at.
 
 ## Start here
@@ -151,18 +157,22 @@ And one reading that answers the question the slice started from: **`q` is not t
 ```bash
 git log --oneline -3
 # the base this annex was written against: 7fcb29c (the Connect screen's settings row), one ahead of origin/main fe9a4e8
-# 3a is built on top of it in the working tree (the owner commits this repo himself), so a "did my new
-# case run?" check compares against 75/11, not 61/9 — and reads the per-suite line, not the total
+# 3a and 3b are built on top of it in the working tree (the owner commits this repo himself), so a "did
+# my new case run?" check compares against **90/12**, not 61/9 — and reads the per-suite line, not the total
 
 xcodegen generate     # first, always: a file added since the last generate is not in the target
 DEV=DE0B5601-7874-455E-A965-9AD80567C30E   # iPhone 17 Pro, iOS 26.1 — an id, never a name
 xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD build   # exit 0
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD test    # 61/9 when this annex was written; **75 cases, 0 failures, 11 suites after 3a**
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD test    # 61/9 when this annex was written; **90 cases, 0 failures, 12 suites after 3a and 3b**
 
 # the live probe (its header carries the server recipe; it refuses to run without base.txt + token.txt)
 TAG=library ./scripts/live-probe.sh
-TAG=search QUERY=negotiation ./scripts/live-probe.sh      # built by this slice
-TAG=sort   SORT=author:desc  ./scripts/live-probe.sh      # built by this slice
+TAG=search QUERY=negotiation ./scripts/live-probe.sh      # built by 3a
+TAG=sort   SORT=author:desc  ./scripts/live-probe.sh      # built by 3a
+TAG=filters      FILTERS='status=reading' ./scripts/live-probe.sh             # built by 3b: 2 of the 8
+TAG=narrow       FILTERS='status=unread;format=epub' ./scripts/live-probe.sh  # two axes ANDed: 6
+TAG=filter-empty FILTERS='status=read' ./scripts/live-probe.sh                # the card names the FILTER
+TAG=sheet        SHEET=1 ./scripts/live-probe.sh                              # the sheet, with the Mac's counts
 ```
 
-Then, in order: `Musaeum/Core/API/LibraryQuery.swift`, `Musaeum/Features/Library/LibraryScreen.swift` (the model above the view), `Musaeum/Core/Store/SettingsStore.swift`, then the two test files.
+Then, in order: `Musaeum/Core/API/LibraryQuery.swift`, `Musaeum/Features/Library/LibraryScreen.swift` (the model above the view), `Musaeum/Core/Store/SettingsStore.swift`, then the two test files. 3b then adds `Musaeum/Core/API/LibraryFilters.swift`, `Musaeum/Features/Library/FilterSheet.swift` and `Tests/MusaeumTests/LibraryFilterTests.swift`, and edits `LibraryQuery.swift`, `MusaeumClient.swift` and `LibraryScreen.swift` again — a file that lands in a *later* stage of a slice is named here rather than left for the next session to grep for.

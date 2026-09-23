@@ -1,0 +1,3 @@
+library page count=8 total=8 limit=100 offline=online sort=title:asc q=- filters=- first=Caliban's war | Dragon Wing | The Hidden Palace
+facets authors=8 series=2 tags=27 formats=epub:8 statuses=unread:6,reading:2
+=== frame === filter-sheet-with-counts.png

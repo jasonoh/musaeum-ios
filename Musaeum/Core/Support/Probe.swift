@@ -37,6 +37,27 @@ enum Probe {
     /// by a human looking at a menu.
     static var sort: String? { value("MUSAEUM_PROBE_SORT") }
 
+    /// A filter set, in the app's own encoding for it — parsed by
+    /// `LibraryFilters.probe` and applied through the same door the sheet uses:
+    ///
+    /// ```bash
+    /// FILTERS='status=reading'        FILTERS='format=epub;status=unread'
+    /// FILTERS='author=Steven Kotler'  FILTERS='rating=4'      FILTERS='tag=running'
+    /// ```
+    ///
+    /// The sheet is a tap-only surface (`simctl` can present nothing, let alone
+    /// tick a box in it), so this is the only way a filter run is decidable at
+    /// all — and a token this build does not know is **logged** rather than
+    /// dropped, because a seam silently ignored reads as a run that found
+    /// nothing.
+    static var filters: String? { value("MUSAEUM_PROBE_FILTERS") }
+
+    /// Whether the run presents the **filter sheet** on launch. `simctl` can
+    /// present nothing and tap nothing, so without this the sheet's own contents
+    /// would be a claim for a human frame — and 3.10's decider is a frame. The
+    /// sheet is opened through the same state the toolbar button sets.
+    static var openSheet: Bool { value("MUSAEUM_PROBE_SHEET") == "1" }
+
     /// What the probe is exercising, so `library` and `read` runs are distinct.
     /// `write` additionally reports the fraction the reader landed at **through
     /// the app's own door** and reads the row back — the upward path's live

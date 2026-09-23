@@ -35,7 +35,7 @@ Frames: `docs/evidence/slice2/` (its README carries the log lines and the two tr
 
 **That closes the design's own scope.** CD8 drew v1 as two slices and there was no slice 3: what followed was the deferred list below, each item revived only by its own stated condition. **One of them has now fired** — see *Slice 3* — which is that list working as written rather than a change of plan.
 
-## Slice 3 — the phone's library: sorting, search and filters (**3a landed**, 3b scheduled — 2026-09-23)
+## Slice 3 — the phone's library: sorting, search and filters (**3a and 3b landed** 2026-09-23 — not yet committed)
 
 The deferred item *Search and filters in the client*, revived by its own written condition: the owner reached for search on the phone on 2026-09-23 and it was not there. Annex: `docs/plans/2026-09-23-slice3-search-sort-and-filters.md`. **Two stages, because the honest count runs past the house's ~10-file bound** — **3a: sort and search** (11 files: 4 code, 2 test, 4 documents, the probe script) and **3b: filters** (~6 files). The three forks were settled in one form the same day: all three features now, built in two stages; the sort is remembered like the desktop's and the query never is; and the active sort stays live while searching, so the same query returns the same order on both devices. **Deliberately not needed:** no contract change (the wire already carries `sort`, `dir`, `q`, the filter parameters and `minRating`), no Mac-repo slice, no new dependency, and no change to CD3's local-state inventory beyond one `UserDefaults` key.
 
@@ -51,7 +51,21 @@ The deferred item *Search and filters in the client*, revived by its own written
 
 Frames and log lines: `docs/evidence/slice3/`. The probe profile moved to **8789** for these runs, because the owner's own packaged app held 8788 while they were taken — his instance was never touched or signalled. **Nobody has tapped anything yet:** that the sort *menu opens*, that the field *accepts typing* and that a tap from a sorted library opens the right cover are claims for a human frame, and `simctl` can drive none of them.
 
-**Stage 3b — the filter chips — is not built.** Its files and criteria are in the annex.
+**Stage 3b — the filter chips — landed 2026-09-23.** Read status, format, a rating floor, and the library's own authors, series and tags, in a sheet that draws the contract's own vocabulary and the Mac's own counts; every tick applies at once, the toolbar says how many are on, one control clears them, and a set that matches nothing says *that* rather than claiming an empty library. Gates: `xcodegen generate` then `xcodebuild build` exit 0 with no warning in our own files, `xcodebuild test` **exit 0 — 90 cases, 0 failures, 12 suites** (75 across 11 before it; the 15 new are `LibraryFilterTests`), `../musaeum/scripts/api-smoke.sh` **56 passed, 0 failed**, AC13's source walk clean, and a **14-mutation campaign, 14/14 killed**, every file restored (`docs/evidence/slice3/slice3b-campaign.log`). All 15 of the suite's cases are reddened by at least one row — four had to be written at their own subjects after the first ten rows left them untouched.
+
+| What a probe run decided | The reading |
+| ------------------------ | ----------- |
+| `TAG=filters FILTERS=status=reading` | `count=2 total=2 filters=status=reading first=Caliban's war \| Negotiation Genius` — and 2 is the **server's** own answer for that parameter, measured directly |
+| `TAG=narrow FILTERS=status=unread;format=epub` | `count=6 total=6` — two axes **ANDed**, not 8 and not the union |
+| `TAG=filter-empty FILTERS=status=read` | `total=0`, then `kind=noFilterMatches(1) macBooks=8` — the card names the *filter*, and the Mac's own 8 is what makes it that rather than an empty library |
+| `TAG=sheet SHEET=1` | `facets authors=8 series=2 tags=27 formats=epub:8 statuses=unread:6,reading:2` — the sheet's rows and the Mac's counts |
+| `TAG=unknown FILTERS=nonsense=1` | `probe: filters 'nonsense=1' carried nonsense=1, which this build does not know` — an unreadable token says so instead of looking like a run that found nothing |
+
+Frames and log lines: `docs/evidence/slice3/`. Three findings this slice paid for, all in the spec's own section: an empty selection is the **client's** rule rather than the server's (measured — `formats=` returns the whole library, and the annex said otherwise); a parameter *name* the server does not know is **ignored** rather than refused, so a typo has to be caught by a case that reads the composed request; and one facet value the sheet offers, **`William Stixrud, PhD`**, is a filter that finds nothing because the wire's multi-value parameter is comma-separated — left standing, since the fix is an encoding the contract does not have.
+
+**The app icon landed with it** (the desktop's own artwork, `musaeum`'s `build/icon.png`, cropped to its own bounds and filled to 1024² so iOS's mask rounds it exactly once): `CFBundleIconName = AppIcon` in the built bundle, and `docs/evidence/slice3/app-icon-before-after.png` for the home screen.
+
+**Slice 3 is complete.** Nothing in 3a or 3b changed a design decision, the contract, or the Mac repo — the wire already carried every parameter both stages needed.
 
 ## Deferred, with the condition that would revive it
 

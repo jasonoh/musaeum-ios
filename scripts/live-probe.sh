@@ -61,10 +61,29 @@
 #   TAG=search  QUERY=negotiate  ./scripts/live-probe.sh   # a total below the library's own
 #   TAG=nomatch QUERY=zzzz       ./scripts/live-probe.sh   # the frame says "Nothing matches"
 #
-# Each line reports `sort=<field>:<direction> q=<term>` (or `q=-`) so the two halves
-# of a search are readable without a frame: what was asked for, and what came back.
-# A QUERY is never stored, a SORT always is — `SORT=title:asc` is also how you put
-# the phone back.
+# **The filters (slice 3b) are three more runs, and the sheet is a fourth.** They
+# are independent of the two above — a filter names no term and changes no sort —
+# so they run in any order, and `FILTERS=` carries the app's own encoding of a
+# filter set (`LibraryFilters.probe`), which the log line then reads back as
+# `filters=` so a run states what it applied rather than what it meant to:
+#
+#   TAG=filters      FILTERS='status=reading'             # 2 of the 8 books
+#   TAG=narrow       FILTERS='status=unread;format=epub'  # two axes ANDed: 6
+#   TAG=filter-empty FILTERS='status=read'                # no book is read: the card
+#                                                         # names the FILTERS, not an
+#                                                         # empty library
+#   TAG=sheet        SHEET=1                              # the sheet itself, opened by the
+#                                                         # run, with the Mac's counts on it
+#
+# A token this build does not know is **logged** (`probe: filters '…' carried …`),
+# so a run that named something unreadable says so instead of looking like one that
+# found nothing. Filters are a narrowing and are never stored, so a filter run
+# leaves nothing behind — unlike `SORT=`, which is remembered.
+#
+# Each line reports `sort=<field>:<direction> q=<term> filters=<set>` (with `-` for
+# an absent one) so all three halves of a query are readable without a frame: what
+# was asked for, and what came back. A QUERY is never stored, a SORT always is —
+# `SORT=title:asc` is also how you put the phone back.
 #
 # Every run prints the Mac's own row for $BOOK at the end, read straight out of the
 # probe profile's SQLite — so the decider is the Mac's number rather than the app's.
@@ -109,6 +128,8 @@ SIMCTL_CHILD_MUSAEUM_PROBE_OPEN="${BOOK:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_ACTION="$ACTION" \
 SIMCTL_CHILD_MUSAEUM_PROBE_QUERY="${QUERY:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_SORT="${SORT:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_FILTERS="${FILTERS:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_SHEET="${SHEET:-}" \
   xcrun simctl launch "$DEV" "$BUNDLE" | cat
 sleep "$WAIT"
 

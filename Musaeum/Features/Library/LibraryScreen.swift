@@ -25,6 +25,12 @@ final class LibraryModel {
     private(set) var covers: [String: Data] = [:]
     private(set) var coversFailed: Set<String> = []
 
+    /// The Mac's own facet counts, fetched **when the filter sheet opens** and
+    /// never with a library page: a request per page for counts nobody has asked
+    /// to see, on a screen whose whole cost model is latency.
+    private(set) var facets: Facets?
+    private(set) var facetsPhase: Phase = .idle
+
     /// What the screen is showing: the whole library, or a search of it, in one
     /// order. Settable only through the three methods below, because every change
     /// to it has to re-fetch — a `query` a view could assign directly would leave
@@ -81,6 +87,12 @@ final class LibraryModel {
         query.isSearching ? "\(total) match\(total == 1 ? "" : "es")" : "\(total) book\(total == 1 ? "" : "s")"
     }
 
+    /// The narrowing the filter sheet edits, and what every request is composed
+    /// from — read-only here, because every change goes through the funnel below.
+    var filters: LibraryFilters { query.filters }
+    var hasActiveFilters: Bool { query.filters.isActive }
+    var activeFilterCount: Int { query.filters.selectedCount }
+
     // MARK: Loading
 
     func start() async {
@@ -108,7 +120,7 @@ final class LibraryModel {
             // rendered array is what the log reports, so the order is decided by a
             // line the app wrote about itself rather than by reading pixels.
             let showing = books.prefix(3).map(\.title).joined(separator: " | ")
-            Probe.log("library page count=\(books.count) total=\(total) limit=\(page.limit) offline=\(health.library.rawValue) sort=\(query.sort.storedKey) q=\(query.term ?? "-") first=\(showing)")
+            Probe.log("library page count=\(books.count) total=\(total) limit=\(page.limit) offline=\(health.library.rawValue) sort=\(query.sort.storedKey) q=\(query.term ?? "-") filters=\(query.filters.probeEncoding.isEmpty ? "-" : query.filters.probeEncoding) first=\(showing)")
             if books.isEmpty {
                 Probe.log("library empty kind=\(emptyState.map(String.init(describing:)) ?? "none") macBooks=\(health.books)")
             }
@@ -161,7 +173,8 @@ final class LibraryModel {
             offset: offset,
             sort: query.sort.wireField,
             direction: query.sort.wireDirection,
-            query: query.term
+            query: query.term,
+            filters: query.filters.queryItems
         )
     }
 
@@ -184,6 +197,90 @@ final class LibraryModel {
         query.sort = sort
         persistSort(sort)
         await start()
+    }
+
+    // MARK: The filters
+
+    /// **One funnel for every filter change**, for the same reason choosing a sort
+    /// is one: a request is composed from the whole `query`, so a path that changed
+    /// a filter without re-fetching would leave the screen and the request
+    /// disagreeing — the class of bug 3.3 and 3.12 both name, where the *first*
+    /// page is right and every page after it is the unfiltered library. A change
+    /// that changes nothing asks the Mac for nothing.
+    func setFilters(_ new: LibraryFilters) async {
+        guard new != query.filters else { return }
+        query.filters = new
+        await start()
+    }
+
+    func toggle(_ status: ReadingStatus) async {
+        var updated = query.filters
+        updated.toggle(status)
+        await setFilters(updated)
+    }
+
+    func toggle(_ format: LibraryFilters.Format) async {
+        var updated = query.filters
+        updated.toggle(format)
+        await setFilters(updated)
+    }
+
+    func toggle(_ value: String, in axis: LibraryFilters.Axis) async {
+        var updated = query.filters
+        updated.toggle(value, in: axis)
+        await setFilters(updated)
+    }
+
+    func setRatingFloor(_ value: Int?) async {
+        var updated = query.filters
+        updated.minRating = value
+        await setFilters(updated)
+    }
+
+    /// Off, without touching the term: the sheet's **Clear all** and the bar's own
+    /// Clear, which is a control about filters and should not quietly empty a
+    /// search field the reader can see.
+    func clearFilters() async {
+        var updated = query.filters
+        updated.clear()
+        await setFilters(updated)
+    }
+
+    /// Undo **everything** narrowing the library, in one request. This is the empty
+    /// card's control, where the term and the filters are two halves of one cause
+    /// and clearing them one at a time would paint the library twice.
+    func clearNarrowing() async {
+        query.filters.clear()
+        query.text = ""
+        await start()
+    }
+
+    /// The Mac's facet counts, fetched when the sheet opens.
+    ///
+    /// **A failure here is not a failure of the library** (CD7). The sheet's two
+    /// vocabulary rows — read status and format — are drawn from the contract and
+    /// need no request at all, so a reader can still see and clear a filter while
+    /// the Mac is asleep; only the author, series and tag rows go missing, and they
+    /// say so. Counts already in hand stay on screen through a failed refresh
+    /// rather than blinking away.
+    func loadFacets() async {
+        if facets == nil { facetsPhase = .loading }
+        do {
+            let fetched = try await client.facets()
+            facets = fetched
+            facetsPhase = .loaded
+            let formats = fetched.formats.map { "\($0.value):\($0.count)" }.joined(separator: ",")
+            let statuses = fetched.readStatus.map { "\($0.value):\($0.count)" }.joined(separator: ",")
+            Probe.log("facets authors=\(fetched.authors.count) series=\(fetched.series.count) tags=\(fetched.tags.count) formats=\(formats) statuses=\(statuses)")
+        } catch is CancellationError {
+            return
+        } catch let error as ClientError {
+            if facets == nil { facetsPhase = .failed(error.description) }
+            Probe.log("facets failed \(error)")
+        } catch {
+            if facets == nil { facetsPhase = .failed(String(describing: error)) }
+            Probe.log("facets failed \(error)")
+        }
     }
 
     func cover(for book: ContractBook, size: String = "thumb") async {
@@ -212,6 +309,10 @@ struct LibraryScreen: View {
     /// about a **settled** value only: the debounce lives in the `.task(id:)`
     /// below, where the typing is, rather than inside the model.
     @State private var searchText = ""
+    /// The filter sheet, presented from the toolbar. A probe can open it
+    /// (`MUSAEUM_PROBE_SHEET`) because `simctl` cannot tap: without that the
+    /// sheet's own contents would be a claim no instrument could decide.
+    @State private var showingFilters = false
 
     /// The Mac's own debounce (`src/components/shared/SearchBar.tsx`: 150 ms).
     /// FTS is fast — the app's own search answers in 18 ms — so this is not about
@@ -237,6 +338,7 @@ struct LibraryScreen: View {
                 prompt: "Search titles, authors, series…"
             )
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { filterButton }
                 ToolbarItem(placement: .topBarTrailing) { sortMenu }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
@@ -270,7 +372,11 @@ struct LibraryScreen: View {
                 self.model = model
                 await model.start()
                 await applyProbeSeam(model)
+                if Probe.openSheet { showingFilters = true }
             }
+        }
+        .sheet(isPresented: $showingFilters) {
+            if let model { FilterSheet(model: model) }
         }
     }
 
@@ -308,16 +414,74 @@ struct LibraryScreen: View {
         )
     }
 
+    /// The filter control, and **the indicator is the control**: the count beside
+    /// the glyph, gold whenever there is one.
+    ///
+    /// Spelled as an explicit `HStack` for the reason 3.13 records — a toolbar
+    /// renders a `Label` icon-only, so a `Label` here would ship a bare glyph and
+    /// the app could open narrowed with nothing on screen to say why. That is the
+    /// same defect as the sort control's, one control over, and it cost two builds
+    /// the first time.
+    private var filterButton: some View {
+        Button {
+            showingFilters = true
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: model?.hasActiveFilters == true
+                    ? "line.3.horizontal.decrease.circle.fill"
+                    : "line.3.horizontal.decrease.circle")
+                if let count = model?.activeFilterCount, count > 0 {
+                    Text("\(count)")
+                }
+            }
+        }
+        .foregroundStyle(model?.hasActiveFilters == true ? Palette.gold : Palette.parchment)
+    }
+
+    /// What the library screen says about a narrowing the reader may not remember
+    /// asking for, and **the one control that undoes all of it**.
+    ///
+    /// It clears the filters and not the term: the search field is visible in the
+    /// bar above this, so emptying it from here would be a control doing something
+    /// the reader did not ask for and can see. The empty card's own control clears
+    /// both, because there the two are one cause.
+    private func filterBar(_ model: LibraryModel) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "line.3.horizontal.decrease")
+            Text(model.activeFilterCount == 1 ? "1 filter on" : "\(model.activeFilterCount) filters on")
+                .font(.footnote)
+            Spacer(minLength: 8)
+            Button {
+                Task { await model.clearFilters() }
+            } label: {
+                Text("Clear").font(.footnote.weight(.semibold))
+            }
+            // `.plain`, so the label takes this bar's gold rather than the system
+            // accent — a text button tints itself, and a blue "Clear" beside a
+            // gold "1 filter on" is a colour the palette does not own.
+            .buttonStyle(.plain)
+        }
+        .foregroundStyle(Palette.gold)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Palette.raised)
+    }
+
     private func makeClient() -> MusaeumClient? {
         guard let base = settings.baseURL else { return nil }
         return MusaeumClient(base: base, token: settings.token)
     }
 
-    /// A probe run names a term and a sort with no tap, and **both go through the
-    /// app's own doors**: the sort through `chooseSort`, which is what makes it
-    /// remembered, and the term through the field's own state as well as the
-    /// model, so a frame shows what the run asked for rather than an empty field
-    /// over filtered results.
+    /// A probe run names a term, a sort and a filter set with no tap, and **every
+    /// one goes through the app's own doors**: the sort through `chooseSort`, which
+    /// is what makes it remembered, the filters through `setFilters`, which is the
+    /// funnel the sheet's own chips call, and the term through the field's own
+    /// state as well as the model, so a frame shows what the run asked for rather
+    /// than an empty field over filtered results.
+    ///
+    /// **The order is sort → filters → term**, so the last `library page` line in
+    /// the log describes where the screen settled — a run that names more than one
+    /// of them logs more than one line, and only the last one is the reading.
     private func applyProbeSeam(_ model: LibraryModel) async {
         if let raw = Probe.sort {
             let parsed = LibrarySort.stored(raw)
@@ -328,6 +492,16 @@ struct LibraryScreen: View {
                 Probe.log("probe: sort '\(raw)' is not one this build knows — using \(parsed.storedKey)")
             }
             await model.chooseSort(parsed)
+        }
+        if let raw = Probe.filters {
+            let parsed = LibraryFilters.probe(raw)
+            // A token this build does not know is **said out loud** rather than
+            // dropped: a seam silently ignored is a run that looks green and
+            // decides nothing, which is the trap the sort seam already names.
+            if !parsed.ignored.isEmpty {
+                Probe.log("probe: filters '\(raw)' carried \(parsed.ignored.joined(separator: ", ")), which this build does not know")
+            }
+            await model.setFilters(parsed.filters)
         }
         if let term = Probe.query {
             searchText = term
@@ -345,17 +519,28 @@ struct LibraryScreen: View {
                 Task { await model.start() }
             }
         case .loaded:
-            if let empty = model.emptyState {
-                emptyCard(model, empty)
-            } else {
-                grid(model)
+            VStack(spacing: 0) {
+                // **The cause stays on screen, and it stays above the empty card
+                // too** — that is exactly where the reader asks "why is this
+                // empty?". A filter can narrow the library to nothing without any
+                // request being wrong, and without this bar the screen has no way
+                // to say so: 3.13's own requirement, and the reason it is a frame's
+                // job rather than a source read's.
+                if model.hasActiveFilters { filterBar(model) }
+                if let empty = model.emptyState {
+                    emptyCard(model, empty)
+                } else {
+                    grid(model)
+                }
             }
         }
     }
 
-    /// The two "nothing to show" screens, and they are different sentences because
-    /// they are different facts: one is a library with no books in it, and the
-    /// other is a term that matched none of them — which the reader can act on.
+    /// The three "nothing to show" screens, and they are different sentences
+    /// because they are different facts: a library with no books in it, a term that
+    /// matched none of them, and a set of filters that excluded all of them. Each
+    /// of the last two is something the reader can act on, and each names what to
+    /// clear.
     @ViewBuilder
     private func emptyCard(_ model: LibraryModel, _ state: LibraryEmptyState) -> some View {
         switch state {
@@ -368,13 +553,42 @@ struct LibraryScreen: View {
         case let .noMatches(term):
             MessageCard(
                 title: "Nothing matches",
-                message: "No book in this library matches “\(term)”.",
-                action: "Clear search"
-            ) {
-                searchText = ""
-                Task { await model.search("") }
-            }
+                message: noMatchesMessage(model, term),
+                // **One control, and it clears the whole cause.** With filters on
+                // as well as a term, clearing only the term would leave the reader
+                // on a library narrowed by something the card no longer names.
+                action: model.hasActiveFilters ? "Clear search and filters" : "Clear search"
+            ) { Task { await clearNarrowing(model) } }
+        case let .noFilterMatches(count):
+            MessageCard(
+                title: "Nothing matches these filters",
+                message: filterMatchesMessage(model, count),
+                action: "Clear filters"
+            ) { Task { await clearNarrowing(model) } }
         }
+    }
+
+    /// The sentence that makes a filtered-to-nothing library *not* an empty one:
+    /// the Mac's own book count, which this screen already holds from the
+    /// handshake. Without it the card would read "the Mac reports no books yet"
+    /// over a library of 7,100 — a lie the reader has no way to catch.
+    private func filterMatchesMessage(_ model: LibraryModel, _ count: Int) -> String {
+        let books = model.health.map { "The Mac reports \($0.books) books" } ?? "The Mac has books"
+        let filters = count == 1 ? "the one filter" : "all \(count) filters"
+        return "\(books), and none of them matches \(filters) you have on."
+    }
+
+    private func noMatchesMessage(_ model: LibraryModel, _ term: String) -> String {
+        guard model.hasActiveFilters else { return "No book in this library matches “\(term)”." }
+        let filters = model.activeFilterCount == 1 ? "1 filter is" : "\(model.activeFilterCount) filters are"
+        return "No book matches “\(term)” while \(filters) on."
+    }
+
+    /// Clears the field's own text as well as the model's, so the search box is
+    /// empty over the library it just restored.
+    private func clearNarrowing(_ model: LibraryModel) async {
+        searchText = ""
+        await model.clearNarrowing()
     }
 
     private func grid(_ model: LibraryModel) -> some View {

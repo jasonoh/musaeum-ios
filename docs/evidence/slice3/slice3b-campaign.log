@@ -1,0 +1,45 @@
+BASELINE  MusaeumTests/LibraryFilterTests: exit=0  Executed 15 tests, with 0 failures (0 unexpected) in 0.042 (0.047) seconds
+RED (killed)    an axis with nothing in it travels as an empty parameter
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 15 failures (0 unexpected) in 0.067 (0.072) seconds | 5 cases reddened: testAClearedSelectionComposesNoParametersAtAll, testAValueCarryingACommaIsSentVerbatimBecauseTheSplitIsTheServers, testClearingTheFiltersAsksForTheWholeLibraryAgain, testEachSelectedValueIsItsOwnQueryItem, testTheFiltersRideOnThePageAfterTheFirstToo
+RED (killed)    the client joins values with the server's separator
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 2 failures (0 unexpected) in 0.065 (0.069) seconds | 1 cases reddened: testEachSelectedValueIsItsOwnQueryItem
+RED (killed)    filters dropped from page two only
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 1 failure (0 unexpected) in 0.057 (0.062) seconds | 1 cases reddened: testTheFiltersRideOnThePageAfterTheFirstToo
+RED (killed)    clearing the filters forgets one axis
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 4 failures (0 unexpected) in 0.069 (0.074) seconds | 1 cases reddened: testClearingTheFiltersAsksForTheWholeLibraryAgain
+RED (killed)    a filter change that changes nothing still asks the Mac
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 2 failures (0 unexpected) in 0.064 (0.069) seconds | 1 cases reddened: testAFilterChangeThatChangesNothingAsksTheMacForNothing
+RED (killed)    the indicator counts axes rather than values
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 1 failure (0 unexpected) in 0.063 (0.068) seconds | 1 cases reddened: testTheIndicatorCountsEveryValueAcrossEveryAxis
+RED (killed)    a filter that matched nothing reads as an empty library
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 2 failures (0 unexpected) in 0.066 (0.071) seconds | 1 cases reddened: testAFilterThatMatchedNothingIsNotAnEmptyLibrary
+RED (killed)    the format vocabulary needs the facets after all
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 2 failures (0 unexpected) in 0.066 (0.071) seconds | 2 cases reddened: testAFailedFacetFetchLeavesTheVocabularyRowsUsable, testTheVocabularyRowsSurviveNoFacetsAtAll
+RED (killed)    a failed facet fetch reads as a loaded one
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 1 failure (0 unexpected) in 0.060 (0.065) seconds | 1 cases reddened: testAFailedFacetFetchLeavesTheVocabularyRowsUsable
+RED (killed)    the probe parser drops a token it cannot read
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 1 failure (0 unexpected) in 0.061 (0.066) seconds | 1 cases reddened: testTheProbeParserSaysWhatItCouldNotUse
+RED (killed)    the status row lists the contract's three in another order
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 3 failures (0 unexpected) in 0.067 (0.072) seconds | 2 cases reddened: testTheFilterVocabularyIsTheContractsOwn, testTheVocabularyRowsSurviveNoFacetsAtAll
+RED (killed)    two axes read each other's list (a switch arm copied one up)
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 2 failures (0 unexpected) in 0.064 (0.069) seconds | 1 cases reddened: testTheFacetAxesAreTheContractsOwnListsInItsOwnOrder
+RED (killed)    a filter change re-fetches the counts
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 1 failure (0 unexpected) in 0.071 (0.076) seconds | 1 cases reddened: testTheFacetsAreFetchedWhenTheSheetAsksAndNeverWithALibraryPage
+RED (killed)    the encoder's separator drifts from the parser's
+                suite=MusaeumTests/LibraryFilterTests restored=True
+                Executed 15 tests, with 2 failures (0 unexpected) in 0.067 (0.072) seconds | 1 cases reddened: testTheProbeEncodingRoundTripsThroughTheAppsOwnParser
+
+killed 14/14

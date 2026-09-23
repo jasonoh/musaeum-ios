@@ -131,17 +131,25 @@ struct MusaeumClient: Sendable {
 
     /// One page of the library, or of a search when `q` is present. The defaults
     /// are the contract's own (`limit` 100, `offset` 0, `sort` title).
+    ///
+    /// `filters` arrives **already composed** — by `LibraryFilters`, which owns
+    /// the rule that an axis with nothing in it is not a parameter at all. The
+    /// client appends items it did not build: what a filter *is* belongs to the
+    /// file that knows the contract's vocabulary, and a second place that chose
+    /// parameter names is a second place a typo can become a 400.
     func library(
         limit: Int = 100,
         offset: Int = 0,
         sort: String? = nil,
         direction: String? = nil,
-        query: String? = nil
+        query: String? = nil,
+        filters: [URLQueryItem] = []
     ) async throws -> LibraryPage {
         var items: [URLQueryItem] = []
         if let sort { items.append(URLQueryItem(name: "sort", value: sort)) }
         if let direction { items.append(URLQueryItem(name: "dir", value: direction)) }
         if let query, !query.isEmpty { items.append(URLQueryItem(name: "q", value: query)) }
+        items.append(contentsOf: filters)
         items.append(URLQueryItem(name: "limit", value: String(limit)))
         items.append(URLQueryItem(name: "offset", value: String(offset)))
         return try await sendJSON(request(path: "api/library", query: items))

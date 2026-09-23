@@ -1,0 +1,100 @@
+[
+  {
+    "mutation": "an axis with nothing in it travels as an empty parameter",
+    "file": "Musaeum/Core/API/LibraryFilters.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "    private func append(_ items: inout [URLQueryItem], _ name: String, _ values: [String]) {\n        for value in values {",
+    "new": "    private func append(_ items: inout [URLQueryItem], _ name: String, _ values: [String]) {\n        if values.isEmpty {\n            items.append(URLQueryItem(name: name, value: \"\"))\n        }\n        for value in values {"
+  },
+  {
+    "mutation": "the client joins values with the server's separator",
+    "file": "Musaeum/Core/API/LibraryFilters.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "        for value in values {\n            items.append(URLQueryItem(name: name, value: value))\n        }\n    }",
+    "new": "        guard !values.isEmpty else { return }\n        items.append(URLQueryItem(name: name, value: values.joined(separator: \",\")))\n    }"
+  },
+  {
+    "mutation": "filters dropped from page two only",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "            query: query.term,\n            filters: query.filters.queryItems\n        )",
+    "new": "            query: query.term,\n            filters: offset == 0 ? query.filters.queryItems : []\n        )"
+  },
+  {
+    "mutation": "clearing the filters forgets one axis",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "    func clearFilters() async {\n        var updated = query.filters\n        updated.clear()",
+    "new": "    func clearFilters() async {\n        var updated = query.filters\n        updated.formats = []"
+  },
+  {
+    "mutation": "a filter change that changes nothing still asks the Mac",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "    func setFilters(_ new: LibraryFilters) async {\n        guard new != query.filters else { return }",
+    "new": "    func setFilters(_ new: LibraryFilters) async {\n        _ = new != query.filters"
+  },
+  {
+    "mutation": "the indicator counts axes rather than values",
+    "file": "Musaeum/Core/API/LibraryFilters.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "    var selectedCount: Int {\n        readStatus.count + formats.count + authors.count + series.count + tags.count + (minRating == nil ? 0 : 1)\n    }",
+    "new": "    var selectedCount: Int {\n        [!readStatus.isEmpty, !formats.isEmpty, !authors.isEmpty, !series.isEmpty, !tags.isEmpty, minRating != nil].filter { $0 }.count\n    }"
+  },
+  {
+    "mutation": "a filter that matched nothing reads as an empty library",
+    "file": "Musaeum/Core/API/LibraryQuery.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "        let filters = query.filters.selectedCount\n        return filters > 0 ? .noFilterMatches(filters) : .libraryIsEmpty",
+    "new": "        return .libraryIsEmpty"
+  },
+  {
+    "mutation": "the format vocabulary needs the facets after all",
+    "file": "Musaeum/Core/API/LibraryFilters.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "        guard let facets else {\n            return Format.allCases.map { FormatOption(format: $0, count: nil) }\n        }",
+    "new": "        guard let facets else {\n            return []\n        }"
+  },
+  {
+    "mutation": "a failed facet fetch reads as a loaded one",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "        } catch let error as ClientError {\n            if facets == nil { facetsPhase = .failed(error.description) }\n            Probe.log(\"facets failed \\(error)\")",
+    "new": "        } catch let error as ClientError {\n            facetsPhase = .loaded\n            Probe.log(\"facets failed \\(error)\")"
+  },
+  {
+    "mutation": "the probe parser drops a token it cannot read",
+    "file": "Musaeum/Core/API/LibraryFilters.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "            default:\n                ignored.append(token)\n            }",
+    "new": "            default:\n                break\n            }"
+  },
+  {
+    "mutation": "the status row lists the contract's three in another order",
+    "file": "Musaeum/Core/API/LibraryFilters.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "    static let statusOrder: [ReadingStatus] = [.unread, .reading, .read]",
+    "new": "    static let statusOrder: [ReadingStatus] = [.unread, .read, .reading]"
+  },
+  {
+    "mutation": "two axes read each other's list (a switch arm copied one up)",
+    "file": "Musaeum/Core/API/LibraryFilters.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "            case .authors: facets.authors\n            case .series: facets.series",
+    "new": "            case .authors: facets.series\n            case .series: facets.authors"
+  },
+  {
+    "mutation": "a filter change re-fetches the counts",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "    func setFilters(_ new: LibraryFilters) async {\n        guard new != query.filters else { return }\n        query.filters = new\n        await start()\n    }",
+    "new": "    func setFilters(_ new: LibraryFilters) async {\n        guard new != query.filters else { return }\n        query.filters = new\n        await start()\n        await loadFacets()\n    }"
+  },
+  {
+    "mutation": "the encoder's separator drifts from the parser's",
+    "file": "Musaeum/Core/API/LibraryFilters.swift",
+    "test": "MusaeumTests/LibraryFilterTests",
+    "old": "tokens.append(\"status=\" + readStatus.map(\\.rawValue).sorted().joined(separator: \"|\"))",
+    "new": "tokens.append(\"status=\" + readStatus.map(\\.rawValue).sorted().joined(separator: \",\"))"
+  }
+]

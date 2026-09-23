@@ -140,6 +140,15 @@ struct LibrarySort: Equatable, Hashable, Sendable {
 struct LibraryQuery: Equatable, Sendable {
     var sort: LibrarySort = .default
     var text: String = ""
+    /// The axes a term cannot express (slice 3b): read status, format, a rating
+    /// floor, and the author/series/tag values.
+    ///
+    /// It sits inside the query rather than beside it because it answers the same
+    /// question the sort and the term answer — *what is this screen asking the Mac
+    /// for* — and because every request has to be composed from all of it at
+    /// once. A second property on the model would be a second thing a `request`
+    /// could forget, and forgetting it is the failure 3.3 and 3.12 both name.
+    var filters: LibraryFilters = .none
 
     /// The term that actually travels, or `nil` when the whole library is meant.
     var term: String? {
@@ -152,25 +161,38 @@ struct LibraryQuery: Equatable, Sendable {
 
 // MARK: - Nothing to show
 
-/// Which of the **two** "nothing to show" screens applies.
+/// Which of the **three** "nothing to show" screens applies.
 ///
 /// This distinction only becomes reachable once search exists, and it is the
-/// difference between "the connection works and the Mac has no books" and "this
-/// term matched none of them" — two states that were the same screen while the
-/// only way to get an empty grid was an empty library.
+/// difference between "the connection works and the Mac has no books", "this
+/// term matched none of them" and "these filters matched none of them" — three
+/// states that were one screen while the only way to get an empty grid was an
+/// empty library.
+///
+/// **The third case is slice 3b's, and it is 3.13 arriving through the copy
+/// rather than through a control.** A filter with nothing to match reaches an
+/// empty grid exactly as a search does, and the two facts deserve different
+/// sentences — the library has books, and these filters excluded all of them. A
+/// screen saying "the Mac reports no books yet" over a library of 7,100 is a
+/// lie the reader has no way to catch, which is the same class of defect as an
+/// indicator nobody can see.
 ///
 /// Decided from **view state the app already holds**, never from a new count:
-/// both states are `books.isEmpty`, and what tells them apart is whether a term
-/// was asked for. Corollary the slice-1 record already insisted on and this keeps
-/// intact: *empty* and *still loading* are separate states, and the phase — not
-/// this — is what tells those two apart, so a cold start does not flash "nothing
-/// matches".
+/// every case is `books.isEmpty`, and what tells them apart is whether a term was
+/// asked for and whether any filter is on. Corollary the slice-1 record already
+/// insisted on and this keeps intact: *empty* and *still loading* are separate
+/// states, and the phase — not this — is what tells those two apart, so a cold
+/// start does not flash "nothing matches".
 enum LibraryEmptyState: Equatable, Sendable {
     /// The Mac reports no books at all: there is no library to browse.
     case libraryIsEmpty
     /// The library has books and this term matched none of them. Carries the
     /// trimmed term, which is what the sentence names.
     case noMatches(String)
+    /// The library has books, no term was asked for, and the filters excluded all
+    /// of them. Carries how many values are on, which is what the sentence and the
+    /// clear control both name.
+    case noFilterMatches(Int)
 
     /// `nil` when there is something to show. Two things arrive as arguments
     /// rather than as assumptions, so the answer is true for **every** input: the
@@ -178,9 +200,15 @@ enum LibraryEmptyState: Equatable, Sendable {
     /// a screen it has not earned) and the query itself — whose `term` is already
     /// the trimmed one, so the rule for "is this a search at all" stays in exactly
     /// one place rather than being re-stated here.
+    ///
+    /// A **term outranks a filter** when both are on and nothing matched: the term
+    /// is the narrower question and the one the sentence can quote, and the
+    /// screen's clear control undoes both in one press rather than offering to
+    /// clear half of the cause.
     static func of(_ query: LibraryQuery, isEmpty: Bool) -> LibraryEmptyState? {
         guard isEmpty else { return nil }
-        guard let term = query.term else { return .libraryIsEmpty }
-        return .noMatches(term)
+        if let term = query.term { return .noMatches(term) }
+        let filters = query.filters.selectedCount
+        return filters > 0 ? .noFilterMatches(filters) : .libraryIsEmpty
     }
 }

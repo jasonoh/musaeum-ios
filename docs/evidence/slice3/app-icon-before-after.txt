@@ -1,0 +1,5 @@
+# the same home-screen page, twice: the app uninstalled, then the build installed
+# `app-icon-before-after.png` — top: no Musaeum, the slot after ReadiumProbe empty;
+# bottom: the same page with Musaeum installed, iOS's own mask on the corners.
+simctl uninstall dev.jasonoh.Musaeum  ->  simctl install Musaeum.app
+bundle: CFBundleIconName=AppIcon  CFBundleIconFiles=[AppIcon60x60]  Assets.car + AppIcon60x60@2x.png
