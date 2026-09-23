@@ -30,7 +30,7 @@ struct ConnectScreen: View {
                     Toggle("Show the token", isOn: $revealToken)
                         .font(.footnote)
                         .foregroundStyle(Palette.muted)
-                    Text("Both are on the Mac, in Musaeum → Settings → Remote access.")
+                    Text("Both are on the Mac: Musaeum → Settings → Phone access. Turning its switch on generates the token.")
                         .font(.footnote)
                         .foregroundStyle(Palette.muted)
                 }
