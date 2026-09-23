@@ -358,6 +358,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					63DEAF6F5C41CD644E974411 = {
+						DevelopmentTeam = 6WZJ9793G7;
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 350E845CBEB70B673CDAAD71 /* Build configuration list for PBXProject "Musaeum" */;
@@ -541,6 +545,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6WZJ9793G7;
 				INFOPLIST_FILE = Musaeum/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -632,6 +638,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6WZJ9793G7;
 				INFOPLIST_FILE = Musaeum/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

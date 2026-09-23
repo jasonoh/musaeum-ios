@@ -44,6 +44,24 @@ targets:
         # allowed outright rather than pretended about.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+    settings:
+      base:
+        # **The owner's personal team, so the app can run on the phone.**
+        # Without a `DEVELOPMENT_TEAM` the generated project signs with
+        # `CODE_SIGN_IDENTITY = iPhone Developer` and no team, and a device build
+        # stops at *"Signing for Musaeum requires a development team"* — which is
+        # exactly where a run on the iPhone ends until someone picks a team in
+        # Xcode's Signing pane by hand. `project.yml` is the source of truth for
+        # build settings (invariant 9), so the team lives here and the simulator
+        # builds are untouched by it.
+        #
+        # A **free** personal team is enough for this app: it declares no
+        # entitlements (no app groups, no push, no associated domains), so there is
+        # no capability the free tier refuses. What it costs is that the profile
+        # expires after **7 days** — the app then refuses to launch and has to be
+        # re-run once from Xcode to renew it.
+        DEVELOPMENT_TEAM: 6WZJ9793G7
+        CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: Readium
         product: ReadiumShared
