@@ -1,8 +1,8 @@
 # Musaeum iOS — a reading client for the Mac's library (v1)
 
 **Date:** 2026-09-22
-**Status:** **slice 1 is built, gated, probed and committed** — `ed7abf6` (*initial ios app*, 44 files, 4,803 insertions), 2026-09-22. The numbers are in *Built — slice 1* at the end of this document, together with the corrections this build made to its own commands; the probe's frames are committed at `docs/evidence/slice1/`. Slice 2 (the upward path) is next — its annex is `docs/plans/2026-09-22-slice2-upward.md`, and nothing of it is in the tree. The three forks it rests on were settled by the owner the same day (CD1, CD2 and the slice boundary below) — Readium for v1, iOS 18, and slice 1 is the whole *downward* path.
-**Scope:** a SwiftUI app that talks to a running Musaeum on the Mac over the tailnet: configure (base URL + token), connect-check, the paginated library as a cover grid, a book's detail, a download into the app's own storage, and the reader opening at the fraction the Mac holds. **Not in slice 1:** the progress *write* (the fraction travelling back up), resumable downloads, search UI, facets/filters UI, metadata edits, device sends, annotations.
+**Status:** **slice 2 is built, gated and probed** (2026-09-23) — not yet committed; the owner commits this repo himself. Slice 1 landed as `ed7abf6` (*initial ios app*, 44 files, 4,803 insertions) and its numbers are in *Built — slice 1* at the end of this document, together with the corrections that build made to its own commands; the probe's frames are committed at `docs/evidence/slice1/`. Slice 2 (the upward path) is complete against its annex `docs/plans/2026-09-22-slice2-upward.md`: **build exit 0, 61 cases across 9 suites, 0 failures**, and three live probe runs against a real Musaeum — the numbers are in *Built — slice 2* below and its frames at `docs/evidence/slice2/`. That closes CD8's own scope: the design has no slice 3. What comes next is the deferred list's, revived only by its stated condition. The three forks slice 1 rests on were settled by the owner on 2026-09-22 (CD1, CD2 and the slice boundary) — Readium for v1, iOS 18, and slice 1 is the whole *downward* path.
+**Scope:** a SwiftUI app that talks to a running Musaeum on the Mac over the tailnet: configure (base URL + token), connect-check, the paginated library as a cover grid, a book's detail, a download into the app's own storage, the reader opening at the fraction the Mac holds (slice 1), and the fraction written back when the reader closes or the app leaves the foreground, queued while the Mac cannot take it (slice 2). **Not in v1:** resumable downloads, search UI, facets/filters UI, metadata edits, device sends, annotations.
 **Depends on (both read, neither restated):** `musaeum/docs/rest-api.md` — the frozen contract, API version 1, written against commit `0a0bdd4`; and `musaeum/docs/superpowers/specs/2026-09-22-ios-companion-design.md` — the workstream's design, whose D1 (bespoke app, own repo), D5 (the fraction is the member that travels), D6 (a report is ordered by its clock), D12 (the contract is provable without a phone), D14 (the Mac must be running; the client caches so that *reading* does not need it) and D15 (Range) are decisions this document **inherits and does not re-open**.
 **Supersedes:** nothing.
 
@@ -125,12 +125,31 @@ In one line: **the reader opens at whichever of the two is further along**, and 
 13. **No `file://`, no path, no token in a log.** The app never composes a file URL for a book it serves to a web view — Readium reads the local file through its own file asset (no HTTP server inside the app), and no code path logs the bearer token. _Decider:_ a source walk over the repo for `URL(string: "file:` / `tok`-logging, plus the request composer's unit case asserting the header is the only place the token appears.
 14. **Gates.** `xcodebuild build` and `xcodebuild test` both exit 0 on the slice's own tree; the test count is reported per file.
 
+## Acceptance criteria (slice 2 — the upward path)
+
+Added by slice 2, never renumbered: slice 1's 14 criteria above are unchanged, and the 18 cases that decide them still pass.
+
+| # | Criterion | Decider |
+| - | --------- | ------- |
+| 2.1 | **Closing the reader sends exactly one `PUT` with the fraction the engine reports and the phone's timestamp** | `ReadingWriteTests`: the request is asserted (path, method, `Content-Type`, and the body's own field list) over a stubbed `URLProtocol` — the same instrument as CD4's |
+| 2.2 | **A report sent while the server is unreachable is queued, not lost, and the queue is empty once the server answers** | `ReadingReporterTests`, over a client pointed at a port nothing listens on, then a stubbed 200 — plus the **live** half: `write-queued-mac-asleep.png` and `write-flushed.png` |
+| 2.3 | **A queue of three reports flushes oldest-first, each carrying its own read time** | `ReadingReporterTests`: the stub records the bodies; the case reads them back in order and asserts the `at` of each is the reading's clock, not the flush's |
+| 2.4 | **A queued report for a 404'd book is dropped and announces itself, and the flush carries on past it** | `ReadingReporterTests`: the stub answers 200 / 404 / 200, and the case asserts three requests in order with an empty queue after |
+| 2.5 | **The queue survives a restart** | `ReportQueueTests` over a temporary directory, and `ReadingReporterTests` for the reporter-over-a-reopened-queue shape — slice 1's `StoreTests` pattern |
+| 2.6 | **Live: read to a position on the phone, close, and the Mac's own `reading_percent`/`reading_position` move** | live probe + `sqlite3` on the probe profile, the number read either side. Two runs, both directions: the Mac's `0.42` → the phone's `0.4198265179677819`; and the Mac's stale `0.05` → the phone's `0.4198265179677819` with `reading_position` blanked |
+| 2.7 | **Live: with the Mac stopped, read, close, start the Mac, and the Mac's row catches up** | live probe, both directions: the report queued with no listener on 8788, then the flush wrote the row with **the queued report's own clock** |
+| 2.8 | **The reader's opening position still follows CD5, and no report is sent on open** | `InitialFractionTests` (slice 1's five cases, unchanged) + the live runs above, where the reader opens at whichever of the two is further along and only the door reports |
+| 2.9 | **Nothing new carries the token, and no `file://` appears** | the AC13 source walk, re-run on this slice's tree |
+| 2.10 | **Gates.** `xcodebuild build` and `xcodebuild test` both exit 0 on this slice's own tree, with the count reported per file | the two commands |
+
+**What slice 2 deliberately does not do.** No UI surface for the queue (it announces itself in the probe log; a "N reports waiting" row is a new decision, not a debt). No background `URLSession`, so a report taken while the app is being backgrounded usually reaches the Mac on the phone's *next* foreground rather than at that instant — the queue is what makes that safe rather than lossy, and the residual is named in *Built — slice 2*. No `Range` resume: CD6's own revival condition — one transfer large enough that restarting it hurts — has not fired, and this slice's library is a few hundred KB per book.
+
 ## Slices
 
 | Slice | What lands | Files (honest) |
 | ----- | ---------- | -------------- |
-| **1 — down** (this) | project + app shell, settings/connect, API models + strict decoder + client, download store, library grid, book detail, reader at a fraction, vendored contract fixtures, live probe | ~22 code + 5 test + docs |
-| **2 — up** | the report on stop, its queue and D6's ordering, resume-by-`Range` | ~6 code + 3 test |
+| **1 — down** (landed, `ed7abf6`) | project + app shell, settings/connect, API models + strict decoder + client, download store, library grid, book detail, reader at a fraction, vendored contract fixtures, live probe | ~22 code + 5 test + docs |
+| **2 — up** (built, uncommitted) | the report on stop, its queue and D6's ordering; **not** resume-by-`Range` | 3 new app files + 5 edited, 3 test files, `scripts/live-probe.sh` + docs |
 
 The slice-1 count is stated rather than discovered: the owner chose the bigger slice (config → health → list → detail → download → reader), and each of those is a screen with a model behind it. They are built in that order, each with its own decider, so the slice lands in coherent pieces rather than one unreviewable diff.
 
@@ -221,3 +240,92 @@ Both come from one session the owner spent running the app **from Xcode** — th
 - **Typography — looked at, accepted, closed (2026-09-22).** The owner reviewed the frames and judged Readium's page fine for v1, so **CD1's revival condition for foliate-js is not fired** and foliate-js stays rejected on its own stated ground (cost). The observation that prompted the look: Readium's justified body text shows wide inter-word gaps on long lines. Nothing follows from it — a future typography pass is a new decision, not a debt this slice left, and the next session should not re-raise it as open work.
 - **Every frame in this slice is the reader's first page.** Page turns, the palette on a real page, and the reading experience over a longer sitting were not exercised (no tap-driving instrument in this slice).
 - **The Mac's app was stopped for run 3**, and the probe profile's Mac-side app was not restarted afterwards. Nothing on the owner's own profile or library was touched: the probe ran entirely inside `~/.hermes/profiles/dev/cache/scratch/ios-probe`.
+
+---
+
+## Built — slice 2 (2026-09-23)
+
+The upward path. Three new app files (`Core/API/ReadingReport.swift`, `Core/Store/ReportQueue.swift`, `Core/Store/ReadingReporter.swift`), five edited (`Core/API/MusaeumClient.swift` — a `body:` on request composition, the `PUT` route and its hand-written body; `Core/Reader/ReaderHost.swift` — `settledFraction`; `Features/Reader/ReaderScreen.swift` — the two doors and the write probe; `App/MusaeumApp.swift` — the reporter in the environment and the two flush triggers; `Core/Support/Probe.swift` — the `write` action named), three test files, plus `scripts/live-probe.sh` and the docs.
+
+**No design decision was re-opened.** CD1–CD8 are closed and this build changed none of them; the two readings it had to settle for itself are below.
+
+### Gates
+
+| Instrument | Result |
+| ---------- | ------ |
+| `xcodebuild build` | **exit 0**, no warnings in this repo's own files (Readium's packages excluded) |
+| `xcodebuild test` | **exit 0 — 61 cases, 0 failures, across 9 suites** |
+| `../musaeum/scripts/api-smoke.sh` | **passed 56, failed 0** against the same server |
+| AC13's source walk | re-run: no `file://`, no `URL(string: "file:`, and no `Probe.log`/`print` line mentions the token or the header |
+| **Mutation campaign** (8 mutations, one per criterion that has a unit decider) | **8/8 killed**, every file restored and sha256-verified — `docs/evidence/slice2/mutation-campaign.log` |
+
+Per file, because a total is not a decider — and slice 1's own 43 are inside the first five rows, unchanged:
+
+| Suite (file) | Cases |
+| ------------ | ----- |
+| `ClientTests` | 14 |
+| `ContractDecodeTests` | 11 |
+| `CoverPipelineTests` | 3 |
+| `InitialFractionTests` | 7 |
+| `LibraryPagingTests` | 2 |
+| `ReadingReporterTests` **(new)** | 8 |
+| `ReadingWriteTests` **(new)** | 6 |
+| `ReportQueueTests` **(new)** | 4 |
+| `StoreTests` | 6 |
+
+**The campaign is what makes those 18 new cases a result rather than a green light.** Slice 1's record had no such row, and its criteria were argued from their assertions — a suite proves the cases *ran*, never that they *decide*. So each criterion here was mutated one at a time and its focused suite required to redden, with the baseline run green first so a red row means an assertion failed rather than a suite that does not exist:
+
+| Mutated | Decider | Failure count |
+| ------- | ------- | ------------- |
+| the write is a `POST` | `ReadingWriteTests` | 1 |
+| the body **always** carries the clock (a live report's `at` is no longer absent) | `ReadingWriteTests` | 1 |
+| a report is not kept when the Mac cannot take it (attempt-then-forget) | `ReadingReporterTests` | 12 |
+| the flush walks newest-first | `ReadingReporterTests` | 4 |
+| a 404 is retried rather than dropped | `ReadingReporterTests` | 2 |
+| a flush against a sleeping Mac walks the whole queue instead of stopping | `ReadingReporterTests` | 1 |
+| the queue is in memory only (the index is never written) | `ReportQueueTests` | 4 |
+| a live report carries its own clock (the reporter's half of D6) | `ReadingReporterTests` | 1 |
+
+**What the campaign proved these deciders cannot see**, said plainly rather than left to be discovered: criteria **2.6 and 2.7 are live-only** — no unit case can decide that the Mac's *own row* moved, so they are decided by the probe runs above and nothing else. And the two clock mutations are a **pair**: the rule "`at` travels only on a flush" has one half in the body (`MusaeumClient.readingBody`) and one in the reporter (`attempt`'s `includingClock`), and a campaign that listed either alone would have reported the case load-bearing while the other half was free to delete.
+
+*One row's failure count is worth reading rather than counting.* The attempt-then-forget mutation reddens **12 assertions across 8 cases** — that is not 12 deciders, it is one symptom (nothing stays queued) reaching every case that inspects the queue afterwards. Read as a set, it is collateral; read as a number, it is noise.
+
+### The live probe
+
+Three runs against a real Musaeum on slice 1's isolated profile (8 EPUBs at `http://100.125.135.108:8788`, iPhone 17 Pro / iOS 26.1), all on book `ef91875e-92ef-47ae-8ef2-3dc0bc1a8b9d` (*Negotiation Genius*). The decider is the **Mac's own row**, read out of the probe profile's SQLite either side; the frames are committed under `docs/evidence/slice2/`, whose README carries the full log lines.
+
+| # | Run | The Mac's row, before → after | What the app logged |
+| - | --- | ----------------------------- | ------------------- |
+| 1 | write, Mac up, **the Mac further along** | `0.42` → **`0.4198265179677819`**, position `null` | `reader opened … requested=0.42 local=0.09777541747801971 server=0.42` → `reader landed=0.4198265179677819` → `report accepted` → `probe write the Mac now holds percent=0.4198265179677819` |
+| 2 | write, Mac up, **the phone further along** | `0.05` + a stale CFI, `updated_at 2026-09-22T00:00:00.000Z` → **`0.419826517967782`**, position **blanked** (the stale CFI gone) | `reader opened … requested=0.4198265179677819 local=0.4198265179677819 server=0.05` → `report accepted` → `probe write pending=0` |
+| 3 | write with **no listener on 8788**, then start the Mac, then flush | `0.05` + a stale CFI, **unchanged while it was asleep** → **`0.419826517967782`**, position **blanked**, `updated_at 2026-09-23T13:50:37.387Z` | run A: `library failed the Mac is not answering` → `report queued` → `probe write pending=1`. Run B: `report queue drained`; `reports.json` `[…] → []` |
+
+Run 1 is what a report that merely echoed the request back could **not** produce: the Mac sent `0.42` and got `0.4198265179677819` — the phone's engine's number, the same figure the pre-build Readium harness measured for that request. Run 2 is the same fact in the direction that matters for a real reader: the Mac's stale `0.05` and its stale CFI were both replaced by the phone's `0.42`, and the CFI's disappearance is the Mac's D5 blanking reached through the phone's report. Run 3's `updated_at` is **the queued report's own `readAt`** (`13:50:37.387Z`), not the flush's clock, and `metadata.json` beside the book (`{"position": null, "percent": 0.4198265179677819, "updated_at": "2026-09-23T13:50:37.387Z"}`) agrees — D6's client half, measured rather than argued.
+
+### The two readings this slice settled for itself
+
+**1. The clock travels only on a *flush*.** The annex's row said the report carries "`percent` plus the phone's clock". The contract is sharper — *"send it for a report that was queued… omit it for a live read, when the server's clock is the truth"* — and the difference is not pedantry: the Mac's D6 refuses a report older than its row, so a phone whose clock runs a few seconds behind would have **its own live report refused as stale** by its own timestamp. So the queue always stores when the reading happened, and the **live attempt** is the one that omits `at` from the body. Decided by `ReadingWriteTests.testALiveReportOmitsTheClockAndAQueuedOneCarriesIt` (the body's key set is `["percent"]`, not `["percent","at"]`) and `ReadingReporterTests.testALiveReportReachesTheMacWithoutItsClock` (asserted on the bytes the request actually carried), with the flushing half in `testAQueueOfThreeFlushesOldestFirstCarryingEachReportsOwnClock`.
+
+**2. A report is queued *before* the Mac is asked.** `ReadingReporter.report` writes the queue, then attempts, then removes on acceptance — rather than the obvious attempt-then-queue. Why: the door that matters most is the app *leaving the foreground*, where being suspended mid-request is the expected outcome rather than the unlucky one, and queue-first makes "queued, not lost" true by construction instead of by timing. The cost is stated rather than hidden: a report that succeeds leaves a transient on-disk write behind it, and the queue is read at most twice per reading.
+
+Both are wiring, not product: the annex's own table is the ground, and neither touches CD1–CD8.
+
+### Corrections and traps this build paid for
+
+1. **`scripts/live-probe.sh` was committed `100644` — not executable.** The command `AGENTS.md` and the slice-1 record both tell the next session to run (`TAG=library ./scripts/live-probe.sh`) answered `Permission denied`. Fixed with `chmod +x`; the mode change rides in the commit.
+2. **The probe script never passed a base URL, and the app stores none on the simulator** (`Library/Preferences/dev.jasonoh.Musaeum.plist` does not exist in the container). Slice 1's runs must therefore have set it by hand — so the "re-runnable" script would in fact come up **unconfigured**, log nothing, and read as *"the probe found nothing"*: a silently undecided run, which is the same class as slice 1's trap 12. It now reads `$ROOT/base.txt` (or `BASE=…`) and **refuses to run without it**, exactly as it already refused without `token.txt`.
+3. **The Mac writes reading state *after* its listener closes.** Stopping the dev app by its listener pid frees `8788` first and runs the quit handshake — which flushes in-memory reading state into SQLite *and* `metadata.json` — a second or two later; and the next startup rebuilds the row from the derived store. An edit to the probe profile's row inside that window is silently overwritten, and the old value comes back. This cost three attempts at 2.6/2.7 before the shape of the race was read off the two stores side by side (`metadata.json` said `0.05`, SQLite said `0.4198` — the write that flipped it was the *startup* adoption). The edit that decides anything is the one made either once `pgrep -f 'electron/dist/Musaeum.app'` is **empty** (not merely `lsof` clean), or **after startup and immediately before the run**.
+4. **A row equal to the phone's position makes a run look green and decide nothing.** The first attempt at 2.6 reported `0.1` against a Mac holding `0.1`; the write was accepted, `updated_at` moved, and **no position moved**. Every decisive run therefore sets the profile's row to a *different* number first — and a stale CFI alongside it, so the D5 blanking has something to remove. This is written into `docs/evidence/slice2/README.md` because it is the difference between evidence and a green light.
+5. **`ReadingReporterTests` is `@MainActor` and therefore had slice 1's trap-2 crash in front of it.** Its stub-closure helpers are all `nonisolated`, with the reason written on the class — a `@MainActor` case whose closure runs off-main asserts the queue and sends `SIGTRAP`, which reads as "the app quit" rather than a failed case.
+6. **The body of a `PUT` is not where a `URLProtocol` finds it.** `URLSession` turns a request with `httpBody` into an upload task and the stub then sees the bytes on `httpBodyStream`. A case that asserted `request.httpBody` would have passed by asserting `nil`. `ReadingReporterTests.body(of:)` reads the property and falls back to draining the stream.
+7. **The write reaches `metadata.json` as well as SQLite** — `reading_state: {position, percent, updated_at}` beside the book is what the flush wrote, position `null` included. Worth knowing because it means the probe profile has *two* stores that can disagree, and only one of them is what the route reads.
+
+### Handed to the owner's own judgement, and the residuals
+
+- **The background door is a claim for a human frame.** `simctl` cannot background an app, so run 3 exercised the *close* door and the queue; what is **not** measured is whether a report taken while the app is being backgrounded reaches the Mac before the app is suspended. It usually will not — this slice takes no `beginBackgroundTask` assertion and uses no background `URLSession` — so the report waits in the queue and lands on the phone's next foreground. That is safe rather than lossy (the queue write happens before the attempt), and it is the honest cost of the two doors. **What would change it:** a background `URLSession` with its own delegate, or a grace window around the send — both real decisions, neither taken here. To see the behaviour: read a few pages with the Mac awake, lock the phone, and watch the Mac's row before reopening the app.
+- **The queue has no surface in the UI.** It announces itself in the probe log (`report queued` / `report queue drained`) and nowhere else. A "N reports waiting" row is a new decision, not a debt this slice left.
+- **A queued report is not bounded by age.** A phone that has not seen its Mac for a month flushes a month of readings, oldest first, one request each. The outcome is right — the Mac's D6 refuses every one older than its row, so the row keeps the newest position — but it is a burst of writes, and it is named here rather than defended.
+- **`Range` resume is still not built** and CD6's own revival condition has not fired: the probe profile's books are ~660 KB.
+- **The probe profile's final state**, so the next session reproduces from here: the Mac's row for `ef91875e-…` is `reading` at `0.419826517967782` with `reading_position` null; the phone holds the EPUB (660,053 bytes), its cover, its own `positions.json` at `0.4198265179677819`, and an **empty** `reports.json`.
+- **The Mac's app was started and stopped four times, all by this session on purpose**, entirely on the probe profile at `~/.hermes/profiles/dev/cache/scratch/ios-probe`. No process of the owner's own profile or library was involved at any point.
+

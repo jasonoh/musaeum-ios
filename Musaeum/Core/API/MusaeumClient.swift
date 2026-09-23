@@ -78,7 +78,8 @@ struct MusaeumClient: Sendable {
         token: String,
         path: String,
         query: [URLQueryItem] = [],
-        method: String = "GET"
+        method: String = "GET",
+        body: Data? = nil
     ) -> URLRequest {
         var components = URLComponents(url: base.appendingPathComponent(path), resolvingAgainstBaseURL: false)
         components?.queryItems = query.isEmpty ? nil : query
@@ -86,11 +87,34 @@ struct MusaeumClient: Sendable {
         request.httpMethod = method
         // The one place the credential appears (invariant 10).
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if let body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         return request
     }
 
-    private func request(path: String, query: [URLQueryItem] = [], method: String = "GET") -> URLRequest {
-        Self.request(base: base, token: token, path: path, query: query, method: method)
+    private func request(
+        path: String,
+        query: [URLQueryItem] = [],
+        method: String = "GET",
+        body: Data? = nil
+    ) -> URLRequest {
+        Self.request(base: base, token: token, path: path, query: query, method: method, body: body)
+    }
+
+    /// The one write's body: `{ "percent": 0.42, "at": "…" }`.
+    ///
+    /// `at` is **absent**, not `null`, when it is not sent — the contract draws
+    /// exactly that distinction ("send it for a report that was queued; omit it for
+    /// a live read, when the server's clock is the truth"), so the encoder writes
+    /// the key only when there is a value. The fraction is clamped: the contract
+    /// refuses `60` rather than reading it as `0.6`.
+    static func readingBody(percent: Double, at: Date?) throws -> Data {
+        try JSONEncoder().encode(ReadingRequestBody(
+            percent: percent.clampedToUnit(),
+            at: at.map(ISO8601.string)
+        ))
     }
 
     // MARK: Routes
@@ -201,6 +225,27 @@ struct MusaeumClient: Sendable {
         throw ClientError.unreachable("the transfer never settled")
     }
 
+    // MARK: The one write
+
+    /// `PUT /api/books/{id}/reading` — the report that makes a position travel.
+    ///
+    /// `at` is the phone's own clock, and it belongs on the wire **only for a
+    /// report that was queued**: the contract says so, and the Mac's D6 compares it
+    /// against the row's `reading_updated_at`. A live read passes `nil` so the
+    /// server's clock is the truth — which is what stops a phone whose clock is
+    /// behind from having its own report refused as stale.
+    ///
+    /// The reply is `200` whether or not the report was applied: `applied: false`
+    /// is the stale refusal, and it is an answer rather than a failure.
+    func reportReading(id: String, percent: Double, at: Date? = nil) async throws -> ReadingResult {
+        let request = request(
+            path: "api/books/\(id)/reading",
+            method: "PUT",
+            body: try Self.readingBody(percent: percent, at: at)
+        )
+        return try await sendJSON(request)
+    }
+
     // MARK: Plumbing
 
     private func sendJSON<T: Decodable>(_ request: URLRequest) async throws -> T {
@@ -282,5 +327,20 @@ struct MusaeumClient: Sendable {
         @unknown default:
             .malformedField("payload", at: "", value: String(describing: error))
         }
+    }
+}
+
+/// The body of the one write, spelled by hand so that **absence is real
+/// absence**: synthesized `Codable` would leave this to `encodeIfPresent`'s own
+/// behaviour, and the contract's distinction between "no `at`" (a live read) and
+/// "`at` present" (a queued report) is the whole of D6's client half.
+private struct ReadingRequestBody: Encodable {
+    let percent: Double
+    let at: String?
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: AnyCodingKey.self)
+        try container.encode(percent, forKey: AnyCodingKey("percent"))
+        try container.encodeIfPresent(at, forKey: AnyCodingKey("at"))
     }
 }

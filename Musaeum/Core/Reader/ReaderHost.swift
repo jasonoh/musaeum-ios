@@ -132,6 +132,25 @@ final class ReaderModel {
         }
     }
 
+    /// The fraction to report **right now**: what the engine says it is at, or a
+    /// brief wait for the engine when it has not said anything yet.
+    ///
+    /// `nil` means the engine never laid out, and a report of nothing is not a
+    /// report — `nil` is not `0`, which is CD5's own distinction and what keeps a
+    /// book closed before it opened from being dragged back to its first page.
+    /// The wait is bounded because one of this method's two callers is the app
+    /// being put in a pocket, where there is no time to spare: the fast path is
+    /// `landingFraction`, which `record(_:)` keeps current on every page turn.
+    func settledFraction(timeout: Duration = .seconds(3)) async -> Double? {
+        if let landingFraction { return landingFraction }
+        let deadline = ContinuousClock.now.advanced(by: timeout)
+        while landingFraction == nil, ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(200))
+            if Task.isCancelled { break }
+        }
+        return landingFraction
+    }
+
     /// The dark page. Readium ships its own CSS, so this is the one place the
     /// app's palette can reach the text: the reading system's own dark theme,
     /// chosen for a reader who reads a library the app paints near-black. Tuned

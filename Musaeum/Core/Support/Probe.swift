@@ -26,6 +26,9 @@ enum Probe {
     static var openBookID: String? { value("MUSAEUM_PROBE_OPEN") }
 
     /// What the probe is exercising, so `library` and `read` runs are distinct.
+    /// `write` additionally reports the fraction the reader landed at **through
+    /// the app's own door** and reads the row back — the upward path's live
+    /// instrument (`ReaderScreen.runWriteProbe`).
     static var action: String? { value("MUSAEUM_PROBE_ACTION") }
 
     static var isActive: Bool { base != nil || token != nil || openBookID != nil }

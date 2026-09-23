@@ -31,18 +31,25 @@ The phone must be on the same tailnet as the Mac. The server binds the tailnet a
 
 Slice 1 (the *downward* path): configure and connect, the paginated library as a cover grid, a book's detail, a download into the app's own storage, and the reader opening at the fraction the Mac holds. Books already downloaded are readable with the Mac asleep or off.
 
-**Not built yet** (slice 2): the progress report travelling back up — the app does not yet write where you stopped on the phone back to the Mac. Downloads are whole-file; resumable downloads are deferred (`docs/specs`, CD6).
+Slice 2 (the *upward* path): the fraction is written back when the reader closes or the app leaves the foreground, queued on the phone while the Mac cannot take it and flushed when it answers — ordered by the report's own clock, which is what stops a phone's stale reading from dragging the Mac's position backwards.
+
+**Not built yet:** search and filters, PDF in the reader, resumable downloads (whole-file today, `docs/specs` CD6), and the deferred list in `tasks.md` — each revived only by its own stated condition.
 
 ## Layout
 
 ```
 Musaeum/
   App/                    app entry and the root navigation
-  Core/API/               contract models, the strict decoder, the HTTP client, the cover pipeline
-  Core/Store/             settings (Keychain + UserDefaults), the download index, local positions
+  Core/API/               contract models, the strict decoder, the HTTP client, the cover pipeline,
+                          the progress report and the refusal rule that decides its fate
+  Core/Store/             settings (Keychain + UserDefaults), the download index, local positions,
+                          the report queue and the reporter that drives it
   Core/Reader/            the Readium host and the pure initial-fraction rule
+  Core/Support/           the launch seam the live probe drives
   Features/               Connect · Library · Detail · Downloads · Reader
-Tests/MusaeumTests/       the deciders: contract fixtures, strict decoding, request composition, the cover cap, positions
+Tests/MusaeumTests/       the deciders: contract fixtures, strict decoding, request composition,
+                          the cover cap, positions, the queue, the reporter, the one write
 Tests/Fixtures/contract/  payloads extracted from the contract document by scripts/vendor-contract-fixtures.sh
-scripts/                  the fixture vendoring script
+scripts/                  the fixture vendoring script, and live-probe.sh — the app's own instrument
+docs/evidence/            the frames each slice's live probe produced, with the numbers beside them
 ```

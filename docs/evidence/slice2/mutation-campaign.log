@@ -1,0 +1,29 @@
+BASELINE  MusaeumTests/ReadingWriteTests: exit=0  Executed 6 tests, with 0 failures (0 unexpected) in 0.021 (0.034) seconds
+BASELINE  MusaeumTests/ReadingReporterTests: exit=0  Executed 8 tests, with 0 failures (0 unexpected) in 0.107 (0.110) seconds
+BASELINE  MusaeumTests/ReportQueueTests: exit=0  Executed 4 tests, with 0 failures (0 unexpected) in 0.009 (0.018) seconds
+RED (killed)    the write is a POST rather than a PUT
+                suite=MusaeumTests/ReadingWriteTests restored=True
+                Executed 6 tests, with 1 failure (0 unexpected) in 0.037 (0.040) seconds
+RED (killed)    the body always carries the clock (a live report's `at` is no longer absent)
+                suite=MusaeumTests/ReadingWriteTests restored=True
+                Executed 6 tests, with 1 failure (0 unexpected) in 0.039 (0.042) seconds
+RED (killed)    a report is not kept when the Mac cannot take it (attempt-then-forget)
+                suite=MusaeumTests/ReadingReporterTests restored=True
+                Executed 8 tests, with 12 failures (0 unexpected) in 0.116 (0.119) seconds
+RED (killed)    the flush walks newest-first
+                suite=MusaeumTests/ReadingReporterTests restored=True
+                Executed 8 tests, with 4 failures (0 unexpected) in 0.115 (0.118) seconds
+RED (killed)    a 404 is retried rather than dropped (nothing is ever given up on)
+                suite=MusaeumTests/ReadingReporterTests restored=True
+                Executed 8 tests, with 2 failures (0 unexpected) in 0.097 (0.100) seconds
+RED (killed)    a flush against a sleeping Mac walks the whole queue instead of stopping
+                suite=MusaeumTests/ReadingReporterTests restored=True
+                Executed 8 tests, with 1 failure (0 unexpected) in 0.103 (0.106) seconds
+RED (killed)    the queue is in memory only (the index is never written)
+                suite=MusaeumTests/ReportQueueTests restored=True
+                Executed 4 tests, with 4 failures (0 unexpected) in 0.031 (0.033) seconds
+RED (killed)    a live report carries its own clock (the reporter's half of D6)
+                suite=MusaeumTests/ReadingReporterTests restored=True
+                Executed 8 tests, with 1 failure (0 unexpected) in 0.122 (0.125) seconds
+
+killed 8/8

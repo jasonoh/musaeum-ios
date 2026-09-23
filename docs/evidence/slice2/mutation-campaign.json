@@ -1,0 +1,58 @@
+[
+ {
+  "mutation": "the write is a POST rather than a PUT",
+  "file": "Musaeum/Core/API/MusaeumClient.swift",
+  "old": "            path: \"api/books/\\(id)/reading\",\n            method: \"PUT\",",
+  "new": "            path: \"api/books/\\(id)/reading\",\n            method: \"POST\",",
+  "test": "MusaeumTests/ReadingWriteTests"
+ },
+ {
+  "mutation": "the body always carries the clock (a live report's `at` is no longer absent)",
+  "file": "Musaeum/Core/API/MusaeumClient.swift",
+  "old": "            at: at.map(ISO8601.string)",
+  "new": "            at: ISO8601.string(at ?? Date())",
+  "test": "MusaeumTests/ReadingWriteTests"
+ },
+ {
+  "mutation": "a report is not kept when the Mac cannot take it (attempt-then-forget)",
+  "file": "Musaeum/Core/Store/ReadingReporter.swift",
+  "old": "        if disposition != .queued {\n            queue.remove(report.id)\n        }",
+  "new": "        queue.remove(report.id)",
+  "test": "MusaeumTests/ReadingReporterTests"
+ },
+ {
+  "mutation": "the flush walks newest-first",
+  "file": "Musaeum/Core/Store/ReadingReporter.swift",
+  "old": "        for report in queue.reports {",
+  "new": "        for report in queue.reports.reversed() {",
+  "test": "MusaeumTests/ReadingReporterTests"
+ },
+ {
+  "mutation": "a 404 is retried rather than dropped (nothing is ever given up on)",
+  "file": "Musaeum/Core/Store/ReadingReporter.swift",
+  "old": "            return ReportPolicy.disposition(error)",
+  "new": "            return .queued",
+  "test": "MusaeumTests/ReadingReporterTests"
+ },
+ {
+  "mutation": "a flush against a sleeping Mac walks the whole queue instead of stopping",
+  "file": "Musaeum/Core/Store/ReadingReporter.swift",
+  "old": "                Probe.log(\"report flush stopped at book=\\(report.bookId) \u2014 the Mac is not taking reports\")\n                return",
+  "new": "                Probe.log(\"report flush stopped at book=\\(report.bookId) \u2014 the Mac is not taking reports\")\n                continue",
+  "test": "MusaeumTests/ReadingReporterTests"
+ },
+ {
+  "mutation": "the queue is in memory only (the index is never written)",
+  "file": "Musaeum/Core/Store/ReportQueue.swift",
+  "old": "    func enqueue(_ report: ReadingReport) {\n        reports.append(report)\n        persist()\n    }",
+  "new": "    func enqueue(_ report: ReadingReport) {\n        reports.append(report)\n    }",
+  "test": "MusaeumTests/ReportQueueTests"
+ },
+ {
+  "mutation": "a live report carries its own clock (the reporter's half of D6)",
+  "file": "Musaeum/Core/Store/ReadingReporter.swift",
+  "old": "                at: includingClock ? report.readAt : nil",
+  "new": "                at: includingClock ? report.readAt : report.readAt",
+  "test": "MusaeumTests/ReadingReporterTests"
+ }
+]

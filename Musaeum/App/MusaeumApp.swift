@@ -5,6 +5,7 @@ struct MusaeumApp: App {
     @State private var settings = SettingsStore()
     @State private var downloads = DownloadStore()
     @State private var positions = LocalPositions()
+    @State private var reporter = ReadingReporter()
 
     var body: some Scene {
         WindowGroup {
@@ -12,6 +13,7 @@ struct MusaeumApp: App {
                 .environment(settings)
                 .environment(downloads)
                 .environment(positions)
+                .environment(reporter)
                 .preferredColorScheme(.dark)
                 .tint(Palette.gold)
         }
@@ -24,6 +26,8 @@ struct MusaeumApp: App {
 struct RootView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(DownloadStore.self) private var downloads
+    @Environment(ReadingReporter.self) private var reporter
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var probeReading: ReadingRequest?
 
@@ -39,7 +43,23 @@ struct RootView: View {
         .fullScreenCover(item: $probeReading) { request in
             ReaderScreen(request: request)
         }
-        .task { await runProbeIfAsked() }
+        // **When the Mac answers again.** A report queued while it was asleep is
+        // flushed on launch and on every return to the foreground — the client's
+        // whole half of the workstream's D6 convergence, and the reason the queue
+        // is not just a place reports go to die.
+        .task {
+            await runProbeIfAsked()
+            await reporter.flush(to: makeClient())
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task { await reporter.flush(to: makeClient()) }
+        }
+    }
+
+    private func makeClient() -> MusaeumClient? {
+        guard let base = settings.baseURL else { return nil }
+        return MusaeumClient(base: base, token: settings.token)
     }
 
     /// A probe run fetches, downloads and opens one named book with no taps, so
