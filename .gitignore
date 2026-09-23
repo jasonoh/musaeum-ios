@@ -1,0 +1,16 @@
+# Xcode
+build/
+DerivedData/
+# -derivedDataPath ./DD is what every gate command in this repo uses (docs/specs
+# CD2's deciders), and it is derived data — never committed.
+DD/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.moved-aside
+
+# XcodeGen generates Musaeum.xcodeproj — it is committed on purpose so a clone
+# opens in Xcode with no extra tooling (docs/specs CD2). project.yml is the source.
+
+# macOS
+.DS_Store

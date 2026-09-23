@@ -1,0 +1,684 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0CC5A047D7CEE77CE7E64147 /* InitialFractionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3599D559223B796E5E027836 /* InitialFractionTests.swift */; };
+		0F6C4C88B7E3F8320303A6D1 /* StoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C784056B0BD23C40F84B65 /* StoreTests.swift */; };
+		14C099AD9613A50E7A8AD277 /* ContractDecodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105384EF3C60158460BBCFDA /* ContractDecodeTests.swift */; };
+		161D4DF43BAA3CFFA539978D /* LibraryPagingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */; };
+		18B77594E5F98C554440A482 /* ClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF9D90F9757172EE9EAE639 /* ClientTests.swift */; };
+		1E4DF7769F978772CCF9AE11 /* ReaderScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5590CD7BEEBDDD7E56AC28BD /* ReaderScreen.swift */; };
+		25512185A79BD14C74DAAF76 /* CoverPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096300ACDD30C93737BCE6D2 /* CoverPipelineTests.swift */; };
+		2AC785C64C006D4D186CD905 /* LibraryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DF767FE2BB07C60C7DEAE9F /* LibraryScreen.swift */; };
+		375124D1855727F546A02226 /* facets.json in Resources */ = {isa = PBXBuildFile; fileRef = FFD8E3BB2E41D8521208E684 /* facets.json */; };
+		3897F8B16DE196FF21634649 /* InitialFraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FDD0012F3D8415AC1C59F55 /* InitialFraction.swift */; };
+		47BFB54BA90D0B5E417BDE89 /* book.json in Resources */ = {isa = PBXBuildFile; fileRef = C7D6F6DBD356A9E3F800BB88 /* book.json */; };
+		5148A3A8EBBE6D270180EAC7 /* Probe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81EA6E53A91ED976505C5CFC /* Probe.swift */; };
+		518067CF6248F5842A387B43 /* ReadiumShared in Frameworks */ = {isa = PBXBuildFile; productRef = 0E91009E879C6C21C398DC2B /* ReadiumShared */; };
+		7C4EF58A56676EE54814444C /* DownloadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3302895D182A0DB5A577D4 /* DownloadStore.swift */; };
+		80C44FF6E6A280EBDADABA85 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2560A771DBF4AD1074DF4EF /* SettingsStore.swift */; };
+		937B28457C22E1C9F45D8C4A /* StubURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E605FCC5A92F3D5F28097A6C /* StubURLProtocol.swift */; };
+		98279CE527523DCFED68DFEF /* ReaderHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9F1D01B1824F1AC625C667 /* ReaderHost.swift */; };
+		9923E11469CFDC75F8B4AF82 /* library.json in Resources */ = {isa = PBXBuildFile; fileRef = EE5094E33088020887D199CF /* library.json */; };
+		A955D005F98F32B8AC1BD626 /* DownloadsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705A94184FA87C433B903CA4 /* DownloadsScreen.swift */; };
+		B2DD820F69C73961513D06A4 /* ReadiumNavigator in Frameworks */ = {isa = PBXBuildFile; productRef = 25104749B30496EF12C0D950 /* ReadiumNavigator */; };
+		B86A08924D1D774CC4A4C9CA /* reading.json in Resources */ = {isa = PBXBuildFile; fileRef = B371196CB66C88935EAF1104 /* reading.json */; };
+		BFC3EA373FF39ED0E25C97A7 /* ConnectScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A3FF654C46D7B19B16848A5 /* ConnectScreen.swift */; };
+		C66D9F99ECE56D99EAF440D9 /* BookDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 886FEC7A99AF5B96802DD45E /* BookDetailScreen.swift */; };
+		C8AB6A38F37AF361E83DFB63 /* MusaeumApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F874BF13BC098D65D093E3D2 /* MusaeumApp.swift */; };
+		CA2A3AA26C5BF4623D310267 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 578AFE52A9D1202FDB87FD9C /* Palette.swift */; };
+		CDA2BD53B728C2A2D7172A27 /* health.json in Resources */ = {isa = PBXBuildFile; fileRef = 59AA610D06CC7B3DD6D2C9A3 /* health.json */; };
+		D72310B0386BEE780D3EB192 /* ReadiumStreamer in Frameworks */ = {isa = PBXBuildFile; productRef = 6FCEE435C55AE12E1B9ACCF8 /* ReadiumStreamer */; };
+		DA04AA684999665A0C182DED /* CoverPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016D9C9511EC68185420617F /* CoverPipeline.swift */; };
+		DE9054036A3365FB6858FED3 /* MusaeumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */; };
+		DE98447DF4AAA183B74466D2 /* error.json in Resources */ = {isa = PBXBuildFile; fileRef = 6D4512DC0B93D19548F957A5 /* error.json */; };
+		F43AF4504F0943A0B57DC7E5 /* LocalPositions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFFAD5FA5ED4645B36A7414 /* LocalPositions.swift */; };
+		FE28E74879CEC4A4D0021234 /* ContractModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F7FA64E3DE047BF5F43A4199 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8765291F8937A9D602064D14 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 63DEAF6F5C41CD644E974411;
+			remoteInfo = Musaeum;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		016D9C9511EC68185420617F /* CoverPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverPipeline.swift; sourceTree = "<group>"; };
+		096300ACDD30C93737BCE6D2 /* CoverPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverPipelineTests.swift; sourceTree = "<group>"; };
+		09C784056B0BD23C40F84B65 /* StoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreTests.swift; sourceTree = "<group>"; };
+		0DF767FE2BB07C60C7DEAE9F /* LibraryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScreen.swift; sourceTree = "<group>"; };
+		105384EF3C60158460BBCFDA /* ContractDecodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractDecodeTests.swift; sourceTree = "<group>"; };
+		3599D559223B796E5E027836 /* InitialFractionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialFractionTests.swift; sourceTree = "<group>"; };
+		4651E4E29334A9A7C4CCFC40 /* MusaeumTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MusaeumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5590CD7BEEBDDD7E56AC28BD /* ReaderScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderScreen.swift; sourceTree = "<group>"; };
+		578AFE52A9D1202FDB87FD9C /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
+		59AA610D06CC7B3DD6D2C9A3 /* health.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = health.json; sourceTree = "<group>"; };
+		5A3FF654C46D7B19B16848A5 /* ConnectScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectScreen.swift; sourceTree = "<group>"; };
+		64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusaeumClient.swift; sourceTree = "<group>"; };
+		6D4512DC0B93D19548F957A5 /* error.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = error.json; sourceTree = "<group>"; };
+		705A94184FA87C433B903CA4 /* DownloadsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsScreen.swift; sourceTree = "<group>"; };
+		81EA6E53A91ED976505C5CFC /* Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Probe.swift; sourceTree = "<group>"; };
+		886FEC7A99AF5B96802DD45E /* BookDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailScreen.swift; sourceTree = "<group>"; };
+		8AFFAD5FA5ED4645B36A7414 /* LocalPositions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalPositions.swift; sourceTree = "<group>"; };
+		9B9F1D01B1824F1AC625C667 /* ReaderHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderHost.swift; sourceTree = "<group>"; };
+		9BF9D90F9757172EE9EAE639 /* ClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientTests.swift; sourceTree = "<group>"; };
+		9FDD0012F3D8415AC1C59F55 /* InitialFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialFraction.swift; sourceTree = "<group>"; };
+		A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractModels.swift; sourceTree = "<group>"; };
+		AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryPagingTests.swift; sourceTree = "<group>"; };
+		B371196CB66C88935EAF1104 /* reading.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = reading.json; sourceTree = "<group>"; };
+		C7D6F6DBD356A9E3F800BB88 /* book.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = book.json; sourceTree = "<group>"; };
+		E2560A771DBF4AD1074DF4EF /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		E605FCC5A92F3D5F28097A6C /* StubURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocol.swift; sourceTree = "<group>"; };
+		E96804B4654C15C379FEB715 /* Musaeum.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Musaeum.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EB3302895D182A0DB5A577D4 /* DownloadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadStore.swift; sourceTree = "<group>"; };
+		EE5094E33088020887D199CF /* library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = library.json; sourceTree = "<group>"; };
+		F874BF13BC098D65D093E3D2 /* MusaeumApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusaeumApp.swift; sourceTree = "<group>"; };
+		FFD8E3BB2E41D8521208E684 /* facets.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = facets.json; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FA7BFDC0993200B34D9B0F2C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				518067CF6248F5842A387B43 /* ReadiumShared in Frameworks */,
+				D72310B0386BEE780D3EB192 /* ReadiumStreamer in Frameworks */,
+				B2DD820F69C73961513D06A4 /* ReadiumNavigator in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		00BD3F23E14D4CFD645DA43E /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				81EA6E53A91ED976505C5CFC /* Probe.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		0D9CC0C9D3F1402021A0FE52 /* contract */ = {
+			isa = PBXGroup;
+			children = (
+				C7D6F6DBD356A9E3F800BB88 /* book.json */,
+				6D4512DC0B93D19548F957A5 /* error.json */,
+				FFD8E3BB2E41D8521208E684 /* facets.json */,
+				59AA610D06CC7B3DD6D2C9A3 /* health.json */,
+				EE5094E33088020887D199CF /* library.json */,
+				B371196CB66C88935EAF1104 /* reading.json */,
+			);
+			path = contract;
+			sourceTree = "<group>";
+		};
+		215C8F865326BF58585F223C /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				77845C1FCDB6459B28A33C7E /* API */,
+				C8B9EBE4D3255826D10A69B3 /* Reader */,
+				BC522C089CC3F82C5317ED65 /* Store */,
+				00BD3F23E14D4CFD645DA43E /* Support */,
+				FDEBE0453381F65D7218AC29 /* Theme */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		2EEFFF2A81597B6C9A684B63 /* MusaeumTests */ = {
+			isa = PBXGroup;
+			children = (
+				9BF9D90F9757172EE9EAE639 /* ClientTests.swift */,
+				105384EF3C60158460BBCFDA /* ContractDecodeTests.swift */,
+				096300ACDD30C93737BCE6D2 /* CoverPipelineTests.swift */,
+				3599D559223B796E5E027836 /* InitialFractionTests.swift */,
+				AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */,
+				09C784056B0BD23C40F84B65 /* StoreTests.swift */,
+				E605FCC5A92F3D5F28097A6C /* StubURLProtocol.swift */,
+			);
+			path = MusaeumTests;
+			sourceTree = "<group>";
+		};
+		3C2E8FA7E44FEAE307500413 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				ABBF6D56B02DD47A32C69E22 /* Connect */,
+				A502A16E8B79348BECE8451E /* Detail */,
+				CA4B78E20B4CB293CE8CC82F /* Downloads */,
+				E509BAD28A87AB5467ECC380 /* Library */,
+				6D2D9A8B094E14E76EA6EB2B /* Reader */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		584642F725B65D8079DEACE0 /* Musaeum */ = {
+			isa = PBXGroup;
+			children = (
+				D61FFF833D25C623447D45E5 /* App */,
+				215C8F865326BF58585F223C /* Core */,
+				3C2E8FA7E44FEAE307500413 /* Features */,
+			);
+			path = Musaeum;
+			sourceTree = "<group>";
+		};
+		5F1E913AD618E22810D45448 = {
+			isa = PBXGroup;
+			children = (
+				584642F725B65D8079DEACE0 /* Musaeum */,
+				FBFEE6821BA23A037EFF8214 /* Tests */,
+				A33A6ACF97E1BB71CB07D495 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6D2D9A8B094E14E76EA6EB2B /* Reader */ = {
+			isa = PBXGroup;
+			children = (
+				5590CD7BEEBDDD7E56AC28BD /* ReaderScreen.swift */,
+			);
+			path = Reader;
+			sourceTree = "<group>";
+		};
+		77845C1FCDB6459B28A33C7E /* API */ = {
+			isa = PBXGroup;
+			children = (
+				A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */,
+				016D9C9511EC68185420617F /* CoverPipeline.swift */,
+				64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */,
+			);
+			path = API;
+			sourceTree = "<group>";
+		};
+		A33A6ACF97E1BB71CB07D495 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E96804B4654C15C379FEB715 /* Musaeum.app */,
+				4651E4E29334A9A7C4CCFC40 /* MusaeumTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A502A16E8B79348BECE8451E /* Detail */ = {
+			isa = PBXGroup;
+			children = (
+				886FEC7A99AF5B96802DD45E /* BookDetailScreen.swift */,
+			);
+			path = Detail;
+			sourceTree = "<group>";
+		};
+		ABBF6D56B02DD47A32C69E22 /* Connect */ = {
+			isa = PBXGroup;
+			children = (
+				5A3FF654C46D7B19B16848A5 /* ConnectScreen.swift */,
+			);
+			path = Connect;
+			sourceTree = "<group>";
+		};
+		BC522C089CC3F82C5317ED65 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				EB3302895D182A0DB5A577D4 /* DownloadStore.swift */,
+				8AFFAD5FA5ED4645B36A7414 /* LocalPositions.swift */,
+				E2560A771DBF4AD1074DF4EF /* SettingsStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		C21372AC09D4B704E67CFB1F /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				0D9CC0C9D3F1402021A0FE52 /* contract */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		C8B9EBE4D3255826D10A69B3 /* Reader */ = {
+			isa = PBXGroup;
+			children = (
+				9FDD0012F3D8415AC1C59F55 /* InitialFraction.swift */,
+				9B9F1D01B1824F1AC625C667 /* ReaderHost.swift */,
+			);
+			path = Reader;
+			sourceTree = "<group>";
+		};
+		CA4B78E20B4CB293CE8CC82F /* Downloads */ = {
+			isa = PBXGroup;
+			children = (
+				705A94184FA87C433B903CA4 /* DownloadsScreen.swift */,
+			);
+			path = Downloads;
+			sourceTree = "<group>";
+		};
+		D61FFF833D25C623447D45E5 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F874BF13BC098D65D093E3D2 /* MusaeumApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		E509BAD28A87AB5467ECC380 /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				0DF767FE2BB07C60C7DEAE9F /* LibraryScreen.swift */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
+		FBFEE6821BA23A037EFF8214 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				C21372AC09D4B704E67CFB1F /* Fixtures */,
+				2EEFFF2A81597B6C9A684B63 /* MusaeumTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		FDEBE0453381F65D7218AC29 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				578AFE52A9D1202FDB87FD9C /* Palette.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		42E8D005665B77CF356926A9 /* MusaeumTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2F6A1B0E558AAD0819E2504C /* Build configuration list for PBXNativeTarget "MusaeumTests" */;
+			buildPhases = (
+				F80F4080A19D2AFECC4666A8 /* Sources */,
+				C68A5169248E906E71458BEE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DD12D957AEC75DC1CFE318DB /* PBXTargetDependency */,
+			);
+			name = MusaeumTests;
+			packageProductDependencies = (
+			);
+			productName = MusaeumTests;
+			productReference = 4651E4E29334A9A7C4CCFC40 /* MusaeumTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		63DEAF6F5C41CD644E974411 /* Musaeum */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B40918672D3FE623C9CEBAD0 /* Build configuration list for PBXNativeTarget "Musaeum" */;
+			buildPhases = (
+				BCBC95DBAF6737D1A7DC2954 /* Sources */,
+				FA7BFDC0993200B34D9B0F2C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Musaeum;
+			packageProductDependencies = (
+				0E91009E879C6C21C398DC2B /* ReadiumShared */,
+				6FCEE435C55AE12E1B9ACCF8 /* ReadiumStreamer */,
+				25104749B30496EF12C0D950 /* ReadiumNavigator */,
+			);
+			productName = Musaeum;
+			productReference = E96804B4654C15C379FEB715 /* Musaeum.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8765291F8937A9D602064D14 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 350E845CBEB70B673CDAAD71 /* Build configuration list for PBXProject "Musaeum" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5F1E913AD618E22810D45448;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2A458C978677555F56D05EBF /* XCRemoteSwiftPackageReference "swift-toolkit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A33A6ACF97E1BB71CB07D495 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				63DEAF6F5C41CD644E974411 /* Musaeum */,
+				42E8D005665B77CF356926A9 /* MusaeumTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C68A5169248E906E71458BEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				47BFB54BA90D0B5E417BDE89 /* book.json in Resources */,
+				DE98447DF4AAA183B74466D2 /* error.json in Resources */,
+				375124D1855727F546A02226 /* facets.json in Resources */,
+				CDA2BD53B728C2A2D7172A27 /* health.json in Resources */,
+				9923E11469CFDC75F8B4AF82 /* library.json in Resources */,
+				B86A08924D1D774CC4A4C9CA /* reading.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BCBC95DBAF6737D1A7DC2954 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C66D9F99ECE56D99EAF440D9 /* BookDetailScreen.swift in Sources */,
+				BFC3EA373FF39ED0E25C97A7 /* ConnectScreen.swift in Sources */,
+				FE28E74879CEC4A4D0021234 /* ContractModels.swift in Sources */,
+				DA04AA684999665A0C182DED /* CoverPipeline.swift in Sources */,
+				7C4EF58A56676EE54814444C /* DownloadStore.swift in Sources */,
+				A955D005F98F32B8AC1BD626 /* DownloadsScreen.swift in Sources */,
+				3897F8B16DE196FF21634649 /* InitialFraction.swift in Sources */,
+				2AC785C64C006D4D186CD905 /* LibraryScreen.swift in Sources */,
+				F43AF4504F0943A0B57DC7E5 /* LocalPositions.swift in Sources */,
+				C8AB6A38F37AF361E83DFB63 /* MusaeumApp.swift in Sources */,
+				DE9054036A3365FB6858FED3 /* MusaeumClient.swift in Sources */,
+				CA2A3AA26C5BF4623D310267 /* Palette.swift in Sources */,
+				5148A3A8EBBE6D270180EAC7 /* Probe.swift in Sources */,
+				98279CE527523DCFED68DFEF /* ReaderHost.swift in Sources */,
+				1E4DF7769F978772CCF9AE11 /* ReaderScreen.swift in Sources */,
+				80C44FF6E6A280EBDADABA85 /* SettingsStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F80F4080A19D2AFECC4666A8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18B77594E5F98C554440A482 /* ClientTests.swift in Sources */,
+				14C099AD9613A50E7A8AD277 /* ContractDecodeTests.swift in Sources */,
+				25512185A79BD14C74DAAF76 /* CoverPipelineTests.swift in Sources */,
+				0CC5A047D7CEE77CE7E64147 /* InitialFractionTests.swift in Sources */,
+				161D4DF43BAA3CFFA539978D /* LibraryPagingTests.swift in Sources */,
+				0F6C4C88B7E3F8320303A6D1 /* StoreTests.swift in Sources */,
+				937B28457C22E1C9F45D8C4A /* StubURLProtocol.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DD12D957AEC75DC1CFE318DB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 63DEAF6F5C41CD644E974411 /* Musaeum */;
+			targetProxy = F7FA64E3DE047BF5F43A4199 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5578C56C0FD49EB0AB777F1A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.jasonoh.MusaeumTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Musaeum.app/Musaeum";
+			};
+			name = Release;
+		};
+		5CDF39250AC83ABB5CB193EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		5E832CE4A3F1911B74B82AB3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Musaeum/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.jasonoh.Musaeum;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		684A0251ED48BC2E39DB3788 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		F72A3227FBC7A4600C2745DB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.jasonoh.MusaeumTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Musaeum.app/Musaeum";
+			};
+			name = Debug;
+		};
+		FF15AC224F15379E1F8CDCB2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Musaeum/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.jasonoh.Musaeum;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2F6A1B0E558AAD0819E2504C /* Build configuration list for PBXNativeTarget "MusaeumTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F72A3227FBC7A4600C2745DB /* Debug */,
+				5578C56C0FD49EB0AB777F1A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		350E845CBEB70B673CDAAD71 /* Build configuration list for PBXProject "Musaeum" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5CDF39250AC83ABB5CB193EA /* Debug */,
+				684A0251ED48BC2E39DB3788 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B40918672D3FE623C9CEBAD0 /* Build configuration list for PBXNativeTarget "Musaeum" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF15AC224F15379E1F8CDCB2 /* Debug */,
+				5E832CE4A3F1911B74B82AB3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2A458C978677555F56D05EBF /* XCRemoteSwiftPackageReference "swift-toolkit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/readium/swift-toolkit";
+			requirement = {
+				kind = exactVersion;
+				version = 3.11.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0E91009E879C6C21C398DC2B /* ReadiumShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A458C978677555F56D05EBF /* XCRemoteSwiftPackageReference "swift-toolkit" */;
+			productName = ReadiumShared;
+		};
+		25104749B30496EF12C0D950 /* ReadiumNavigator */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A458C978677555F56D05EBF /* XCRemoteSwiftPackageReference "swift-toolkit" */;
+			productName = ReadiumNavigator;
+		};
+		6FCEE435C55AE12E1B9ACCF8 /* ReadiumStreamer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A458C978677555F56D05EBF /* XCRemoteSwiftPackageReference "swift-toolkit" */;
+			productName = ReadiumStreamer;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 8765291F8937A9D602064D14 /* Project object */;
+}

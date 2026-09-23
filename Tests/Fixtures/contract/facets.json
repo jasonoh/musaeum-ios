@@ -1,0 +1,32 @@
+{
+  "authors": [
+    {
+      "value": "James S. A. Corey",
+      "count": 9
+    }
+  ],
+  "series": [
+    {
+      "value": "The Expanse",
+      "count": 9
+    }
+  ],
+  "tags": [
+    {
+      "value": "space opera",
+      "count": 412
+    }
+  ],
+  "formats": [
+    {
+      "value": "epub",
+      "count": 5324
+    }
+  ],
+  "readStatus": [
+    {
+      "value": "reading",
+      "count": 1
+    }
+  ]
+}
