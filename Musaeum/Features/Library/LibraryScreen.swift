@@ -664,34 +664,59 @@ struct BookGridCell: View {
     }
 }
 
-/// A cover, or the title's own initials while it loads or when the server could
-/// not serve it — a grid of grey rectangles reads as broken; a grid of titles
-/// reads as a library.
+/// A cover, bounded **by its cell and never by its own artwork**.
+///
+/// The box is the Mac's own (`src/components/library/BookCard.tsx`: an
+/// `aspect-[2/3] w-full overflow-hidden` frame over an `object-cover` image): a
+/// 2:3 box, the artwork filling it and cropped to it. That is a rule rather than a
+/// preference — a grid is uniform or it is not a grid — and the first spelling of
+/// this view broke it while reading correctly, which is why the reasoning stays
+/// here.
+///
+/// **The seed owns the box.** `.aspectRatio(_:contentMode:)` fits the *proposal*
+/// to the ratio; it does not clamp what the child then reports. The ratio used to
+/// sit on a `Group` whose child was `Image.resizable().aspectRatio(contentMode:
+/// .fill)`, so the child answered with **its own** shape and the box grew to
+/// match. Measured on the built app (`CoverBoxTests`, 2026-09-23), a cell proposed
+/// 114 pt wide returned 114 × 171 for a 2:3 jacket, **114 × 228** for a 1:2 one and
+/// **256.7 × 171** for a 3:2 one: rows of unequal height, landscape covers
+/// overlapping the cells beside them, tall ones riding over the title beneath —
+/// the owner's report, and now a case no frame has to catch.
+///
+/// So the geometry comes from a child with **no intrinsic size** — `Palette.raised`,
+/// which is the placeholder's colour anyway — and the artwork is an `overlay`,
+/// whose reported size cannot move its parent. The clip comes after the overlay,
+/// which is what makes `scaledToFill` a crop instead of a bleed.
 struct CoverImage: View {
     let data: Data?
     let cornerRadius: CGFloat
 
+    /// 2:3, the Mac's own cover box. Spelled as `CGFloat`s: `2 / 3` in an integer
+    /// context is `0`, and a zero ratio is a box of no height.
+    static let aspect: CGFloat = 2.0 / 3.0
+
     var body: some View {
-        Group {
-            if let data, let image = UIImage(data: data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                ZStack {
-                    Palette.raised
-                    Image(systemName: "book.closed")
-                        .font(.title2)
-                        .foregroundStyle(Palette.muted.opacity(0.6))
-                }
-            }
+        Palette.raised
+            .aspectRatio(Self.aspect, contentMode: .fit)
+            .overlay { artwork }
+            .clipShape(.rect(cornerRadius: cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(Palette.hairline, lineWidth: 1)
+            )
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        if let data, let image = UIImage(data: data) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+        } else {
+            Image(systemName: "book.closed")
+                .font(.title2)
+                .foregroundStyle(Palette.muted.opacity(0.6))
         }
-        .aspectRatio(2 / 3, contentMode: .fit)
-        .clipShape(.rect(cornerRadius: cornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .stroke(Palette.hairline, lineWidth: 1)
-        )
     }
 }
 

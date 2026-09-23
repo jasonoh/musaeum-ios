@@ -1,0 +1,16 @@
+[
+  {
+    "mutation": "the cover box is 3:4 rather than the Mac's 2:3",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "old": "    static let aspect: CGFloat = 2.0 / 3.0",
+    "new": "    static let aspect: CGFloat = 3.0 / 4.0",
+    "test": "MusaeumTests/CoverBoxTests"
+  },
+  {
+    "mutation": "the artwork sizes the box again (the defect: the ratio on the child, not the seed)",
+    "file": "Musaeum/Features/Library/LibraryScreen.swift",
+    "old": "        Palette.raised\n            .aspectRatio(Self.aspect, contentMode: .fit)\n            .overlay { artwork }",
+    "new": "        artwork\n            .aspectRatio(Self.aspect, contentMode: .fit)",
+    "test": "MusaeumTests/CoverBoxTests"
+  }
+]

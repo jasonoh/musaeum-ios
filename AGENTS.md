@@ -22,6 +22,7 @@ An iOS reading client for a Musaeum library on the Mac. SwiftUI, deployment targ
 8. **Readium is a pinned SPM dependency, never patched in place.** A divergence lives in our code.
 9. **`project.yml` is the source of truth for build settings**; `Musaeum.xcodeproj` is generated output and is committed only so a clone opens without tooling.
 10. **No secret in a log, no `any`-shaped decoding.** The bearer token appears in one place — the `Authorization` header — and in no `print`, no error message and no interface.
+11. **A cover is bounded by its cell, never by its artwork.** `CoverImage`'s box comes from a child with no intrinsic size (`Palette.raised` with `.aspectRatio(2.0/3.0)`, the artwork in an `overlay`) — the Mac's own `aspect-[2/3] … object-cover` (`src/components/library/BookCard.tsx`). `.aspectRatio(_:contentMode:)` fits the **proposal** to the ratio, not the result: put an image anywhere the geometry is decided and a 3:2 jacket draws 2.25 cells wide and a 1:2 one rides over its own title. Three sites draw it (grid, detail hero, downloads row); `CoverBoxTests` decides the box, `docs/evidence/cover-box/` the crop.
 
 ## Gates
 

@@ -1,0 +1,9 @@
+BASELINE  MusaeumTests/CoverBoxTests: exit=0  Executed 5 tests, with 0 failures (0 unexpected) in 0.030 (0.033) seconds
+RED (killed)    the cover box is 3:4 rather than the Mac's 2:3
+                suite=MusaeumTests/CoverBoxTests restored=True
+                Executed 5 tests, with 7 failures (0 unexpected) in 0.051 (0.053) seconds | 5 cases reddened: testAFixedWidthSiteGetsTheBoxAtThatWidth, testALandscapeCoverOccupiesTheSameBoxAsAPortraitOne, testATallCoverAndAMissingCoverGetTheSameBox, testTheBoxFollowsTheCellWidth, testTheBoxIsTheCellWidthAndThreeHalvesTall
+RED (killed)    the artwork sizes the box again (the defect: the ratio on the child, not the seed)
+                suite=MusaeumTests/CoverBoxTests restored=True
+                Executed 5 tests, with 10 failures (0 unexpected) in 0.061 (0.064) seconds | 4 cases reddened: testAFixedWidthSiteGetsTheBoxAtThatWidth, testALandscapeCoverOccupiesTheSameBoxAsAPortraitOne, testATallCoverAndAMissingCoverGetTheSameBox, testTheBoxFollowsTheCellWidth
+
+killed 2/2

@@ -49,6 +49,7 @@
 		DA04AA684999665A0C182DED /* CoverPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016D9C9511EC68185420617F /* CoverPipeline.swift */; };
 		DE9054036A3365FB6858FED3 /* MusaeumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */; };
 		DE98447DF4AAA183B74466D2 /* error.json in Resources */ = {isa = PBXBuildFile; fileRef = 6D4512DC0B93D19548F957A5 /* error.json */; };
+		DEF018BD8943ACD9E036F2F2 /* CoverBoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0876647252FEFE073021B0A /* CoverBoxTests.swift */; };
 		E23A2D8E666CF6D9D3A2262E /* LibrarySortTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1290B0CBF1415714055A5839 /* LibrarySortTests.swift */; };
 		F43AF4504F0943A0B57DC7E5 /* LocalPositions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFFAD5FA5ED4645B36A7414 /* LocalPositions.swift */; };
 		FE28E74879CEC4A4D0021234 /* ContractModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */; };
@@ -95,6 +96,7 @@
 		A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractModels.swift; sourceTree = "<group>"; };
 		AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryPagingTests.swift; sourceTree = "<group>"; };
 		AFD07CD9819EF6B777F0EADE /* LibraryQueryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryQueryTests.swift; sourceTree = "<group>"; };
+		B0876647252FEFE073021B0A /* CoverBoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverBoxTests.swift; sourceTree = "<group>"; };
 		B371196CB66C88935EAF1104 /* reading.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = reading.json; sourceTree = "<group>"; };
 		C05FDE9002FE0B8A9DCA644F /* ReadingReporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingReporterTests.swift; sourceTree = "<group>"; };
 		C7D6F6DBD356A9E3F800BB88 /* book.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = book.json; sourceTree = "<group>"; };
@@ -163,6 +165,7 @@
 			children = (
 				9BF9D90F9757172EE9EAE639 /* ClientTests.swift */,
 				105384EF3C60158460BBCFDA /* ContractDecodeTests.swift */,
+				B0876647252FEFE073021B0A /* CoverBoxTests.swift */,
 				096300ACDD30C93737BCE6D2 /* CoverPipelineTests.swift */,
 				3599D559223B796E5E027836 /* InitialFractionTests.swift */,
 				3CF6C673F4216694D54A57BC /* LibraryFilterTests.swift */,
@@ -477,6 +480,7 @@
 			files = (
 				18B77594E5F98C554440A482 /* ClientTests.swift in Sources */,
 				14C099AD9613A50E7A8AD277 /* ContractDecodeTests.swift in Sources */,
+				DEF018BD8943ACD9E036F2F2 /* CoverBoxTests.swift in Sources */,
 				25512185A79BD14C74DAAF76 /* CoverPipelineTests.swift in Sources */,
 				0CC5A047D7CEE77CE7E64147 /* InitialFractionTests.swift in Sources */,
 				2E259BD6E5770217BB4F71CD /* LibraryFilterTests.swift in Sources */,

@@ -13,6 +13,7 @@
 ### Fixed
 
 - The app's own probe script (`scripts/live-probe.sh`) was committed without its executable bit, so the documented `TAG=library ./scripts/live-probe.sh` answered *Permission denied*; and it never passed the server's address, so a re-run came up unconfigured and read as a probe that found nothing. It now takes the address from the probe profile (or `BASE=`) and refuses to run without one.
+- **A cover no longer takes its size from the cover art.** Every cover is now bounded by the cell it sits in — the Mac's own 2:3 box, the artwork filling it and cropped to it — instead of growing to the jacket's own shape. A wide cover used to be drawn wider than its column and cover the books beside it (and their titles); a very tall one ran down over its own title and author line. The same box now applies to a book's detail cover and to a download's thumbnail, which had the same defect in a smaller frame.
 
 ### Not yet
 

@@ -1,0 +1,57 @@
+# grid-cover-box-before-after.png — the same library, the same run, two builds.
+#
+#   TAG=box-before SORT=title:asc WAIT=25 ./scripts/live-probe.sh   # the tree before the fix
+#   TAG=box-after  SORT=title:asc WAIT=25 ./scripts/live-probe.sh   # the fixed tree
+#
+# Profile ~/.hermes/profiles/dev/cache/scratch/ios-probe, iPhone 17 Pro / iOS 26.1, three columns of
+# 114 pt (402 pt less the grid's 16 pt padding each side and two 14 pt gaps).
+#
+# Two of the probe library's covers were replaced on disk for this run so the defect has something to
+# do — a Mac-side cover normally arrives near 2:3, which is why the owner's report needed a wide
+# jacket to show itself: Dragon Wing's cover_thumb.jpg became a 3:2 landscape (300x200) and
+# Negotiation Genius's a 1:2 portrait (100x200). Both are bands with the extremes marked, so a crop
+# is readable straight off the frame. The phone's own Library/Caches was removed before each run:
+# covers are fixed filenames and the contract's `v=` note exists because a replaced one is otherwise
+# answered from a cache.
+#
+# Both runs logged the identical line, which is the point — one library, one query, two builds:
+#   MUSAEUM_PROBE|library page count=8 total=8 limit=100 offline=online sort=title:asc q=- filters=- first=Caliban's war | Dragon Wing | The Hidden Palace
+#
+# MEASURED, from the two 1206x2622 frames (px/3 = pt):
+#
+# BEFORE (left)                                        AFTER (right)
+# row 1, widest contiguous cover run:  334.3 pt        row 1: three runs of 115.3 pt (= the 114 pt
+#   (a cell is 114 pt — the landscape jacket              cell + the 1 pt hairline)
+#   swallows the two cells beside it)
+# gap strips x 132-142 and 260-270 pt:                 gap strips x 132-142 and 260-270 pt:
+#   15510/15510 cover pixels each — no gap at all        0/15510 cover pixels each — the gap is a gap
+# column 3 (the 1:2 jacket) box height:  229.3 pt     every box in the grid:  172.3 pt
+#   against 172.3 pt for the 2:3 jackets — the         (= 114 x 1.5 + the hairline), so the rows are
+#   tall one rides down over its own title and          the same height and nothing rides
+#   author lines
+#
+# COVER BOX, measured by CoverBoxTests — the size the cover reports for a cell proposing 114 pt:
+#
+#   artwork     before        after
+#   none        114 x 171     114 x 171
+#   2:3         114 x 171     114 x 171
+#   1:2         114 x 228     114 x 171
+#   3:2         256.7 x 171   114 x 171
+#   1:1         171 x 171     114 x 171
+#
+# The before column is the defect: `.aspectRatio(_:contentMode:)` fits the *proposal* to the ratio and
+# does not clamp what the child reports, so a `Group` whose child was
+# `Image.resizable().aspectRatio(contentMode: .fill)` answered with the artwork's own shape.
+#
+# AT THE TWO FIXED-WIDTH SITES, measured the same way on the unfixed tree — the width is clamped by
+# the explicit `.frame(width:)`, and the height still follows the jacket:
+#
+#   site                      artwork      before        after
+#   detail hero (124 pt)      2:3          124 x 186     124 x 186
+#   detail hero (124 pt)      3:2          124 x 186     124 x 186
+#   detail hero (124 pt)      1:2          124 x 248     124 x 186
+#   downloads row (44 pt)     3:2           44 x 66       44 x 66
+#   downloads row (44 pt)     1:2           44 x 88       44 x 66
+#
+# So a book whose jacket is taller than 2:3 drew a taller detail page than its neighbours' — the same
+# defect, in a frame small enough that nobody had reported it.
