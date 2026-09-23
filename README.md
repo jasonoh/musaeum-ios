@@ -11,12 +11,11 @@ A reading client for a [Musaeum](https://github.com/) library on the Mac. It bro
 ## Build and run
 
 ```bash
-xcodegen generate          # project.yml → Musaeum.xcodeproj (committed output, but regenerate after edits)
-open Musaeum.xcodeproj     # or:
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+xcodegen generate          # project.yml → Musaeum.xcodeproj (committed output; regenerate after adding a file)
+open Musaeum.xcodeproj     # or, from the command line — the destination is an id, never a device name:
+DEV=DE0B5601-7874-455E-A965-9AD80567C30E   # iPhone 17 Pro on iOS 26.1
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" build
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" test
 ```
 
 Requires Xcode 27+, XcodeGen (`brew install xcodegen`), and **the Mac app running with the REST API enabled** for anything that touches the network.

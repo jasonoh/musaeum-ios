@@ -1,6 +1,6 @@
 # Musaeum iOS — roadmap
 
-## Slice 1 — the downward path (**landed** 2026-09-22)
+## Slice 1 — the downward path (**landed, committed** `ed7abf6` 2026-09-22)
 
 Config → connect → the library grid → a book's detail → download → read at the fraction the Mac holds. Design: `docs/specs/2026-09-22-client-v1-design.md` (CD1–CD8, criteria 1–14); the readings and the frames are in that document's *Built — slice 1* section.
 

@@ -26,12 +26,26 @@ An iOS reading client for a Musaeum library on the Mac. SwiftUI, deployment targ
 ## Gates
 
 ```bash
-xcodegen generate
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+xcodegen generate     # first, always — a file added since the last generate is not in the target
+DEV=DE0B5601-7874-455E-A965-9AD80567C30E   # iPhone 17 Pro, iOS 26.1 (the one this slice measured on)
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD build
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD test
+TAG=library BOOK=<book id> ./scripts/live-probe.sh   # the UI instrument; its header carries the server recipe
 ```
 
-Both must exit 0. Report the test count per file, not an adjective. A UI claim needs a **live probe** — a simulator run against the Mac, with the number or the frame it produced — because nothing in this repo's unit suite can see a screen.
+**The probe profile slice 1 measured against** is `~/.hermes/profiles/dev/cache/scratch/ios-probe` (its own `musaeum.db`, `library_root` pointed at its own folder, 8 seeded EPUBs, a `rest_api_token`) — and scratch is pruned when idle, so if it is gone, rebuild it from the header of `scripts/live-probe.sh` rather than hunting for it: the seeding is six commands and the imports hydrate in about a minute. The Mac app is started with `env -u ELECTRON_RUN_AS_NODE MUSAEUM_USER_DATA=<that profile> npm run dev` from `../musaeum` (`ELECTRON_RUN_AS_NODE` is set in this shell and makes Electron run as plain Node — no window, no app).
+
+**The simulator's state, verified 2026-09-22 after the probe:** device `DE0B5601-…` booted, `dev.jasonoh.Musaeum` and the Readium harness's `dev.jasonoh.ReadiumProbe` both still installed, and the phone **still holding its own copy** — `Books/ef91875e-….epub` (660,053 bytes, its cover beside it) with `positions.json` at `0.4198265179677819`, the fraction the offline run opened at. So `TAG=offline` reproduces the offline reading with no download step, and `TAG=read` re-downloads. The throwaway Readium harness is still at `~/.hermes/profiles/dev/cache/scratch/readium-harness` (`rt/` = the tag checkout, `Probe/` = the app, its `run.log` and frame) if a Readium measurement is ever needed again. **A reading taken on a shut-down simulator returns nothing and reads as "the app is gone"** — `xcrun simctl listapps` on a `Shutdown` device lists no apps and `get_app_container` fails with *Unable to lookup in current state: Shutdown*; boot it first (`xcrun simctl bootstatus <id> -b`), then look.
+
+**A probe that waits cannot see a launch defect.** Every run in slice 1 sampled its frame after a 20–35 s wait, so a white launch screen — a real defect the owner hit the moment he ran the app from Xcode — survived three green probes: it lives only in the first frames, and the probes' own `MUSAEUM_PROBE_*` env meant the app was always already configured and never drew the connect screen at all. A cold-launch frame is `xcrun simctl launch <dev> <id>` immediately followed by `xcrun simctl io <dev> screenshot`, **with no sleep in between**; the fix that defect needed was `UIUserInterfaceStyle: Dark` in `project.yml`, because `.preferredColorScheme(.dark)` applies only once SwiftUI paints. Both the before/after frames are committed under `docs/evidence/slice1/`.
+
+Expected on the committed slice-1 tree (`ed7abf6`): build **exit 0**, no warnings in this repo's own files; test **exit 0, 43 cases, 0 failures across 6 suites** (7 files — the seventh is the `URLProtocol` stub); and `../musaeum/scripts/api-smoke.sh` against the same server **56 passed, 0 failed**.
+
+**The destination is an `id`, never a name.** `-destination 'platform=iOS Simulator,name=iPhone 17 Pro'` fails on this machine (*Unable to find a device matching the provided destination specifier* — the name resolves across runtimes and Xcode 27 gives up). This bit the first build of the slice, and it is the one command in this file that cannot be run as it reads.
+
+**A gate reports exit codes, so a green total is not a decider.** A test file written after the last `xcodegen generate` is absent from the target: the suite re-runs, the total does not move, and the new criterion is undecided while everything reads pass. Read the per-suite line, not only the total.
+
+Both must exit 0. Report the test count per file, not an adjective. A UI claim needs a **live probe** — a simulator run against the Mac, with the number or the frame it produced — because nothing in this repo's unit suite can see a screen. The probe's own frames and numbers from slice 1 are committed under `docs/evidence/slice1/`.
 
 ## Escalate — stop and hand back — when
 

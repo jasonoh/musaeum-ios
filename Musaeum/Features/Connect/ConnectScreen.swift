@@ -25,7 +25,7 @@ struct ConnectScreen: View {
                 header
 
                 VStack(alignment: .leading, spacing: 8) {
-                    field("The Mac's address", text: $base, prompt: "100.125.135.108:8788")
+                    field("The Mac's address", text: $base, prompt: "host:8788")
                     field("Bearer token", text: $token, prompt: "64 hex characters", secure: !revealToken)
                     Toggle("Show the token", isOn: $revealToken)
                         .font(.footnote)

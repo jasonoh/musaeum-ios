@@ -1,7 +1,7 @@
 # Musaeum iOS — a reading client for the Mac's library (v1)
 
 **Date:** 2026-09-22
-**Status:** **slice 1 is built, gated and probed** as of 2026-09-22 — the numbers and the frames are in *Built — slice 1* at the end of this document, together with the corrections this build made to two of its own commands. Slice 2 (the upward path) is next; nothing of it is in the tree. The three forks it rests on were settled by the owner the same day (CD1, CD2 and the slice boundary below) — Readium for v1, iOS 18, and slice 1 is the whole *downward* path.
+**Status:** **slice 1 is built, gated, probed and committed** — `ed7abf6` (*initial ios app*, 44 files, 4,803 insertions), 2026-09-22. The numbers are in *Built — slice 1* at the end of this document, together with the corrections this build made to its own commands; the probe's frames are committed at `docs/evidence/slice1/`. Slice 2 (the upward path) is next — its annex is `docs/plans/2026-09-22-slice2-upward.md`, and nothing of it is in the tree. The three forks it rests on were settled by the owner the same day (CD1, CD2 and the slice boundary below) — Readium for v1, iOS 18, and slice 1 is the whole *downward* path.
 **Scope:** a SwiftUI app that talks to a running Musaeum on the Mac over the tailnet: configure (base URL + token), connect-check, the paginated library as a cover grid, a book's detail, a download into the app's own storage, and the reader opening at the fraction the Mac holds. **Not in slice 1:** the progress *write* (the fraction travelling back up), resumable downloads, search UI, facets/filters UI, metadata edits, device sends, annotations.
 **Depends on (both read, neither restated):** `musaeum/docs/rest-api.md` — the frozen contract, API version 1, written against commit `0a0bdd4`; and `musaeum/docs/superpowers/specs/2026-09-22-ios-companion-design.md` — the workstream's design, whose D1 (bespoke app, own repo), D5 (the fraction is the member that travels), D6 (a report is ordered by its clock), D12 (the contract is provable without a phone), D14 (the Mac must be running; the client caches so that *reading* does not need it) and D15 (Range) are decisions this document **inherits and does not re-open**.
 **Supersedes:** nothing.
@@ -110,7 +110,7 @@ In one line: **the reader opens at whichever of the two is further along**, and 
 
 ## Acceptance criteria (slice 1)
 
-1. **The build is reproducible from a clone.** `xcodegen generate && xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build` succeeds with no manual step; `project.yml` is the only build-settings source. _Decider:_ the two commands, exit 0.
+1. **The build is reproducible from a clone.** `xcodegen generate && xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build` succeeds with no manual step; `project.yml` is the only build-settings source. _Decider:_ the two commands, exit 0. **Deviation 1: the `name=` form of that destination does not resolve on this machine — the working command is `-destination "id=DE0B5601-…"`, which is what was run.**
 2. **Every payload in the contract decodes.** Each vendored fixture (`health`, `library`, `book`, `facets`, `reading`, `error`) decodes into its model with the values the document states — including `reading: {status, percent, updatedAt}` with `percent` present, and a book whose nullable metadata (`isbn10`, `seriesName`, `goodreadsId`…) is explicitly `null`. _Decider:_ unit cases over the fixtures, asserting field values rather than "did not throw".
 3. **A missing always-present field is refused, an explicit `null` is not.** Removing any top-level key from a `book` fixture makes decoding **throw**; setting it to `null` decodes to `nil`. _Decider:_ two cases over a mutated copy of the golden.
 4. **`apiVersion` is checked.** A health payload with `apiVersion: 2` is refused by the client with a named outcome, and `apiVersion: 1` is accepted. _Decider:_ unit cases.
@@ -161,10 +161,9 @@ sed -n '1,60p' ~/Projects/musaeum/docs/rest-api.md
 #   ~/Projects/musaeum/.claude/skills/verify/SKILL.md  (isolated profile, MUSAEUM_USER_DATA)
 
 xcodegen generate                     # project.yml → Musaeum.xcodeproj
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+DEV=DE0B5601-7874-455E-A965-9AD80567C30E   # iPhone 17 Pro, iOS 26.1 — an id, never a name (deviation 1)
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD build
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD test
 scripts/vendor-contract-fixtures.sh    # re-derive the contract fixtures from the doc
 ```
 
@@ -208,8 +207,17 @@ Runs 2 and 3 decide CD5 in both directions with live numbers: a Mac further alon
 
 14. **Four compile errors from this tree's first full build, worth knowing before the next `SWIFT_STRICT_CONCURRENCY: complete` pass.** (a) A `private` decoding helper in `ContractModels.swift` was invisible to a `private extension` of the same type declared at the bottom of the file — the *same-type* extension is a different scope for access control, so the helper is internal and the extension is gone. (b) `ISO8601DateFormatter` held in `static let` is rejected under complete concurrency, and the fix that keeps one allocation is `nonisolated(unsafe)`, not a fresh formatter per call. (c) `let error = try Self.mapStatus(…)` does not compile when the callee returns `Void`: the assignment types the binding as `()`. The compiler's *first* error in that family reads as `inaccessible`/`conforms` and hides the next two, so expect to fix, rebuild, and find one more. (d) Inside a `URLProtocol` subclass's `startLoading`, the captured `request` is `self.request` — Swift 6 demands the explicit `self.` in the closure and the error names the property rather than the closure, which reads as unrelated to the line it is on (`StubURLProtocol.swift:67`).
 
+### Defects the owner found by looking, and what fixed them (2026-09-22)
+
+Both come from one session the owner spent running the app **from Xcode** — the path every probe in this slice had skipped.
+
+1. **The app showed a blank white screen on launch.** Cause: the window and the launch screen were never declared dark. The app's look is dark and it forces it in SwiftUI (`.preferredColorScheme(.dark)`), but that applies when SwiftUI *paints* — so a cold launch drew a **white** launch screen with the Connect screen laid out white-on-white on top of it, then flipped to dark. A debugger-attached launch (Xcode's default) leaves that on screen long enough to read as a hung app, which is how it was reported. **Fix:** `UIUserInterfaceStyle: Dark` in `project.yml`'s `info.properties`, so the window and the launch screen are dark from the first frame.
+   **Why three green probes missed it:** every run launched with `MUSAEUM_PROBE_BASE`/`TOKEN` — so the app was always already configured and went straight to the library — **and each sampled after a 20–35 s wait**, while the white exists only in the first frames. The instrument that decided it is a **cold-launch frame sampled with no sleep** (`xcrun simctl launch` then `simctl io … screenshot`): before and after, `docs/evidence/slice1/launch-before-fix-white.png` and `launch-after-fix-dark.png`. Verification that it is really fixed: the first frame after `simctl launch` is black, and the settled frame is the Connect screen.
+2. **The Mac's tailnet address was baked in as the connect form's placeholder** (`ConnectScreen.swift:28`, `prompt: "100.125.135.108:8788"`) — a personal address in the UI, and a misleading one, since it displays as though the app already knew it. Now `host:8788`: the shape, not the owner's address. Found in the same screenshot that reproduced the white screen.
+3. **A consequence, recorded rather than fixed:** with the style forced dark, the system controls on that screen (the token toggle, the fields) render in their dark variants — what `connect-screen.png` shows, and what the app meant all along.
+
 ### Handed to the owner's own judgement
 
-- **Typography.** Readium's justified body text on this book shows wide inter-word gaps on long lines. The page is legible and real; whether it is acceptable is a judgement made by looking at the phone. CD1's revival condition for foliate-js is "a typography or fidelity defect that Readium's pipeline cannot answer" — this is the first candidate, recorded as an **observation**, not as a defect found.
+- **Typography — looked at, accepted, closed (2026-09-22).** The owner reviewed the frames and judged Readium's page fine for v1, so **CD1's revival condition for foliate-js is not fired** and foliate-js stays rejected on its own stated ground (cost). The observation that prompted the look: Readium's justified body text shows wide inter-word gaps on long lines. Nothing follows from it — a future typography pass is a new decision, not a debt this slice left, and the next session should not re-raise it as open work.
 - **Every frame in this slice is the reader's first page.** Page turns, the palette on a real page, and the reading experience over a longer sitting were not exercised (no tap-driving instrument in this slice).
 - **The Mac's app was stopped for run 3**, and the probe profile's Mac-side app was not restarted afterwards. Nothing on the owner's own profile or library was touched: the probe ran entirely inside `~/.hermes/profiles/dev/cache/scratch/ios-probe`.

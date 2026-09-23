@@ -48,18 +48,19 @@
 ## Start here
 
 ```bash
-git log --oneline -3                      # slice 1's landing commit should be the tip
+git log --oneline -3                      # ed7abf6 "initial ios app" — slice 1, and this slice's base
 
 # the gate, with slice 1's counts as the expected values
-xcodegen generate
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum \
-  -destination "id=DE0B5601-7874-455E-A965-9AD80567C30E" -derivedDataPath ./DD build   # exit 0
-xcodebuild -project Musaeum.xcodeproj -scheme Musaeum \
-  -destination "id=DE0B5601-7874-455E-A965-9AD80567C30E" -derivedDataPath ./DD test    # 43 cases, 0 failures
+xcodegen generate     # first, always: a file added since the last generate is not in the target
+DEV=DE0B5601-7874-455E-A965-9AD80567C30E   # iPhone 17 Pro, iOS 26.1 — an id, never a name
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD build   # exit 0
+xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD test    # 43 cases, 0 failures
 
-# the live probe (its header carries the server recipe, including the two traps)
+# the live probe (its header carries the server recipe, including the two traps that cost a round each)
 TAG=library ./scripts/live-probe.sh
 ```
+
+Slice 1's readings are in *Built — slice 1* of the design, with its frames committed under `docs/evidence/slice1/`. **The one product question this slice inherited is closed:** the owner reviewed Readium's typography on 2026-09-22 and accepted it, so CD1 stands and foliate-js is not revived.
 
 Then read, in order:
 

@@ -24,6 +24,16 @@ targets:
       properties:
         CFBundleDisplayName: Musaeum
         UILaunchScreen: {}
+        # **The window and the launch screen are dark from the first frame.**
+        # The app's own look is dark, and it forces it in SwiftUI
+        # (`.preferredColorScheme(.dark)` in `MusaeumApp`) — but that is applied
+        # when SwiftUI paints, so without this property a cold launch shows a
+        # **white** launch screen and a white window backdrop, then flips. Found
+        # by the owner running the app from Xcode (a debugger-attached launch
+        # leaves the white on screen long enough to look like a hung app) and
+        # reproduced here: a cold-launch frame with the Connect screen laid out
+        # white-on-white.
+        UIUserInterfaceStyle: Dark
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
