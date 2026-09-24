@@ -307,6 +307,58 @@ struct ReadingResult: Decodable, Equatable, Sendable {
     }
 }
 
+// MARK: - POST /api/books — the import the upload created
+
+/// Which book an upload collided with, and on what evidence — the Mac's own
+/// policy answer, not a question for a human (D3).
+///
+/// `existingAuthor` is **`null` when the matched book holds no author** — the
+/// wire really sends `null` rather than a placeholder, and a client that decodes
+/// it as a required string loses the whole `201` body over a book with no
+/// author. `existingBookId`, `existingTitle` and `matchType` are always present.
+struct DuplicateMatch: Decodable, Equatable, Sendable {
+    enum MatchType: String, Decodable, Equatable, Sendable {
+        case isbn
+        case titleAuthor = "title_author"
+    }
+
+    let existingBookId: String
+    let existingTitle: String
+    let existingAuthor: String?
+    let matchType: MatchType
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "import.duplicate")
+        existingBookId = try o.string("existingBookId")
+        existingTitle = try o.string("existingTitle")
+        existingAuthor = try o.optionalString("existingAuthor")
+        let raw: String = try o.string("matchType")
+        guard let type = MatchType(rawValue: raw) else {
+            throw ContractError.malformedField("matchType", at: "import.duplicate", value: raw)
+        }
+        matchType = type
+    }
+}
+
+/// The `201`'s payload: **the book as the row stood immediately after the import,
+/// before hydration has finished** (the Mac's S7), which is why `seriesName`,
+/// `cover.version` and the rest may still be `null` here and be filled in by the
+/// pass that continues after the answer. The phone gets its id now — a second
+/// fetch would only learn that the same book improved.
+struct ImportResult: Decodable, Equatable, Sendable {
+    let book: ContractBook
+    /// The collision the Mac answered by policy, or `null` for the ordinary case.
+    /// `duplicate` is always present as a key and is `null` rather than absent
+    /// (invariant 4).
+    let duplicate: DuplicateMatch?
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "import")
+        book = try o.object("book", as: ContractBook.self)
+        duplicate = try o.optional("duplicate", as: DuplicateMatch.self)
+    }
+}
+
 // MARK: - every refusal
 
 struct APIErrorPayload: Decodable, Equatable, Sendable {

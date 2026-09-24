@@ -80,6 +80,25 @@
 # found nothing. Filters are a narrowing and are never stored, so a filter run
 # leaves nothing behind — unlike `SORT=`, which is remembered.
 #
+# **The upload (slice 4a) is one more action, and it needs the book given to it.**
+# `UPLOAD=` names a file on *this Mac*; the script copies it into the app's own
+# container first, because a `simctl` launch cannot open a security scope and a
+# `fileImporter` cannot be driven at all — so the run exercises the app's own
+# upload path, its copy into the outbox, the composed request and the refusal
+# classes, while the *picker* stays a claim for a human frame:
+#
+#   TAG=upload UPLOAD=/path/to/book.epub ./scripts/live-probe.sh
+#   TAG=upload UPLOAD=<a 600 MiB file named .epub> WAIT=180 ./scripts/live-probe.sh  # R1/R2, with
+#                                        # `ps -o rss` watching the app while it sends
+#   TAG=sheet  UPLOAD_SHEET=1 ./scripts/live-probe.sh      # the sheet itself, presented by the run
+#
+# The last `upload …` line in the log is the reading (`upload sending`, then either
+# `upload added` or `upload refused kind=…`), and the container listing below it
+# shows what the app is still holding: **empty after a settled send, and one file
+# after a `waitAndTry` refusal, which is the copy a retry sends.** A refusal run
+# wants the Mac's own refusal reproduced — stop the Mac for `unreachable`, hold two
+# transfers for `busy`, or hand it a body past the cap for `tooLarge`.
+#
 # Each line reports `sort=<field>:<direction> q=<term> filters=<set>` (with `-` for
 # an absent one) so all three halves of a query are readable without a frame: what
 # was asked for, and what came back. A QUERY is never stored, a SORT always is —
@@ -120,6 +139,22 @@ sleep 1
 CONT=$(xcrun simctl get_app_container "$DEV" "$BUNDLE" data) || die "the app has never run on this device"
 rm -f "$CONT/Documents/probe.log"
 
+# **A book for the run to send, put where the app can read it.** The path is
+# *inside the app's own container* on purpose: a `simctl` launch cannot open a
+# security scope, so the security-scoped half of the picker's flow (and the whole
+# of R4's question) is a claim for a human frame — this is the half a run can
+# decide. The file keeps its own name, because the name is what the wire carries
+# as `filename`.
+UPLOAD_PATH=""
+if [ -n "${UPLOAD:-}" ]; then
+  [ -f "$UPLOAD" ] || die "no file at $UPLOAD"
+  mkdir -p "$CONT/Documents/Probe"
+  UPLOAD_PATH="$CONT/Documents/Probe/$(basename "$UPLOAD")"
+  cp "$UPLOAD" "$UPLOAD_PATH"
+  echo "=== the run will send $(basename "$UPLOAD") ($(wc -c < "$UPLOAD" | tr -d ' ') bytes)"
+  rm -rf "$CONT/Library/Application Support/Musaeum/Outbox"
+fi
+
 echo "=== launched ($TAG) ==="
 SIMCTL_CHILD_MUSAEUM_PROBE_LOG="$CONT/Documents/probe.log" \
 SIMCTL_CHILD_MUSAEUM_PROBE_BASE="$BASE" \
@@ -130,6 +165,8 @@ SIMCTL_CHILD_MUSAEUM_PROBE_QUERY="${QUERY:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_SORT="${SORT:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_FILTERS="${FILTERS:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_SHEET="${SHEET:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD="$UPLOAD_PATH" \
+SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD_SHEET="${UPLOAD_SHEET:-}" \
   xcrun simctl launch "$DEV" "$BUNDLE" | cat
 sleep "$WAIT"
 

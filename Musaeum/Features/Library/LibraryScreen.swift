@@ -293,6 +293,18 @@ final class LibraryModel {
                 for: client.coverRequest(id: book.id, size: size, version: book.cover.version)
             )
             covers[book.id] = data
+        } catch is CancellationError {
+            // **A cover a refetch replaced is not a cover that failed.** This is
+            // `load`'s own discipline one scale down: there, a superseded search
+            // must not put "the Mac is not answering" under a request the reader
+            // replaced; here, a cover cancelled by a reload must not be written
+            // into `coversFailed` — that set is permanent for the model's life, so
+            // a card would stay blank until the next launch on a Mac that answered
+            // every request it was asked. The upload's own refetch is one way to
+            // land here (the reload arrives while covers are still loading), and it
+            // is not a failure of anything. Left out of the set, the next pass
+            // simply asks again.
+            return
         } catch {
             coversFailed.insert(book.id)
             Probe.log("cover failed id=\(book.id) error=\(String(describing: error))")
@@ -313,6 +325,13 @@ struct LibraryScreen: View {
     /// (`MUSAEUM_PROBE_SHEET`) because `simctl` cannot tap: without that the
     /// sheet's own contents would be a claim no instrument could decide.
     @State private var showingFilters = false
+
+    /// **The upload's state belongs to the screen, not to the sheet.** An outcome
+    /// has to survive the sheet closing (the annex's own reason for the library
+    /// screen's row), and the probe's upload run has to go through exactly the door
+    /// the picker uses.
+    @State private var uploads: UploadModel?
+    @State private var showingUpload = false
 
     /// The Mac's own debounce (`src/components/shared/SearchBar.tsx`: 150 ms).
     /// FTS is fast — the app's own search answers in 18 ms — so this is not about
@@ -338,6 +357,7 @@ struct LibraryScreen: View {
                 prompt: "Search titles, authors, series…"
             )
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { uploadButton }
                 ToolbarItem(placement: .topBarTrailing) { filterButton }
                 ToolbarItem(placement: .topBarTrailing) { sortMenu }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -370,14 +390,86 @@ struct LibraryScreen: View {
                     persistSort: { settings.save(librarySort: $0) }
                 )
                 self.model = model
+                let uploadModel = UploadModel()
+                uploads = uploadModel
                 await model.start()
-                await applyProbeSeam(model)
+                await applyProbeSeam(model, client: client)
+                // **What a share left for a run that was not there yet.** A book
+                // handed over while the app was closed (or not yet configured) is
+                // sitting in this app's own `Documents/Inbox`, and this is where it
+                // is taken.
+                await takePending(uploads: uploadModel, client: client)
                 if Probe.openSheet { showingFilters = true }
+                if Probe.openUploadSheet { showingUpload = true }
             }
         }
         .sheet(isPresented: $showingFilters) {
             if let model { FilterSheet(model: model) }
         }
+        .sheet(isPresented: $showingUpload) {
+            if let uploads, let client = makeClient() {
+                UploadSheet(model: uploads, client: client)
+            }
+        }
+        // **A book the Mac has just created, and a list that is a page behind.**
+        // F3's decision: the returned book is *not* inserted where this client
+        // thinks it belongs — the Mac's own sort keys decide a book's place, and a
+        // local insertion is exactly the drift invariant 1 exists to prevent. The
+        // page the reader is looking at is re-fetched instead, so the order on
+        // screen is the server's. The reversal condition the annex names is a
+        // re-fetch that visibly loses the reader's scroll position or their search.
+        .onChange(of: uploads?.phase) { _, phase in
+            guard case .settled(.added) = phase else { return }
+            Task { await model?.start() }
+        }
+        // **A book another app handed over** — the "Copy to Musaeum" half of the
+        // share sheet. iOS has already copied the file into this app's own
+        // container and opened us; the send goes through the same door the picker
+        // uses, so a share is one more way into one path rather than a second
+        // upload of its own.
+        .onOpenURL { url in
+            guard let uploads, let client = makeClient() else { return }
+            Task { await take(url, uploads: uploads, client: client) }
+        }
+    }
+
+    /// The hand-off's one door: what the system left is sent through the app's own
+    /// upload path, or refused in the app's own words — and the system's copy is
+    /// discarded either way, because a book that has been taken is not this app's
+    /// to keep.
+    private func take(_ url: URL, uploads: UploadModel, client: MusaeumClient) async {
+        switch UploadInbox.incoming(url) {
+        case let .success(file):
+            await uploads.send(file: file, to: client)
+        case let .failure(refusal):
+            uploads.refuse(refusal)
+        }
+        UploadInbox.discard(url)
+    }
+
+    private func takePending(uploads: UploadModel, client: MusaeumClient) async {
+        for url in UploadInbox.pending() {
+            await take(url, uploads: uploads, client: client)
+        }
+    }
+
+    /// The upload's way in — the one control that starts a send.
+    ///
+    /// **The explicit `HStack` is load-bearing here, for the reason the sort and
+    /// filter controls each paid for once (3.13): a toolbar renders a `Label`
+    /// icon-only, and a toolbar item that is a bare glyph is a control the reader
+    /// has to guess at.** Measured twice on this screen, so this one is spelled
+    /// out from the start.
+    private var uploadButton: some View {
+        Button {
+            showingUpload = true
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "square.and.arrow.up")
+                Text("Send")
+            }
+        }
+        .foregroundStyle(Palette.parchment)
     }
 
     /// The Mac's eight curated options, as a menu whose label **is** the current
@@ -438,6 +530,22 @@ struct LibraryScreen: View {
         .foregroundStyle(model?.hasActiveFilters == true ? Palette.gold : Palette.parchment)
     }
 
+    /// The library screen's own report of an upload — the same view the sheet
+    /// draws, so an outcome outlives the sheet and the two surfaces cannot
+    /// describe one refusal differently.
+    private func uploadRow(_ uploads: UploadModel) -> some View {
+        UploadStatusRow(model: uploads) {
+            guard let client = makeClient() else { return }
+            Task { await uploads.retry(to: client) }
+        } reconnect: {
+            settings.clear()
+        } dismissOutcome: {
+            uploads.reset()
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+    }
+
     /// What the library screen says about a narrowing the reader may not remember
     /// asking for, and **the one control that undoes all of it**.
     ///
@@ -482,7 +590,7 @@ struct LibraryScreen: View {
     /// **The order is sort → filters → term**, so the last `library page` line in
     /// the log describes where the screen settled — a run that names more than one
     /// of them logs more than one line, and only the last one is the reading.
-    private func applyProbeSeam(_ model: LibraryModel) async {
+    private func applyProbeSeam(_ model: LibraryModel, client: MusaeumClient) async {
         if let raw = Probe.sort {
             let parsed = LibrarySort.stored(raw)
             if parsed.storedKey != raw {
@@ -507,6 +615,16 @@ struct LibraryScreen: View {
             searchText = term
             await model.search(term)
         }
+        // **The upload runs the app's own door.** `UploadModel.send` is what the
+        // picker calls, so a run decides the composed request, the copy into the
+        // container and the refusal classes with no tap — `simctl` can present
+        // nothing and tap nothing, and a `fileImporter` is both. The path is one
+        // the app can read without a scope: the script copies the book into the
+        // app's own container and passes that path, which is also why the
+        // security-scoped half of the picker's flow is a claim for a human frame.
+        if let path = Probe.uploadPath, let uploads {
+            await uploads.send(file: URL(fileURLWithPath: path), to: client)
+        }
     }
 
     @ViewBuilder
@@ -527,6 +645,14 @@ struct LibraryScreen: View {
                 // to say so: 3.13's own requirement, and the reason it is a frame's
                 // job rather than a source read's.
                 if model.hasActiveFilters { filterBar(model) }
+                // **The upload's own row, above the grid and above the empty card**
+                // — it belongs to the same place as the filter bar for the same
+                // reason: it is the one thing on screen that explains what the
+                // library is about to look like, and an outcome must not be lost
+                // when the sheet closes.
+                if let uploads, uploads.isSending || uploads.outcome != nil {
+                    uploadRow(uploads)
+                }
                 if let empty = model.emptyState {
                     emptyCard(model, empty)
                 } else {

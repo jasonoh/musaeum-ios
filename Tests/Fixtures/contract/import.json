@@ -1,0 +1,40 @@
+{
+  "book": {
+    "id": "6f1a1f2e-3c4d-4e5f-8a9b-0c1d2e3f4a5b",
+    "title": "Leviathan Wakes",
+    "author": "James S. A. Corey",
+    "publisher": "Orbit",
+    "publishedDate": "2011-06-15",
+    "language": "en",
+    "description": "Humanity has colonized the solar system — and the protomolecule is loose.",
+    "isbn10": "0316123266",
+    "isbn13": "9780316123265",
+    "goodreadsId": "8855321",
+    "openlibraryId": "OL25167455W",
+    "seriesName": "The Expanse",
+    "seriesIndex": 1,
+    "seriesTotal": 9,
+    "tags": ["space opera", "science fiction"],
+    "rating": 5,
+    "dateAdded": "2026-08-13T18:04:21.000Z",
+    "lastModified": "2026-09-21T09:12:00.000Z",
+    "formats": ["epub", "mobi"],
+    "fileSizeBytes": 4731892,
+    "cover": {
+      "thumb": true,
+      "full": true,
+      "version": "2026-09-21T09:12:00.000Z"
+    },
+    "reading": {
+      "status": "reading",
+      "percent": 0.42,
+      "updatedAt": "2026-09-21T09:12:00.000Z"
+    }
+  },
+  "duplicate": {
+    "existingBookId": "a1b2c3d4-0000-4000-8000-000000000001",
+    "existingTitle": "Leviathan Wakes",
+    "existingAuthor": "James S. A. Corey",
+    "matchType": "isbn"
+  }
+}

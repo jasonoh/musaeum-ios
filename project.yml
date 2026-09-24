@@ -44,6 +44,50 @@ targets:
         # allowed outright rather than pretended about.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        # **“Copy to Musaeum” — the share sheet without an extension, and without
+        # a capability.** Files, Safari and Mail offer a share target for any app
+        # that declares the type; declaring the four the contract accepts is what
+        # puts Musaeum in that list, and `LSSupportsOpeningDocumentsInPlace` false
+        # is what makes iOS **copy** the file into this app's own `Documents/Inbox`
+        # and open the app rather than hand over a security-scoped original. The
+        # app then sends it through `UploadModel.send` — the same door the picker
+        # uses.
+        #
+        # **The alternative was a share extension, and it was measured against the
+        # owner's signing first:** an extension is a second target, and getting the
+        # file across to the app needs either an app-group container or a keychain
+        # access group. Both are Apple Developer Program capabilities, so with the
+        # free personal team this app is signed with today (`DEVELOPMENT_TEAM`
+        # below), adding either stops the profile being issued and **the app itself
+        # — not just the extension — stops installing on the iPhone**. The simulator
+        # ignores provisioning, so the whole gate suite would have stayed green
+        # while the phone could no longer run it. This route needs no entitlement,
+        # keeps the token in one process, and is what the annex's 4b landed as.
+        #
+        # The two Kindle formats have no system type, so the app declares them —
+        # without a declaration, a `.mobi` is an anonymous `dyn.…` type and no share
+        # target matches it.
+        LSSupportsOpeningDocumentsInPlace: false
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Book
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - org.idpf.epub-container
+              - com.amazon.mobi
+              - com.amazon.azw3
+              - com.adobe.pdf
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: com.amazon.mobi
+            UTTypeDescription: Mobipocket book
+            UTTypeConformsTo: [public.data]
+            UTTypeTagSpecification:
+              public.filename-extension: [mobi]
+          - UTTypeIdentifier: com.amazon.azw3
+            UTTypeDescription: Kindle book
+            UTTypeConformsTo: [public.data]
+            UTTypeTagSpecification:
+              public.filename-extension: [azw3]
     settings:
       base:
         # **The owner's personal team, so the app can run on the phone.**

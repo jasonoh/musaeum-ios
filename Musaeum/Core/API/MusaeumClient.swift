@@ -19,6 +19,18 @@ enum ClientError: Error, Equatable, CustomStringConvertible {
     case notFound
     /// 416 — a Range the file cannot satisfy (slice 2's resumption).
     case rangeNotSatisfiable
+    /// 413 `content too large` — an upload's body past what the route will carry.
+    ///
+    /// **Not retryable, and that is the whole reason the case exists.** The same
+    /// bytes cannot fit on the next attempt either, so a retry sends the entire
+    /// file again to hear the same refusal. Before this case existed the status
+    /// fell to `mapStatus`'s `default`, which is `unreachable` — so a server that
+    /// had answered correctly and deliberately was reported to the reader as *the
+    /// Mac is not answering*, and the request was then retried on a file that can
+    /// never fit. Two repos' vocabularies have to move together (`musaeum`'s
+    /// slice 2 added the status; this is the client's half), and no case in either
+    /// suite could see the gap until the client existed.
+    case tooLarge
     /// 503 `busy` — too many byte transfers in flight. **Retryable.**
     case busy(retryAfter: TimeInterval?)
     /// 503 `library offline` — the share is not mounted, so there are no bytes.
@@ -38,6 +50,7 @@ enum ClientError: Error, Equatable, CustomStringConvertible {
         case let .badRequest(detail): detail.map { "the request was refused: \($0)" } ?? "the request was refused"
         case .notFound: "the Mac does not have that"
         case .rangeNotSatisfiable: "the download could not resume — the file changed"
+        case .tooLarge: "the Mac refused the upload — content too large for it to take"
         case .busy: "the Mac is busy transferring; retrying"
         case .libraryOffline: "the library share is not mounted on the Mac"
         case .server: "the Mac hit an error serving that"
@@ -254,6 +267,63 @@ struct MusaeumClient: Sendable {
         return try await sendJSON(request)
     }
 
+    // MARK: The second write — a book the phone sends
+
+    /// `POST /api/books?format=&filename=` — the book's **bytes as the body**,
+    /// which is the shape the contract asks for ("not JSON, and not
+    /// `multipart/form-data`"): the client already holds the file, and the body is
+    /// the file.
+    ///
+    /// **The body is a file the session reads (`upload(for:fromFile:)`), never
+    /// `httpBody`.** A `Data` body is an in-memory upload: it reads correctly, and
+    /// it dies on the phone with the library's own worst case — the Mac's census
+    /// measured a 528 MiB EPUB — while a simulator run on a seed book shows
+    /// nothing. R1 measured the two against each other.
+    ///
+    /// `Content-Type` is deliberately **absent**. The contract says it is not read
+    /// ("the bytes are the body, and `Content-Type` is not read"), and the answer
+    /// to "what is this?" is already the `format` parameter, which the route
+    /// trusts, plus the `filename` it names the row by.
+    func uploadBook(file: URL, format: String, filename: String) async throws -> ImportResult {
+        let request = Self.uploadRequest(base: base, token: token, format: format, filename: filename)
+        do {
+            let (data, response) = try await session.upload(for: request, fromFile: file)
+            try Self.check(response, body: data)
+            do {
+                return try JSONDecoder().decode(ImportResult.self, from: data)
+            } catch let error as ContractError {
+                throw ClientError.decoding(error)
+            } catch let error as DecodingError {
+                throw ClientError.decoding(Self.contractError(from: error))
+            }
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as ClientError {
+            throw error
+        } catch {
+            throw ClientError.unreachable((error as NSError).localizedDescription)
+        }
+    }
+
+    /// The upload's request, composed where a case can read it: the two parameters
+    /// the contract requires, the bearer header, and **nothing else** — no body
+    /// (the bytes travel as the session's file), no `Content-Type`, and no
+    /// invented header. `filename` is the wire's parameter name and is the name
+    /// the Mac titles the row by when the import finds no metadata of its own, so
+    /// it travels exactly as the file is named on the phone.
+    static func uploadRequest(base: URL, token: String, format: String, filename: String) -> URLRequest {
+        request(
+            base: base,
+            token: token,
+            path: "api/books",
+            query: [
+                URLQueryItem(name: "format", value: format),
+                URLQueryItem(name: "filename", value: filename),
+            ],
+            method: "POST"
+        )
+    }
+
     // MARK: Plumbing
 
     private func sendJSON<T: Decodable>(_ request: URLRequest) async throws -> T {
@@ -296,6 +366,7 @@ struct MusaeumClient: Sendable {
         case 400: throw ClientError.badRequest(payload?.error)
         case 401: throw ClientError.unauthorized
         case 404: throw ClientError.notFound
+        case 413: throw ClientError.tooLarge
         case 416: throw ClientError.rangeNotSatisfiable
         case 500: throw ClientError.server
         case 503:

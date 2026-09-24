@@ -86,6 +86,38 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(queryItems(request)["format"], "epub")
     }
 
+    // MARK: The upload's request — the second write
+
+    /// What the wire sees for an upload: the contract's two parameters, the bearer
+    /// header, and **nothing else**. No body on the request and no `Content-Type` —
+    /// the bytes travel as the session's *file* and the route does not read a type,
+    /// so inventing one would be this client describing a shape the contract does
+    /// not name. AC1's other half (that the body really is a file the session reads
+    /// rather than bytes in memory) is `UploadTests`'s, where the stream is read.
+    func testUploadRequestCarriesTheContractsParametersAndNothingElse() async throws {
+        let file = try temporaryFile(named: "The Expanse.epub", bytes: 32)
+        let client = client { _ in StubURLProtocol.Response(status: 201, body: self.fixture("import")) }
+        _ = try await client.uploadBook(file: file, format: "epub", filename: "The Expanse.epub")
+
+        let request = try XCTUnwrap(StubURLProtocol.requests.first)
+        XCTAssertEqual(request.url?.path, "/api/books")
+        XCTAssertEqual(request.httpMethod, "POST")
+        let query = queryItems(request)
+        XCTAssertEqual(query["format"], "epub")
+        XCTAssertEqual(query["filename"], "The Expanse.epub")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-token")
+        XCTAssertNil(request.httpBody, "the bytes are the session's file, not a body this client built")
+        // **The client composes no `Content-Type`, and that is the whole claim**:
+        // the route says it does not read one, so a type from this app would be a
+        // shape the contract does not name. `URLSession` adds its own
+        // `application/octet-stream` for an upload without one, which the route
+        // ignores — so the assertion is on the composer, not on the wire.
+        XCTAssertNil(
+            MusaeumClient.uploadRequest(base: base, token: "t", format: "epub", filename: "book.epub")
+                .value(forHTTPHeaderField: "Content-Type")
+        )
+    }
+
     // MARK: AC4 — the contract version is refused when it moves
 
     func testAnUnknownContractVersionIsRefusedByName() async throws {
@@ -165,6 +197,31 @@ final class ClientTests: XCTestCase {
         }
     }
 
+    /// **A status `musaeum`'s own slice 2 added, which this client had no case
+    /// for — so this case pins a defect that shipped.** `mapStatus`'s `default` is
+    /// `unreachable`, whose own documentation is *"the Mac is asleep, off the
+    /// tailnet, or the app is closed"* and which **is retryable**: an oversized
+    /// upload was therefore reported to the reader as a Mac that had not answered,
+    /// and then sent again, indefinitely, on a file that can never fit.
+    ///
+    /// **Both halves in one case on purpose**: a status mapped to its own outcome
+    /// and then retried anyway is the same bug with a better message.
+    func testContentTooLargeIsItsOwnOutcomeAndIsNotRetried() throws {
+        let http = try XCTUnwrap(
+            HTTPURLResponse(url: base, statusCode: 413, httpVersion: "HTTP/1.1", headerFields: [:])
+        )
+        XCTAssertThrowsError(
+            try MusaeumClient.mapStatus(http, body: Data(#"{"error":"content too large"}"#.utf8))
+        ) { error in
+            XCTAssertEqual(error as? ClientError, .tooLarge)
+        }
+        XCTAssertFalse(ClientError.tooLarge.isRetryable, "the same bytes cannot fit on a second attempt")
+        XCTAssertTrue(
+            ClientError.tooLarge.description.contains("content too large"),
+            "the row's words are the contract's own"
+        )
+    }
+
     /// The Mac asleep is the ordinary case, not an exception (D14).
     func testAnUnreachableServerIsAnOrdinaryOutcome() async throws {
         // A port nothing listens on: the app's own story for "the Mac is shut".
@@ -192,6 +249,15 @@ final class ClientTests: XCTestCase {
     private func queryItems(_ request: URLRequest) -> [String: String] {
         let items = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
         return Dictionary(items.map { ($0.name, $0.value ?? "") }, uniquingKeysWith: { a, _ in a })
+    }
+
+    /// A picked book, as a path the app can read directly.
+    private func temporaryFile(named name: String, bytes: Int) throws -> URL {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("musaeum-client-\(UUID().uuidString)-\(name)")
+        try Data(repeating: 0x45, count: bytes).write(to: url)
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        return url
     }
 }
 

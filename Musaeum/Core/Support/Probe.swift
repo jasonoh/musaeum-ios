@@ -58,6 +58,18 @@ enum Probe {
     /// sheet is opened through the same state the toolbar button sets.
     static var openSheet: Bool { value("MUSAEUM_PROBE_SHEET") == "1" }
 
+    /// **A book for the run to send**, as a path the app can already read. The
+    /// script copies the file into the app's own container first, because a
+    /// `simctl` launch cannot open a security scope and a `fileImporter` cannot be
+    /// driven at all — so this is how the upload's own call, the copy into the
+    /// outbox, the composed request and the refusal classes are decidable without
+    /// a human. The *picker* stays a claim for a human frame.
+    static var uploadPath: String? { value("MUSAEUM_PROBE_UPLOAD") }
+
+    /// Whether the run presents the **upload sheet**, so the surface that only a
+    /// tap otherwise reaches has a frame of its own.
+    static var openUploadSheet: Bool { value("MUSAEUM_PROBE_UPLOAD_SHEET") == "1" }
+
     /// What the probe is exercising, so `library` and `read` runs are distinct.
     /// `write` additionally reports the fraction the reader landed at **through
     /// the app's own door** and reads the row back — the upward path's live
