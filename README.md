@@ -1,6 +1,6 @@
 # Musaeum iOS
 
-A reading client for a [Musaeum](https://github.com/jasonoh/musaeum) library on the Mac (locally `../musaeum`). It browses the library over the tailnet, downloads a book into its own storage, and reads it — starting at the fraction the Mac last recorded, so a book carries on where you left it on the other machine.
+A reading client for a [Musaeum](https://github.com/jasonoh/musaeum) library on the Mac (locally `../musaeum`). It browses the library over the tailnet, downloads a book into its own storage, reads it — starting at the fraction the Mac last recorded, so a book carries on where you left it on the other machine — and sends a book the other way, into the Mac's own importer.
 
 **The contract is not in this repo.** The Mac app serves the HTTP surface and owns its description:
 
@@ -36,7 +36,9 @@ Slice 2 (the *upward* path): the fraction is written back when the reader closes
 
 Slice 3 (finding things): the Mac's own **eight sort orders** and its **full-text search**, so the same query returns the same books in the same order on both machines, plus a **filter sheet** carrying the contract's own vocabulary and the Mac's own counts — read status, format, a rating floor, and the library's own authors, series and tags. The sort is remembered between launches; the search is not.
 
-**Not built yet:** PDF in the reader, resumable downloads (whole-file today, `docs/specs` CD6), and the deferred list in `tasks.md` — each revived only by its own stated condition.
+Slice 4 (sending a book to the Mac): a book picked in the app — or shared to Musaeum from Files, Safari or Mail — goes to the Mac's own importer, so what lands is what a Mac-side import would have produced: the same metadata pass, the same covers, the same rule for a book you already had. The row reports what happened in the Mac's own words and claims nothing before the Mac has answered; a book past the Mac's size limit, or one it cannot take, says *that* rather than offering a retry, while a Mac that is busy or whose share is unmounted is worth waiting out — and the phone keeps its own copy, so **Try again** sends the same bytes rather than asking for the file again. A book handed over while the Mac cannot be reached waits in the app's own storage and goes out when it can.
+
+**Not built yet:** PDF in the reader; resumable downloads (whole-file today, `docs/specs` CD6); an upload that outlives the app is a *new* send rather than a resumed one (the route has no `Range` and no idempotency key — a book the Mac already has is added rather than refused, so trying again loses nothing but the transfer); one book at a time; and a file that is not a file on the phone — an undehydrated iCloud Drive placeholder, a Photos item, a link — is reported rather than worked around. Plus the deferred list in `tasks.md`, each item revived only by its own stated condition.
 
 ## Layout
 
@@ -46,12 +48,14 @@ Musaeum/
   Core/API/               contract models, the strict decoder, the HTTP client, the cover pipeline,
                           the progress report and the refusal rule that decides its fate
   Core/Store/             settings (Keychain + UserDefaults), the download index, local positions,
-                          the report queue and the reporter that drives it
+                          the report queue and the reporter that drives it, the upload's own state
+                          and the hand-off a shared file leaves behind
   Core/Reader/            the Readium host and the pure initial-fraction rule
   Core/Support/           the launch seam the live probe drives
   Features/               Connect · Library · Detail · Downloads · Reader
 Tests/MusaeumTests/       the deciders: contract fixtures, strict decoding, request composition,
-                          the cover cap, positions, the queue, the reporter, the one write
+                          the cover cap, positions, the queue, the reporter, the two writes and the
+                          upload's refusal classes
 Tests/Fixtures/contract/  payloads extracted from the contract document by scripts/vendor-contract-fixtures.sh
 scripts/                  the fixture vendoring script, and live-probe.sh — the app's own instrument
 docs/specs/, docs/plans/  this client's own design and the plan for each slice

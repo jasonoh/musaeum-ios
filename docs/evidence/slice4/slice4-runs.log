@@ -1,0 +1,257 @@
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:52:10Z | exit=0
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' passed (0.020 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' passed (0.006 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.000 seconds).
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.042 (0.045) seconds
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.042 (0.045) seconds
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.042 (0.046) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:52:16Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' passed (0.020 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' failed (0.020 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.000 seconds).
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.062 (0.065) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.062 (0.065) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.062 (0.065) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:52:21Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' passed (0.019 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' passed (0.005 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' failed (0.015 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.009 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.001 seconds).
+	 Executed 13 tests, with 3 failures (0 unexpected) in 0.062 (0.065) seconds
+	 Executed 13 tests, with 3 failures (0 unexpected) in 0.062 (0.065) seconds
+	 Executed 13 tests, with 3 failures (0 unexpected) in 0.062 (0.066) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:52:26Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' passed (0.021 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' passed (0.005 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' failed (0.012 seconds).
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.054 (0.057) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.054 (0.057) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.054 (0.057) seconds
+
+=== MusaeumTests/ClientTests | 2026-09-24T20:52:32Z | exit=65
+Test Case '-[MusaeumTests.ClientTests testAnUnknownContractVersionIsRefusedByName]' passed (0.013 seconds).
+Test Case '-[MusaeumTests.ClientTests testAnUnreachableServerIsAnOrdinaryOutcome]' passed (0.024 seconds).
+Test Case '-[MusaeumTests.ClientTests testAPayloadThatDoesNotMatchTheContractIsARefusalNotANilTitle]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.ClientTests testBookDetailRequestAsksByID]' passed (0.004 seconds).
+Test Case '-[MusaeumTests.ClientTests testBusyIsRetryableAndCarriesItsRetryAfter]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testContentTooLargeIsItsOwnOutcomeAndIsNotRetried]' failed (0.011 seconds).
+Test Case '-[MusaeumTests.ClientTests testCoverRequestCarriesTheVersionAndSize]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testFileRequestAsksByIDAndFormat]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testHealthRequestCarriesTheBearerToken]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.ClientTests testLibraryRequestCarriesSearchSortAndDirection]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.ClientTests testLibraryRequestCarriesTheContractsDefaultWindow]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testNotFoundAndServerAndBadRequestAreDistinct]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.ClientTests testTheContractVersionThisAppSpeaksIsAccepted]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testTheShareBeingOfflineIsItsOwnOutcome]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testUnauthorizedIsItsOwnOutcome]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testUploadRequestCarriesTheContractsParametersAndNothingElse]' passed (0.003 seconds).
+	 Executed 16 tests, with 1 failure (0 unexpected) in 0.072 (0.076) seconds
+	 Executed 16 tests, with 1 failure (0 unexpected) in 0.072 (0.076) seconds
+	 Executed 16 tests, with 1 failure (0 unexpected) in 0.072 (0.077) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:52:38Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' passed (0.019 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' passed (0.005 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' failed (0.016 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' passed (0.009 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.005 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.000 seconds).
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.065 (0.068) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.065 (0.068) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.065 (0.069) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:52:43Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' passed (0.020 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' passed (0.006 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' failed (0.012 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.001 seconds).
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.061 (0.064) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.061 (0.065) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.061 (0.065) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:52:48Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' passed (0.022 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' passed (0.006 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' failed (0.020 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' passed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.005 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' failed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.000 seconds).
+	 Executed 13 tests, with 5 failures (0 unexpected) in 0.069 (0.072) seconds
+	 Executed 13 tests, with 5 failures (0 unexpected) in 0.069 (0.073) seconds
+	 Executed 13 tests, with 5 failures (0 unexpected) in 0.069 (0.073) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:52:54Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' failed (0.030 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' failed (0.006 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' failed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' failed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' failed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.000 seconds).
+	 Executed 13 tests, with 5 failures (0 unexpected) in 0.053 (0.056) seconds
+	 Executed 13 tests, with 5 failures (0 unexpected) in 0.053 (0.056) seconds
+	 Executed 13 tests, with 5 failures (0 unexpected) in 0.053 (0.057) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:53:01Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' passed (0.019 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' passed (0.008 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' failed (0.016 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.008 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' failed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.000 seconds).
+	 Executed 11 tests, with 2 failures (0 unexpected) in 0.047 (0.049) seconds
+	 Executed 11 tests, with 2 failures (0 unexpected) in 0.047 (0.050) seconds
+	 Executed 11 tests, with 2 failures (0 unexpected) in 0.047 (0.050) seconds
+
+=== MusaeumTests/UploadTests | 2026-09-24T20:53:06Z | exit=65
+Test Case '-[MusaeumTests.UploadTests testABookTheMacCreatedIsTheOnlyThingThatClaimsTheLibrary]' failed (0.033 seconds).
+Test Case '-[MusaeumTests.UploadTests testABusyMacIsOfferedARetryAndTheCopyIsKeptForIt]' passed (0.009 seconds).
+Test Case '-[MusaeumTests.UploadTests testACancelledPickerIsNotARefusal]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testAFileWithNoFormatTheContractNamesIsRefusedWithoutAskingTheMac]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testAMissingMemberInTheImportPayloadIsRefused]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnOversizedBookIsRefusedAndNeverClaimedAndNotSentAgain]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testAnUploadThatMatchedNothingSaysSoWithoutNamingAMatch]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testARefusedTokenIsItsOwnClassAndOffersTheWayBackToTheConnectScreen]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheFormatComesFromTheFilesOwnExtension]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheImportPayloadDecodesFromTheVendoredFixture]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheOrdinaryCaseAndAnAuthorlessMatchBothDecode]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadTests testTheUploadBodyIsAFileTheSessionReadsRatherThanBytesInMemory]' passed (0.003 seconds).
+Test Case '-[MusaeumTests.UploadTests testTooLargeIsTheBooksOwnProblemAndNeverAWorthWaitingOne]' passed (0.000 seconds).
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.059 (0.062) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.059 (0.062) seconds
+	 Executed 13 tests, with 1 failure (0 unexpected) in 0.059 (0.063) seconds
+
+=== MusaeumTests/UploadInboxTests | 2026-09-24T20:53:12Z | exit=65
+Test Case '-[MusaeumTests.UploadInboxTests testABookTheSystemHandedOverIsTaken]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testADirectoryNamedLikeABookIsRefused]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAFileThatIsAlreadyGoneIsRefusedWithoutCrashing]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAFileThisAppWillNotSendIsRefusedByNameAndNotPutInTheSweep]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAShareThatArrivesBeforeTheAppCanSendItIsStillThereAfterARelaunch]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testTheSweepIsInNameOrderSoAMultiBookRunIsRepeatable]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testTheSystemsCopyGoesOnlyFromThisAppsOwnInbox]' failed (0.012 seconds).
+	 Executed 7 tests, with 1 failure (0 unexpected) in 0.020 (0.022) seconds
+	 Executed 7 tests, with 1 failure (0 unexpected) in 0.020 (0.022) seconds
+	 Executed 7 tests, with 1 failure (0 unexpected) in 0.020 (0.023) seconds
+
+=== MusaeumTests/UploadInboxTests | 2026-09-24T20:53:17Z | exit=65
+Test Case '-[MusaeumTests.UploadInboxTests testABookTheSystemHandedOverIsTaken]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testADirectoryNamedLikeABookIsRefused]' failed (0.013 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAFileThatIsAlreadyGoneIsRefusedWithoutCrashing]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAFileThisAppWillNotSendIsRefusedByNameAndNotPutInTheSweep]' failed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAShareThatArrivesBeforeTheAppCanSendItIsStillThereAfterARelaunch]' failed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testTheSweepIsInNameOrderSoAMultiBookRunIsRepeatable]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testTheSystemsCopyGoesOnlyFromThisAppsOwnInbox]' passed (0.001 seconds).
+	 Executed 7 tests, with 3 failures (0 unexpected) in 0.024 (0.026) seconds
+	 Executed 7 tests, with 3 failures (0 unexpected) in 0.024 (0.026) seconds
+	 Executed 7 tests, with 3 failures (0 unexpected) in 0.024 (0.027) seconds
+
+=== MusaeumTests/UploadInboxTests | 2026-09-24T20:53:22Z | exit=65
+Test Case '-[MusaeumTests.UploadInboxTests testABookTheSystemHandedOverIsTaken]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testADirectoryNamedLikeABookIsRefused]' failed (0.012 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAFileThatIsAlreadyGoneIsRefusedWithoutCrashing]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAFileThisAppWillNotSendIsRefusedByNameAndNotPutInTheSweep]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testAShareThatArrivesBeforeTheAppCanSendItIsStillThereAfterARelaunch]' failed (0.004 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testTheSweepIsInNameOrderSoAMultiBookRunIsRepeatable]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.UploadInboxTests testTheSystemsCopyGoesOnlyFromThisAppsOwnInbox]' passed (0.001 seconds).
+	 Executed 7 tests, with 2 failures (0 unexpected) in 0.024 (0.026) seconds
+	 Executed 7 tests, with 2 failures (0 unexpected) in 0.024 (0.026) seconds
+	 Executed 7 tests, with 2 failures (0 unexpected) in 0.024 (0.026) seconds
+
+=== MusaeumTests/ClientTests | 2026-09-24T20:53:28Z | exit=0
+Test Case '-[MusaeumTests.ClientTests testAnUnknownContractVersionIsRefusedByName]' passed (0.013 seconds).
+Test Case '-[MusaeumTests.ClientTests testAnUnreachableServerIsAnOrdinaryOutcome]' passed (0.018 seconds).
+Test Case '-[MusaeumTests.ClientTests testAPayloadThatDoesNotMatchTheContractIsARefusalNotANilTitle]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.ClientTests testBookDetailRequestAsksByID]' passed (0.004 seconds).
+Test Case '-[MusaeumTests.ClientTests testBusyIsRetryableAndCarriesItsRetryAfter]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testContentTooLargeIsItsOwnOutcomeAndIsNotRetried]' passed (0.000 seconds).
+Test Case '-[MusaeumTests.ClientTests testCoverRequestCarriesTheVersionAndSize]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testFileRequestAsksByIDAndFormat]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testHealthRequestCarriesTheBearerToken]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testLibraryRequestCarriesSearchSortAndDirection]' passed (0.002 seconds).
+Test Case '-[MusaeumTests.ClientTests testLibraryRequestCarriesTheContractsDefaultWindow]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testNotFoundAndServerAndBadRequestAreDistinct]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testTheContractVersionThisAppSpeaksIsAccepted]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testTheShareBeingOfflineIsItsOwnOutcome]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testUnauthorizedIsItsOwnOutcome]' passed (0.001 seconds).
+Test Case '-[MusaeumTests.ClientTests testUploadRequestCarriesTheContractsParametersAndNothingElse]' passed (0.002 seconds).
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.049 (0.052) seconds
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.049 (0.052) seconds
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.049 (0.053) seconds

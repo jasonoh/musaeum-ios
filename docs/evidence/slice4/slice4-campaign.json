@@ -1,0 +1,107 @@
+[
+  {
+    "mutation": "the upload's body is held in memory instead of read from the file",
+    "file": "Musaeum/Core/API/MusaeumClient.swift",
+    "old": "            let (data, response) = try await session.upload(for: request, fromFile: file)",
+    "new": "            let (data, response) = try await session.upload(for: request, from: try Data(contentsOf: file))",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "the wire carries the format where the file's own name belongs",
+    "file": "Musaeum/Core/API/MusaeumClient.swift",
+    "old": "                URLQueryItem(name: \"filename\", value: filename),",
+    "new": "                URLQueryItem(name: \"filename\", value: format),",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "413 falls back to the default mapping (the gap this slice opened on)",
+    "file": "Musaeum/Core/API/MusaeumClient.swift",
+    "old": "        case 413: throw ClientError.tooLarge\n",
+    "new": "",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "the 413 keeps its mapping but loses its own arm in the class funnel",
+    "file": "Musaeum/Core/Store/UploadModel.swift",
+    "old": "        case .tooLarge, .badRequest:\n            Refusal(kind: .thisBook, message: error.description)",
+    "new": "        case .badRequest:\n            Refusal(kind: .thisBook, message: error.description)",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "413 is declared retryable (the belt-and-braces line)",
+    "file": "Musaeum/Core/API/MusaeumClient.swift",
+    "old": "        case .busy, .libraryOffline, .unreachable: true",
+    "new": "        case .busy, .libraryOffline, .unreachable, .tooLarge: true",
+    "test": "MusaeumTests/ClientTests"
+  },
+  {
+    "mutation": "an always-present member decodes to nil instead of throwing when absent",
+    "file": "Musaeum/Core/API/ContractModels.swift",
+    "old": "    private func require(_ key: String) throws {\n        guard container.contains(AnyCodingKey(key)) else {\n            throw ContractError.missingField(key, at: path)\n        }\n    }",
+    "new": "    private func require(_ key: String) throws {\n    }",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "the format is compared without lowercasing the extension",
+    "file": "Musaeum/Core/Store/UploadModel.swift",
+    "old": "        let ext = (name as NSString).pathExtension.lowercased()",
+    "new": "        let ext = (name as NSString).pathExtension",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "a name the contract does not name is sent anyway",
+    "file": "Musaeum/Core/Store/UploadModel.swift",
+    "old": "        return formats.contains(ext) ? ext : nil",
+    "new": "        return ext.isEmpty ? nil : ext",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "the library is claimed before the Mac has answered 201",
+    "file": "Musaeum/Core/Store/UploadModel.swift",
+    "old": "    var claimsBookIsInLibrary: Bool {\n        if case .added = outcome { return true }\n        return false\n    }",
+    "new": "    var claimsBookIsInLibrary: Bool {\n        true\n    }",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "a refusal's own class stops deciding whether the bytes stay",
+    "file": "Musaeum/Core/Store/UploadModel.swift",
+    "old": "        if refusal.kind == .waitAndTry {",
+    "new": "        if refusal.kind != .waitAndTry {",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "the collision and the ordinary case say the same sentence",
+    "file": "Musaeum/Core/Store/UploadModel.swift",
+    "old": "            case let .added(_, duplicate): duplicate == nil ? \"Sent to the library\" : \"Sent — and you already had it\"",
+    "new": "            case .added: \"Sent to the library\"",
+    "test": "MusaeumTests/UploadTests"
+  },
+  {
+    "mutation": "the system's copy is deleted from anywhere it is handed",
+    "file": "Musaeum/Core/Store/UploadInbox.swift",
+    "old": "        let inbox = directory(container: container).standardizedFileURL.path\n        guard url.standardizedFileURL.path.hasPrefix(inbox + \"/\") else { return }\n        try? FileManager.default.removeItem(at: url)",
+    "new": "        try? FileManager.default.removeItem(at: url)",
+    "test": "MusaeumTests/UploadInboxTests"
+  },
+  {
+    "mutation": "the sweep takes whatever a share ever left, books or not",
+    "file": "Musaeum/Core/Store/UploadInbox.swift",
+    "old": "            .filter { if case .success = incoming($0) { return true } else { return false } }",
+    "new": "            .filter { _ in true }",
+    "test": "MusaeumTests/UploadInboxTests"
+  },
+  {
+    "mutation": "a directory named like a book is taken as one",
+    "file": "Musaeum/Core/Store/UploadInbox.swift",
+    "old": "              !isDirectory.boolValue,\n",
+    "new": "",
+    "test": "MusaeumTests/UploadInboxTests"
+  },
+  {
+    "mutation": "the upload's body is held in memory (the client's own case decides the same thing)",
+    "file": "Musaeum/Core/API/MusaeumClient.swift",
+    "old": "            let (data, response) = try await session.upload(for: request, fromFile: file)",
+    "new": "            let (data, response) = try await session.upload(for: request, from: try Data(contentsOf: file))",
+    "test": "MusaeumTests/ClientTests"
+  }
+]
