@@ -1,11 +1,12 @@
 # Musaeum iOS
 
-A reading client for a [Musaeum](https://github.com/) library on the Mac. It browses the library over the tailnet, downloads a book into its own storage, and reads it — starting at the fraction the Mac last recorded, so a book carries on where you left it on the other machine.
+A reading client for a [Musaeum](https://github.com/jasonoh/musaeum) library on the Mac (locally `../musaeum`). It browses the library over the tailnet, downloads a book into its own storage, and reads it — starting at the fraction the Mac last recorded, so a book carries on where you left it on the other machine.
 
 **The contract is not in this repo.** The Mac app serves the HTTP surface and owns its description:
 
-- **`docs/rest-api.md` in the Musaeum repo** — routes, payloads, statuses, auth, failure semantics, API version 1. It is the interface this app is written against, and this README deliberately does not restate it. Locally that is `../musaeum/docs/rest-api.md`.
+- **`docs/rest-api.md` in the Musaeum repo** — routes, payloads, statuses, auth, failure semantics, API version 1. It is the interface this app is written against, and this README deliberately does not restate it. Locally that is `../musaeum/docs/rest-api.md` ([on GitHub](https://github.com/jasonoh/musaeum/blob/main/docs/rest-api.md)).
 - **`../musaeum/scripts/api-smoke.sh`** — the contract's executable half: it exercises every route against a live app and prints PASS/FAIL per line. Run it when the server side looks wrong rather than guessing from the phone.
+- **`../musaeum/README.md`** — what the Mac app is and does; this repo is the phone half of that product.
 - **`docs/specs/2026-09-22-client-v1-design.md`** (this repo) — the client's own design: what it decides, what it deliberately does not do, and the measurements behind the reader engine.
 
 ## Build and run
@@ -18,11 +19,11 @@ xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" bui
 xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" test
 ```
 
-Requires Xcode 27+, XcodeGen (`brew install xcodegen`), and **the Mac app running with the REST API enabled** for anything that touches the network.
+Requires Xcode 27+, XcodeGen (`brew install xcodegen`), and **the Mac app running with its server switched on** (Settings → Phone access) for anything that touches the network.
 
 ## Pointing it at the Mac
 
-1. In Musaeum on the Mac: **Settings → Remote access**, turn it on. The row shows the URL to type into the phone and the bearer token beside it.
+1. In Musaeum on the Mac: **Settings → Phone access**, turn it on. The row shows the URL to type into the phone and the bearer token beside it.
 2. In this app: **Connect** — paste the URL and the token, then check the connection. The health payload names the contract version, the app version, the number of books and whether the library share is mounted.
 
 The phone must be on the same tailnet as the Mac. The server binds the tailnet address only; there is no LAN or public surface.
@@ -33,7 +34,9 @@ Slice 1 (the *downward* path): configure and connect, the paginated library as a
 
 Slice 2 (the *upward* path): the fraction is written back when the reader closes or the app leaves the foreground, queued on the phone while the Mac cannot take it and flushed when it answers — ordered by the report's own clock, which is what stops a phone's stale reading from dragging the Mac's position backwards.
 
-**Not built yet:** search and filters, PDF in the reader, resumable downloads (whole-file today, `docs/specs` CD6), and the deferred list in `tasks.md` — each revived only by its own stated condition.
+Slice 3 (finding things): the Mac's own **eight sort orders** and its **full-text search**, so the same query returns the same books in the same order on both machines, plus a **filter sheet** carrying the contract's own vocabulary and the Mac's own counts — read status, format, a rating floor, and the library's own authors, series and tags. The sort is remembered between launches; the search is not.
+
+**Not built yet:** PDF in the reader, resumable downloads (whole-file today, `docs/specs` CD6), and the deferred list in `tasks.md` — each revived only by its own stated condition.
 
 ## Layout
 
@@ -51,5 +54,6 @@ Tests/MusaeumTests/       the deciders: contract fixtures, strict decoding, requ
                           the cover cap, positions, the queue, the reporter, the one write
 Tests/Fixtures/contract/  payloads extracted from the contract document by scripts/vendor-contract-fixtures.sh
 scripts/                  the fixture vendoring script, and live-probe.sh — the app's own instrument
+docs/specs/, docs/plans/  this client's own design and the plan for each slice
 docs/evidence/            the frames each slice's live probe produced, with the numbers beside them
 ```
