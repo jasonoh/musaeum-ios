@@ -315,6 +315,11 @@ final class LibraryModel {
 struct LibraryScreen: View {
     @Environment(SettingsStore.self) private var settings
 
+    /// **The phone's own shelf, read here for one reason: to know whether it holds
+    /// anything.** The door to it is this screen's (`downloadsRow`) since the bar
+    /// could not keep four controls and the longest order label at once.
+    @Environment(DownloadStore.self) private var downloads
+
     @State private var model: LibraryModel?
     @State private var detail: ContractBook?
     /// The field's own text. SwiftUI owns it (`.searchable`) and the model is told
@@ -357,16 +362,23 @@ struct LibraryScreen: View {
                 prompt: "Search titles, authors, series…"
             )
             .toolbar {
+                // **Three controls in the bar, not four, and the missing one is the
+                // only *destination* of the four.** Measured on the built app at
+                // 402 pt with the widest order label (`Recently Added`,
+                // `docs/evidence/toolbar-alignment/`): four trailing items overflow,
+                // which iOS answers by taking the sort control *and* the shelf ring
+                // off the bar into a `•••` — hiding the remembered order that 3a's
+                // label exists to show. **A leading item is not a way out**, which
+                // was measured too and is why this reads as one group: the same ring
+                // in `.topBarLeading` left the trailing cluster overflowing
+                // (`Send · filter · •••`), so the toolbar's width is one budget, not
+                // one per group. Three trailing items measure 307 pt and the longest
+                // label stays inline, where the same three with the ring beside them
+                // come to roughly 363 pt and iOS collapses the cluster; the shelf
+                // keeps a door on the screen itself (`downloadsRow`).
                 ToolbarItem(placement: .topBarTrailing) { uploadButton }
                 ToolbarItem(placement: .topBarTrailing) { filterButton }
                 ToolbarItem(placement: .topBarTrailing) { sortMenu }
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        DownloadsScreen()
-                    } label: {
-                        Image(systemName: "arrow.down.circle")
-                    }
-                }
             }
             .navigationDestination(item: $detail) { book in
                 BookDetailScreen(book: book, library: model)
@@ -453,23 +465,91 @@ struct LibraryScreen: View {
         }
     }
 
+    /// **Equal ink, not one point size — and it is the only sizing rule in this
+    /// bar.**
+    ///
+    /// SF Symbols each fill their own em box, so four symbols at one font size do
+    /// not read as four equal marks. Measured on the built app (simulator, 3×,
+    /// `frame-bar-before.png`, 2026-09-24) at the toolbar's own symbol size, the
+    /// ink boxes came out `square.and.arrow.up` **71 px**, `line.3.horizontal.decrease.circle`
+    /// **65**, `arrow.up.arrow.down` **61** and `arrow.down.circle` **65** — the
+    /// share glyph a fifth taller than the sort arrows beside it. That is the whole
+    /// of "the `Send` set is misaligned with everything to its right": one control
+    /// in four stood taller than the other three, and because its ink is
+    /// bottom-heavy the pair's optical centre sat 3 px low as well.
+    ///
+    /// Ink is linear in the font size (measured at two sizes per symbol, a slope of
+    /// 3.6–4.2 px per point), so each symbol is given the size its own shape needs
+    /// to land on the bar's one box: the `circle` family's own, 65 px ≈ 21.7 pt, at
+    /// the toolbar's own 17 pt. These are the numbers that slope gives.
+    ///
+    /// A new control measures its own and adds it here. **The rule is equal ink, so
+    /// an eyeballed size is the defect this table exists to prevent** — the same
+    /// reason the sort and filter labels are explicit `HStack`s rather than
+    /// `Label`s (3.13).
+    private static let symbolSizes: [String: CGFloat] = [
+        "square.and.arrow.up": 15.5,
+        "arrow.up.arrow.down": 18,
+    ]
+
+    /// The toolbar's own symbol size, which is what the `circle` family measured at.
+    private static let barSymbolSize: CGFloat = 17
+
+    /// **The one optical nudge in the bar, and it is a measurement too.**
+    ///
+    /// Equal ink is not yet level ink: `square.and.arrow.up` draws its 65 px box
+    /// **3 px lower inside its own frame** than the `circle` family draws its own —
+    /// measured on the same frame after the sizes above were applied, its ink box
+    /// was `y 222…286` against the rings' `y 219…283`. That 1 pt is the same
+    /// magnitude as the misalignment this bar was fixed for, so it is corrected
+    /// rather than shrugged at. A symbol with no entry is already centred in its
+    /// frame.
+    private static let symbolOffsets: [String: CGFloat] = [
+        "square.and.arrow.up": -1,
+    ]
+
+    /// **The bar's one grammar, written once so the four controls cannot drift
+    /// apart again.**
+    ///
+    /// Each control used to be spelled out at its own call site, and the four
+    /// spellings drew the four sizes above. The colours were no rule either:
+    /// `Palette.gold` appeared twice — on the sort label and on the downloads
+    /// glyph — only because a `Menu` label and a `NavigationLink` inherit the
+    /// app's `tint` while a `Button` with its own `foregroundStyle` does not. In
+    /// this bar gold now means exactly one thing: **the library is narrowed.**
+    /// Everything else is parchment.
+    ///
+    /// One symbol box, one type size, one spacing, one colour rule — and a control
+    /// added later is built here rather than spelled out again.
+    private func barControl(_ symbol: String, _ text: String? = nil, narrowed: Bool = false) -> some View {
+        HStack(spacing: Self.barSpacing) {
+            Image(systemName: symbol)
+                .font(.system(size: Self.symbolSizes[symbol] ?? Self.barSymbolSize))
+                .offset(y: Self.symbolOffsets[symbol] ?? 0)
+            if let text { Text(text) }
+        }
+        .font(.body)
+        .foregroundStyle(narrowed ? Palette.gold : Palette.parchment)
+    }
+
+    /// The gap between a control's glyph and its words, for the same reason: one
+    /// number, so no control can sit loose against its own label.
+    private static let barSpacing: CGFloat = 5
+
     /// The upload's way in — the one control that starts a send.
     ///
     /// **The explicit `HStack` is load-bearing here, for the reason the sort and
     /// filter controls each paid for once (3.13): a toolbar renders a `Label`
     /// icon-only, and a toolbar item that is a bare glyph is a control the reader
     /// has to guess at.** Measured twice on this screen, so this one is spelled
-    /// out from the start.
+    /// out from the start — through `barControl`, so it is also the size of the
+    /// three beside it.
     private var uploadButton: some View {
         Button {
             showingUpload = true
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "square.and.arrow.up")
-                Text("Send")
-            }
+            barControl("square.and.arrow.up", "Send")
         }
-        .foregroundStyle(Palette.parchment)
     }
 
     /// The Mac's eight curated options, as a menu whose label **is** the current
@@ -484,6 +564,10 @@ struct LibraryScreen: View {
     /// app can open reordered with no visible cause, which is the exact dissonance
     /// the remembered sort was chosen to avoid. The probe's `sort=` log line is not
     /// on the phone's screen.
+    ///
+    /// Its words are parchment like every other control's: the current order is
+    /// information, not a narrowing, and the one gold in this bar stays the filter
+    /// count's alone.
     private var sortMenu: some View {
         Menu {
             Picker("Sort", selection: sortSelection) {
@@ -492,10 +576,7 @@ struct LibraryScreen: View {
                 }
             }
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "arrow.up.arrow.down")
-                Text(model?.query.sort.label ?? LibrarySort.default.label)
-            }
+            barControl("arrow.up.arrow.down", model?.query.sort.label ?? LibrarySort.default.label)
         }
     }
 
@@ -513,21 +594,72 @@ struct LibraryScreen: View {
     /// renders a `Label` icon-only, so a `Label` here would ship a bare glyph and
     /// the app could open narrowed with nothing on screen to say why. That is the
     /// same defect as the sort control's, one control over, and it cost two builds
-    /// the first time.
+    /// the first time. The count is the bar's own type size like everything else:
+    /// one size in the bar, and the number is a number.
     private var filterButton: some View {
         Button {
             showingFilters = true
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: model?.hasActiveFilters == true
+            barControl(
+                model?.hasActiveFilters == true
                     ? "line.3.horizontal.decrease.circle.fill"
-                    : "line.3.horizontal.decrease.circle")
-                if let count = model?.activeFilterCount, count > 0 {
-                    Text("\(count)")
-                }
-            }
+                    : "line.3.horizontal.decrease.circle",
+                activeFilterCount,
+                narrowed: model?.hasActiveFilters == true
+            )
         }
-        .foregroundStyle(model?.hasActiveFilters == true ? Palette.gold : Palette.parchment)
+        .accessibilityLabel(activeFilterCount.map { "Filters, \($0) on" } ?? "Filters")
+    }
+
+    private var activeFilterCount: String? {
+        guard let count = model?.activeFilterCount, count > 0 else { return nil }
+        return "\(count)"
+    }
+
+    /// The phone's own shelf, as a **door on the screen rather than a control in the
+    /// bar** — and the reason is a measurement, not a taste (`docs/evidence/
+    /// toolbar-alignment/`): with this ring in the trailing cluster, the widest
+    /// order label (`Recently Added`) overflows the bar and iOS takes the sort
+    /// control off it into a `•••`, hiding the order 3a's label exists to show. It
+    /// is the only one of the bar's four controls that is a *destination* rather
+    /// than something done to the list, so it is the one that can leave.
+    ///
+    /// **It appears exactly when it leads somewhere.** With an empty shelf the
+    /// screen it opens is its own empty card, and a permanent strip would cost the
+    /// grid 44 pt on every launch to say nothing; a reader who has downloaded
+    /// nothing has nothing to browse to, and the first download is what puts the
+    /// row, the count and the screen one tap away. That is the same shape as the
+    /// two strips beside it — the filter bar and the upload's row are likewise
+    /// present when they have something to say, and absent when they do not.
+    ///
+    /// The words are the destination's own (`DownloadsScreen`'s title is
+    /// **Downloaded**), because a door that named the room differently would make
+    /// the reader check whether it was the same room.
+    @ViewBuilder
+    private var downloadsRow: some View {
+        if !downloads.shelf.isEmpty {
+            NavigationLink {
+                DownloadsScreen()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.down.circle")
+                    Text("Downloaded").font(.footnote)
+                    Spacer(minLength: 8)
+                    Text(downloads.shelf.count == 1 ? "1 book" : "\(downloads.shelf.count) books")
+                        .font(.footnote)
+                        .foregroundStyle(Palette.muted)
+                    Image(systemName: "chevron.right").font(.caption2.weight(.semibold))
+                }
+                .foregroundStyle(Palette.parchment)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Palette.raised)
+            }
+            // `.plain`, so the row takes this screen's own ink and parchment rather
+            // than the system accent — the same reason the filter bar's Clear is
+            // `.plain` (a tinted label is a colour the palette does not own).
+            .buttonStyle(.plain)
+        }
     }
 
     /// The library screen's own report of an upload — the same view the sheet
@@ -653,6 +785,11 @@ struct LibraryScreen: View {
                 if let uploads, uploads.isSending || uploads.outcome != nil {
                     uploadRow(uploads)
                 }
+                // **The shelf's door, in the strips above the grid** — beside the
+                // filter bar and the upload's row, because it is the same kind of
+                // thing: a sentence about this screen, one tap from the thing it
+                // names. It is drawn only when the shelf holds something.
+                downloadsRow
                 if let empty = model.emptyState {
                     emptyCard(model, empty)
                 } else {
