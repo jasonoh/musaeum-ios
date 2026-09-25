@@ -1,8 +1,11 @@
 # Changelog
 
-## [Unreleased] — 2026-09-24
+## [Unreleased] — 2026-09-25
 
 ### Added
+
+- **The reader gets out of the way.** A book opens full-screen with only a faint chapter-and-percent line at the foot of the page. Tap the middle for the title, a close button and the book's contents; tap the edges to turn pages; swipe down to close.
+- **Contents.** Every chapter and section, the one you are in highlighted; tap one to go there, and the Mac hears where you are as if you had turned the pages.
 
 - **A book can be sent to the Mac from the phone.** Pick an EPUB, MOBI, AZW3 or PDF in the app, or share one to Musaeum from Files, Safari or Mail, and it goes to the Mac's own importer — so what lands is what the Mac would have imported itself: the same metadata pass, the same covers, the same rule for a book you already had. The row reports what happened in the Mac's own words and does not claim the book is in the library until the Mac has answered.
 - **A refusal is reported as the refusal it is, and only the ones worth retrying offer a retry.** A book past the Mac's own limit, or one it cannot take, is that book's problem and says so; a Mac that is busy, or whose library drive is not mounted, is worth waiting out — and the app keeps its own copy of the bytes, so *Try again* sends the same book instead of asking you to find it again; a refused token offers the way back to the connect screen.

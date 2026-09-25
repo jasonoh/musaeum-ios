@@ -32,6 +32,9 @@ struct ContentsSheet: View {
             }
             .navigationTitle("Contents")
             .navigationBarTitleDisplayMode(.inline)
+            // Rows scrolled up must not show through the title (6a's contents frame).
+            .toolbarBackground(Palette.surface, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .presentationDetents([.medium, .large])
         .presentationBackground(Palette.surface)

@@ -67,7 +67,7 @@ A change in the sheet updates `ReaderPrefs`, persists it, and calls `navigator.s
 
 ### RP7 — the footer label
 
-A pure rule (`ReaderFooterLabel.swift`): given the current locator and the TOC, the chapter title is `locator.title`, else the title of the deepest TOC entry whose href matches the locator's, else none; the percentage is `totalProgression` rounded to a whole percent. With a title: `Chapter · 16%`; without: `16%`; before the engine has said where it is: nothing (CD5 — `nil` is not `0`). Fed from the `locationDidChange` locator `record(_:)` already receives; no timer. The 2-second `landingFraction` wait is untouched — the sync path relies on it.
+A pure rule (`ReaderFooterLabel.swift`): given the current locator and the TOC, the chapter title is `locator.title`, else the title of the **first** TOC entry in reading order whose file (href without fragment or leading slash) is the locator's, else none — amended at build: "deepest" is ambiguous when one file holds several entries, and the first is the chapter's own heading; the percentage is `totalProgression` rounded to a whole percent. With a title: `Chapter · 16%`; without: `16%`; before the engine has said where it is: nothing (CD5 — `nil` is not `0`). Fed from the `locationDidChange` locator `record(_:)` already receives; no timer. The 2-second `landingFraction` wait is untouched — the sync path relies on it.
 
 ### RP8 — the tap rule is pure
 
@@ -116,3 +116,32 @@ The honest file count runs past the house's ~10-file bound (4 new rule files, 3 
 New: `Core/Reader/ReaderPrefs.swift`, `Core/Reader/ReaderPrefsMapping.swift`, `Core/Reader/ReaderTapZone.swift`, `Core/Reader/ReaderFooterLabel.swift`, `Features/Reader/ReaderChrome.swift`, `Features/Reader/TypographySheet.swift`, `Features/Reader/ContentsSheet.swift`, and the four test files above.
 
 Changed: `Features/Reader/ReaderScreen.swift` (the fixed `bar` and `safeAreaInset` give way to `ReaderChrome`; sheets and the swipe attach here), `Core/Reader/ReaderHost.swift` (`readingPreferences` reads `ReaderPrefs`; the TOC and the current locator are held on `ReaderModel`; `PositionRecorder` gains `didTapAt`). Then `README.md`'s *What works today*, `AGENTS.md`'s expected test counts, and `CHANGELOG.md`.
+
+## Built — slice 6a (2026-09-25)
+
+Branch `slice6-reader-polish`, plan `docs/plans/2026-09-25-slice6-reader-polish.md`.
+
+### Gates
+
+- Build exit 0, no warnings in this slice's files (the six test files carrying Xcode 27's `main actor-isolated property` warnings predate it).
+- Test exit 0, **158 cases across 19 suites** — the baseline on this runtime was **137**, not the 136 AGENTS.md recorded, and the slice adds exactly 21 (`ReaderGesturesTests` 10, `ReaderTocEntryTests` 5, `ReaderFooterLabelTests` 6).
+- Measured on **iPhone 18 Pro, iOS 27.0** (`39D29C73-…`) with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`: the iOS 26.1 device the earlier slices used no longer exists, and `xcode-select` points at the Command Line Tools.
+
+### The live probe
+
+Against a rebuilt probe profile (two books: Readium's `childrens-literature.epub` fixture and *Designing Machine Learning Systems*, 173 contents entries), the Mac's row set to `0.2` through `PUT /reading` so the page is text:
+
+- `docs/evidence/slice6/frame-reader-hidden.png` — AC1: no top bar, no status bar, `0%` footer on the cover.
+- `docs/evidence/slice6/frame-reader-chrome.png` — AC2: ✕, title, and the `Contents` strip with `3. Data Engineering Fundamentals · 20%`; the footer clears the last text line, so its bottom padding stays at 4.
+- `docs/evidence/slice6/frame-reader-contents.png` — AC7: nested entries indented, the current chapter in gold and scrolled to centre.
+- `ACTION=write` — AC4: `report accepted percent=0.2`, the Mac now holds `reading|0.2`; the upward path is untouched.
+
+### Corrections this build made
+
+- `ReaderTapZone.swift` became `ReaderGestures.swift`: it carries RP2's swipe rule too.
+- **A first location arriving after the landing wait hid the chrome.** The first chrome frame showed only the footer: the plan detected "the first location" as `landingFraction != nil`, which the 2-second wait also sets, so Readium's first `locationDidChange` read as a page turn. It has its own flag now (`hasRecordedLocation`); the re-shot frame is the one committed.
+- The contents sheet's title bar is solid `Palette.surface`: the first frame showed scrolled rows ghosting behind *Contents*.
+
+### Handed to the owner's own judgement
+
+`simctl` taps nothing, so these are claims for a human frame: a middle tap raises and lowers the chrome; edge taps turn pages and put the chrome away; the empty middle of the raised chrome passes taps through to the page; a contents tap lands on its chapter and the footer follows; and **a downward swipe closes the book** — RP2's stated risk. If Readium's web view swallows the swipe, it is removed with its tests and ✕ is the exit.

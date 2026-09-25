@@ -73,6 +73,11 @@ final class ReaderModel {
     private(set) var chapterTitle: String?
     /// The contents entry holding the current location, drawn in gold.
     private(set) var currentEntryID: Int?
+    /// Whether the engine has reported a location yet. Its own flag rather than
+    /// `landingFraction != nil`, which the landing wait also sets — and a first
+    /// report arriving after that wait would read as a page turn and put away a
+    /// chrome raised in the meantime (measured on the 6a probe).
+    private var hasRecordedLocation = false
 
     private var recorder: PositionRecorder?
     private var positions: LocalPositions?
@@ -228,7 +233,8 @@ final class ReaderModel {
         // A page turn after the first layout puts the chrome away (RP1). The
         // first location is the book opening, which must not hide a chrome the
         // probe or the reader has just raised.
-        if landingFraction != nil { chromeShown = false }
+        if hasRecordedLocation { chromeShown = false }
+        hasRecordedLocation = true
         let href = locator.href.string
         chapterTitle = ReaderFooterLabel.chapter(locatorTitle: locator.title, href: href, toc: toc)
         currentEntryID = ReaderTocEntry.current(href: href, in: toc)?.id

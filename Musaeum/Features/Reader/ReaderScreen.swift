@@ -145,6 +145,7 @@ struct ReaderScreen: View {
     private func applyReaderProbe() async {
         guard let reader = Probe.reader else { return }
         _ = await model.settledFraction(timeout: .seconds(8))
+        try? await Task.sleep(for: .seconds(1))
         switch reader {
         case "chrome": model.chromeShown = true
         case "contents": showingContents = true
