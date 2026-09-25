@@ -21,9 +21,15 @@ struct ReaderHost: UIViewControllerRepresentable {
 @MainActor
 final class PositionRecorder: NSObject, EPUBNavigatorDelegate {
     var onLocation: ((Locator) -> Void)?
+    var onTap: ((CGPoint) -> Void)?
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
         onLocation?(locator)
+    }
+
+    /// Readium's taps that were not on a link (`VisualNavigatorDelegate`).
+    func navigator(_ navigator: any VisualNavigator, didTapAt point: CGPoint) {
+        onTap?(point)
     }
 
     /// The one `NavigatorDelegate` requirement Readium does not default. Without
@@ -59,6 +65,15 @@ final class ReaderModel {
     /// `InitialFraction`'s rule, recorded so a probe can tell which one won.
     private(set) var requestedFraction: Double?
 
+    /// Whether the top bar and bottom strip are up (RP1). Every open starts hidden.
+    var chromeShown = false
+    /// The book's contents, flattened (RP6); empty when the book has none.
+    private(set) var toc: [ReaderTocEntry] = []
+    /// The footer's chapter (RP7), `nil` when neither the locator nor the contents name one.
+    private(set) var chapterTitle: String?
+    /// The contents entry holding the current location, drawn in gold.
+    private(set) var currentEntryID: Int?
+
     private var recorder: PositionRecorder?
     private var positions: LocalPositions?
 
@@ -85,6 +100,9 @@ final class ReaderModel {
             }
             let asset = try await assetRetriever.retrieve(url: fileURL).get()
             let publication = try await opener.open(asset: asset, allowUserInteraction: false).get()
+            if case let .success(links) = await publication.tableOfContents() {
+                toc = ReaderTocEntry.flatten(links)
+            }
 
             let localFraction = positions.fraction(for: book.id)
             let server = serverPercent ?? book.reading.percent
@@ -104,6 +122,9 @@ final class ReaderModel {
             let recorder = PositionRecorder()
             recorder.onLocation = { [weak self] locator in
                 self?.record(locator)
+            }
+            recorder.onTap = { [weak self] point in
+                self?.handleTap(at: point)
             }
             navigator.delegate = recorder
             self.recorder = recorder
@@ -151,6 +172,35 @@ final class ReaderModel {
         return landingFraction
     }
 
+    /// RP8: edges turn the page (and put the chrome away), the middle toggles it.
+    /// `goLeft`/`goRight` rather than backward/forward so a right-to-left book
+    /// turns the way the finger expects.
+    func handleTap(at point: CGPoint) {
+        guard let navigator else { return }
+        switch ReaderGestures.zone(x: point.x, width: navigator.view.bounds.width) {
+        case .toggle:
+            chromeShown.toggle()
+        case .previous:
+            chromeShown = false
+            Task { _ = await navigator.goLeft(options: NavigatorGoOptions(animated: true)) }
+        case .next:
+            chromeShown = false
+            Task { _ = await navigator.goRight(options: NavigatorGoOptions(animated: true)) }
+        }
+    }
+
+    /// RP6: a contents jump. The next `locationDidChange` records it exactly as a
+    /// page turn would, so the jump is reading progress. A dangling href leaves
+    /// the page where it was and says so in the log (CD7 — no alert).
+    func jump(to entry: ReaderTocEntry) async {
+        chromeShown = false
+        guard let navigator else { return }
+        let landed = await navigator.go(to: entry.link, options: NavigatorGoOptions(animated: false))
+        if !landed {
+            Probe.log("reader contents jump failed href=\(entry.link.href)")
+        }
+    }
+
     /// The dark page. Readium ships its own CSS, so this is the one place the
     /// app's palette can reach the text: the reading system's own dark theme,
     /// chosen for a reader who reads a library the app paints near-black. Tuned
@@ -175,6 +225,13 @@ final class ReaderModel {
             ?? 0
         let json = (try? locator.jsonString()) ?? "{}"
         positions.record(bookId: book.id, fraction: fraction.clampedToUnit(), locatorJSON: json)
+        // A page turn after the first layout puts the chrome away (RP1). The
+        // first location is the book opening, which must not hide a chrome the
+        // probe or the reader has just raised.
+        if landingFraction != nil { chromeShown = false }
+        let href = locator.href.string
+        chapterTitle = ReaderFooterLabel.chapter(locatorTitle: locator.title, href: href, toc: toc)
+        currentEntryID = ReaderTocEntry.current(href: href, in: toc)?.id
         landingFraction = fraction
     }
 }

@@ -14,6 +14,7 @@ struct ReaderScreen: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: ReaderModel
+    @State private var showingContents = false
 
     init(request: ReadingRequest) {
         self.request = request
@@ -29,7 +30,21 @@ struct ReaderScreen: View {
             case .ready:
                 if let navigator = model.navigator {
                     ReaderHost(navigator: navigator)
-                        .ignoresSafeArea(edges: .bottom)
+                        .ignoresSafeArea()
+                        .simultaneousGesture(
+                            DragGesture(minimumDistance: 24, coordinateSpace: .global)
+                                .onEnded { value in
+                                    let closes = ReaderGestures.closes(
+                                        startY: value.startLocation.y,
+                                        dx: value.translation.width,
+                                        dy: value.translation.height
+                                    )
+                                    if closes {
+                                        Probe.log("reader closed by swipe")
+                                        dismiss()
+                                    }
+                                }
+                        )
                 }
             case let .failed(message):
                 MessageCard(
@@ -39,8 +54,26 @@ struct ReaderScreen: View {
                 ) { dismiss() }
             }
         }
-        .safeAreaInset(edge: .top) {
-            bar
+        .overlay {
+            if model.phase == .ready {
+                ReaderChrome(
+                    title: request.book.title,
+                    chapter: model.chapterTitle,
+                    percent: ReaderFooterLabel.percent(model.landingFraction),
+                    shown: model.chromeShown,
+                    hasContents: !model.toc.isEmpty,
+                    onClose: { dismiss() },
+                    onContents: { showingContents = true },
+                    onTypography: nil
+                )
+            }
+        }
+        .statusBarHidden(!model.chromeShown)
+        .sheet(isPresented: $showingContents) {
+            ContentsSheet(entries: model.toc, currentID: model.currentEntryID) { entry in
+                showingContents = false
+                Task { await model.jump(to: entry) }
+            }
         }
         .task {
             await model.load(
@@ -49,6 +82,7 @@ struct ReaderScreen: View {
                 positions: positions
             )
             if Probe.action == "write" { await runWriteProbe() }
+            await applyReaderProbe()
         }
         // **The two doors out of a read**, and both lead to the same place. A
         // reader who closes the book and a reader who puts the phone in a pocket
@@ -106,38 +140,21 @@ struct ReaderScreen: View {
         }
     }
 
+    /// The frames `simctl` cannot tap its way to (AC1/AC2/AC7): `MUSAEUM_PROBE_READER`
+    /// raises the chrome or opens the contents once the engine has laid out.
+    private func applyReaderProbe() async {
+        guard let reader = Probe.reader else { return }
+        _ = await model.settledFraction(timeout: .seconds(8))
+        switch reader {
+        case "chrome": model.chromeShown = true
+        case "contents": showingContents = true
+        default: break
+        }
+        Probe.log("probe reader=\(reader) chapter=\(model.chapterTitle ?? "nil") toc=\(model.toc.count)")
+    }
+
     private func makeClient() -> MusaeumClient? {
         guard let base = settings.baseURL else { return nil }
         return MusaeumClient(base: base, token: settings.token)
-    }
-
-    private var bar: some View {
-        HStack(spacing: 12) {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.headline)
-                    .foregroundStyle(Palette.gold)
-            }
-            VStack(alignment: .leading, spacing: 1) {
-                Text(request.book.title)
-                    .font(.display(14))
-                    .foregroundStyle(Palette.parchment)
-                    .lineLimit(1)
-                if let fraction = model.landingFraction {
-                    Text("\(Int((fraction * 100).rounded()))%")
-                        .font(.caption2)
-                        .foregroundStyle(Palette.muted)
-                }
-            }
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Palette.surface)
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(Palette.hairline).frame(height: 1)
-        }
     }
 }

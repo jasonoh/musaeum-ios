@@ -34,6 +34,7 @@
 #
 #   TAG=library ./scripts/live-probe.sh                        # the grid, covers
 #   TAG=read    BOOK=<id> ./scripts/live-probe.sh              # download + read
+#   TAG=chrome  READER=chrome BOOK=<id> ./scripts/live-probe.sh # the reader's raised chrome (slice 6; also contents|typography|ink|paper)
 #   # stop the Mac app, then the run that matters most:
 #   TAG=offline BOOK=<id> ./scripts/live-probe.sh              # read with it off
 #
@@ -212,6 +213,7 @@ SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD="$UPLOAD_PATH" \
 SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD_SHEET="${UPLOAD_SHEET:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_DETAIL="${DETAIL:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_DOWNLOADS="${DOWNLOADS:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_READER="${READER:-}" \
   xcrun simctl launch "$DEV" "$BUNDLE" | cat
 sleep "$WAIT"
 
