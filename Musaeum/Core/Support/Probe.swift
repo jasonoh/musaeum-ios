@@ -79,6 +79,14 @@ enum Probe {
     /// photograph.
     static var detailBookID: String? { value("MUSAEUM_PROBE_DETAIL") }
 
+    /// Whether the run opens the **downloaded shelf** — the screen the library's
+    /// own `Downloaded` row leads to, which is a `NavigationLink` and therefore a
+    /// tap, and therefore unreachable by `simctl` any other way.
+    ///
+    /// It is its own variable rather than a book's id, because the shelf is not
+    /// about one book: it is the screen a row's geometry is judged on.
+    static var openDownloads: Bool { value("MUSAEUM_PROBE_DOWNLOADS") == "1" }
+
     /// What the probe is exercising, so `library` and `read` runs are distinct.
     /// `write` additionally reports the fraction the reader landed at **through
     /// the app's own door** and reads the row back — the upward path's live

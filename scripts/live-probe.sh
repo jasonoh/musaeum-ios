@@ -122,6 +122,12 @@
 #
 #   TAG=detail DETAIL=<id> ./scripts/live-probe.sh   # the detail with Read, Share and Remove on it
 #
+# **And the shelf's own screen is a fourth: a row's geometry is a frame's
+# business.** `DownloadsScreen` is behind a `NavigationLink` on the library
+# screen, so `DOWNLOADS=1` pushes the same destination by state instead:
+#
+#   TAG=downloads DOWNLOADS=1 ./scripts/live-probe.sh   # the downloaded shelf, one row per book
+#
 # Each line reports `sort=<field>:<direction> q=<term> filters=<set>` (with `-` for
 # an absent one) so all three halves of a query are readable without a frame: what
 # was asked for, and what came back. A QUERY is never stored, a SORT always is —
@@ -205,6 +211,7 @@ SIMCTL_CHILD_MUSAEUM_PROBE_SHEET="${SHEET:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD="$UPLOAD_PATH" \
 SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD_SHEET="${UPLOAD_SHEET:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_DETAIL="${DETAIL:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_DOWNLOADS="${DOWNLOADS:-}" \
   xcrun simctl launch "$DEV" "$BUNDLE" | cat
 sleep "$WAIT"
 

@@ -35,6 +35,7 @@ TAG=library BOOK=<book id> ./scripts/live-probe.sh   # the UI instrument; its he
 ACTION=write TAG=write BOOK=<book id> ./scripts/live-probe.sh   # the write instrument (slice 2)
 ACTION=share TAG=share BOOK=<book id> ./scripts/live-probe.sh   # the share instrument (slice 5) — **TAG is a label, ACTION is the switch**
 TAG=detail DETAIL=<book id> ./scripts/live-probe.sh   # a book's detail, so the share door is in a frame
+TAG=downloads DOWNLOADS=1 ./scripts/live-probe.sh   # the downloaded shelf itself — one row per book, the screen a tap otherwise reaches
 ```
 
 **The probe profile** the last three slices measured against is `~/.hermes/profiles/dev/cache/scratch/ios-probe` (its own `musaeum.db`, `library_root` pointed at its own folder, **13 books** — 8 seeded EPUBs plus the rows upload and smoke runs left — a `rest_api_token`, and `rest_api_port` **8789**, because the owner's packaged app holds 8788) — and scratch is pruned when idle, so if it is gone, rebuild it from the header of `scripts/live-probe.sh` rather than hunting for it: the seeding is six commands and the imports hydrate in about a minute. The Mac app is started with `env -u ELECTRON_RUN_AS_NODE MUSAEUM_USER_DATA=<that profile> npm run dev` from `../musaeum` (`ELECTRON_RUN_AS_NODE` is set in this shell and makes Electron run as plain Node — no window, no app).

@@ -331,6 +331,12 @@ struct LibraryScreen: View {
     /// sheet's own contents would be a claim no instrument could decide.
     @State private var showingFilters = false
 
+    /// **The phone's own shelf, as a pushed screen the probe can reach** —
+    /// `MUSAEUM_PROBE_DOWNLOADS=1`, for the same reason the sheet has a variable:
+    /// `DownloadsScreen` is behind a `NavigationLink`, `simctl` taps nothing, and
+    /// a row whose geometry is being judged is not a claim a source read settles.
+    @State private var showingDownloads = false
+
     /// **The upload's state belongs to the screen, not to the sheet.** An outcome
     /// has to survive the sheet closing (the annex's own reason for the library
     /// screen's row), and the probe's upload run has to go through exactly the door
@@ -383,6 +389,12 @@ struct LibraryScreen: View {
             .navigationDestination(item: $detail) { book in
                 BookDetailScreen(book: book, library: model)
             }
+            // The same destination the shelf's own door pushes, reached by state
+            // rather than by a tap — one destination, so a probe's frame and the
+            // reader's are the same screen.
+            .navigationDestination(isPresented: $showingDownloads) {
+                DownloadsScreen()
+            }
         }
         // **The debounce and the cancellation in one primitive.** `.task(id:)`
         // cancels its predecessor when the id changes, so a keystroke supersedes
@@ -421,6 +433,17 @@ struct LibraryScreen: View {
                     detail = opened
                 } else if let id = Probe.detailBookID {
                     Probe.log("probe: the library has no book \(id) to open a detail for")
+                }
+                // **The shelf's own screen, without a tap** — the row geometry
+                // this run measures is a frame's business, and `simctl` cannot
+                // reach a `NavigationLink`. The line reports what the seam *did*
+                // (consumed, and what the shelf held), because a seam that is
+                // never consumed reads as a run that found nothing; whether the
+                // screen that arrived is the shelf is the frame's to say, and the
+                // frame is the decider this seam exists for.
+                if Probe.openDownloads {
+                    showingDownloads = true
+                    Probe.log("probe downloads shelf rows=\(downloads.shelf.count)")
                 }
             }
         }

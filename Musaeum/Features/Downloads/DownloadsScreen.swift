@@ -63,6 +63,28 @@ struct DownloadsScreen: View {
         .scrollContentBackground(.hidden)
     }
 
+    /// **The row's two glyphs, at one ink box — and the numbers are measurements.**
+    ///
+    /// SF Symbols each fill their own em box, so two symbols at one font size do
+    /// not draw two equal marks. Measured at 3× on the built app
+    /// (`docs/evidence/downloads-row-alignment/`, 2026-09-24), the row's pair at
+    /// `.body` came out `square.and.arrow.up` **56 px** tall against `book`'s
+    /// **46** — a fifth taller, and the whole of "the read and share icons are not
+    /// properly aligned": one glyph stands out of the pair, and the row has
+    /// nothing else to say which of the two was the right size. Their ink centres
+    /// were level within a third of a point (`493.5` against `492.5`), so it is
+    /// size and not position.
+    ///
+    /// This is the library bar's own defect one screen over, and it takes the
+    /// bar's own rule (`LibraryScreen.symbolSizes`): **equal ink**, so each glyph
+    /// gets the size its own shape needs rather than a shared `.body`. The read
+    /// glyph keeps the size it has — it is the row's own tap — and the share
+    /// glyph, the one this door arrived beside it, is the one that moves.
+    ///
+    /// A third glyph would measure its own and join this table.
+    private static let readGlyphSize: CGFloat = 17
+    private static let shareGlyphSize: CGFloat = 14
+
     @ViewBuilder
     private func row(_ record: DownloadedBook) -> some View {
         if let book = try? record.book(), let fileURL = downloads.fileURL(for: record.id) {
@@ -83,7 +105,9 @@ struct DownloadsScreen: View {
                                 .foregroundStyle(Palette.muted)
                         }
                         Spacer()
-                        Image(systemName: "book").foregroundStyle(Palette.gold)
+                        Image(systemName: "book")
+                            .font(.system(size: Self.readGlyphSize))
+                            .foregroundStyle(Palette.gold)
                     }
                 }
                 .buttonStyle(.plain)
@@ -96,7 +120,7 @@ struct DownloadsScreen: View {
                     share(book)
                 } label: {
                     Image(systemName: "square.and.arrow.up")
-                        .font(.body)
+                        .font(.system(size: Self.shareGlyphSize))
                         .foregroundStyle(Palette.muted)
                         .frame(width: 44, height: 44)
                         .contentShape(.rect)
