@@ -26,8 +26,8 @@ enum ReaderGestures {
     static let systemEdge: CGFloat = 44
 
     /// A predominantly vertical, downward drag of at least `closeTravel`, not
-    /// started in the system's edge.
-    static func closes(startY: CGFloat, dx: CGFloat, dy: CGFloat) -> Bool {
-        startY >= systemEdge && dy >= closeTravel && dy > 2 * abs(dx)
+    /// started in the system's edge, and not a reader dragging a text selection.
+    static func closes(startY: CGFloat, dx: CGFloat, dy: CGFloat, selecting: Bool) -> Bool {
+        !selecting && startY >= systemEdge && dy >= closeTravel && dy > 2 * abs(dx)
     }
 }

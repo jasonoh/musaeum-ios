@@ -25,7 +25,7 @@ struct ReaderChrome: View {
             } else {
                 progressLabel
                     .padding(.horizontal, 32)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, ReaderInsets.footerPadding)
                     .allowsHitTesting(false)
                     .transition(.opacity)
             }

@@ -33,7 +33,8 @@ final class ReaderPrefsMappingTests: XCTestCase {
         XCTAssertEqual(epub.theme, .light)
     }
 
-    /// Without this the book's own CSS wins — the bold-sans heading (RP4).
+    /// Without this the reader's font, size and spacing do not reach the body text
+    /// (RP4). Headings are not covered: Readium CSS leaves h1–h6 to the publisher.
     func testPublisherStylesAreOff() {
         XCTAssertEqual(ReaderPrefsMapping.epubPreferences(.default).publisherStyles, false)
     }

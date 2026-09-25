@@ -71,7 +71,7 @@ A pure rule (`ReaderFooterLabel.swift`): given the current locator and the TOC, 
 
 ### RP8 — the tap rule is pure
 
-`ReaderTapZone.swift`: `zone(x:width:) → .previous | .toggle | .next`, thirds of the width, boundaries belonging to `.toggle`. Wired through Readium's `VisualNavigatorDelegate.navigator(_:didTapAt:)` on the existing `PositionRecorder`. `.previous` / `.next` call `goLeft` / `goRight` (so a right-to-left book turns the right way). A tap on a link inside the book is Readium's and never reaches the rule.
+`ReaderGestures.swift` (built as `ReaderTapZone.swift` in the first draft of this spec): `zone(x:width:) → .previous | .toggle | .next`, thirds of the width, boundaries belonging to `.toggle`. Wired through Readium's `VisualNavigatorDelegate.navigator(_:didTapAt:)` on the existing `PositionRecorder`. `.previous` / `.next` call `goLeft` / `goRight` (so a right-to-left book turns the right way). A tap on a link inside the book is Readium's and never reaches the rule.
 
 ## Failure
 
@@ -99,7 +99,7 @@ Unit (`Tests/MusaeumTests/`), each a pure rule reachable without a view:
 
 - `ReaderPrefsTests` — defaults, clamping of every field, unknown enum, undecodable data, `UserDefaults` round trip.
 - `ReaderPrefsMappingTests` — each theme's colours, `publisherStyles` off, font family per typeface, size and margin conversions pinned.
-- `ReaderTapZoneTests` — each third, both boundaries, zero width.
+- `ReaderGesturesTests` — each third, both boundaries, zero width, and the close swipe.
 - `ReaderFooterLabelTests` — locator title, TOC fallback, neither, `nil` progression, rounding.
 
 The unit suite cannot see a screen, so AC1, AC2, AC5, AC6 and AC7 are claims for **frames**: simulator screenshots of hidden chrome, shown chrome, each sheet, and Ink vs Paper, committed under `docs/evidence/slice6/`. Taps and swipes are claims for a **human frame** (`simctl` drives neither); the owner judges the elegance, which is the point of the slice.
@@ -113,7 +113,7 @@ The honest file count runs past the house's ~10-file bound (4 new rule files, 3 
 
 ## Files
 
-New: `Core/Reader/ReaderPrefs.swift`, `Core/Reader/ReaderPrefsMapping.swift`, `Core/Reader/ReaderTapZone.swift`, `Core/Reader/ReaderFooterLabel.swift`, `Features/Reader/ReaderChrome.swift`, `Features/Reader/TypographySheet.swift`, `Features/Reader/ContentsSheet.swift`, and the four test files above.
+New: `Core/Reader/ReaderPrefs.swift`, `Core/Reader/ReaderPrefsMapping.swift`, `Core/Reader/ReaderGestures.swift`, `Core/Reader/ReaderTocEntry.swift`, `Core/Reader/ReaderInsets.swift`, `Core/Reader/ReaderFooterLabel.swift`, `Features/Reader/ReaderChrome.swift`, `Features/Reader/TypographySheet.swift`, `Features/Reader/ContentsSheet.swift`, and the four test files above.
 
 Changed: `Features/Reader/ReaderScreen.swift` (the fixed `bar` and `safeAreaInset` give way to `ReaderChrome`; sheets and the swipe attach here), `Core/Reader/ReaderHost.swift` (`readingPreferences` reads `ReaderPrefs`; the TOC and the current locator are held on `ReaderModel`; `PositionRecorder` gains `didTapAt`). Then `README.md`'s *What works today*, `AGENTS.md`'s expected test counts, and `CHANGELOG.md`.
 
@@ -168,3 +168,12 @@ The owner confirmed 6a's five human-frame claims on a device the same day, the s
 ### Handed to the owner's own judgement
 
 Each control restyling the page live as it moves, and the choice surviving a close and a relaunch (AC5) — taps.
+
+## Final review (2026-09-25)
+
+A fresh whole-branch review found two Important defects, both fixed test-first:
+
+- **The hidden footer could sit over text.** Readium sets text down to `max(window safe area, its configured 34 / 62 pt)`; the footer sits above the safe area, so in landscape (34) or with a larger Dynamic Type caption a full page printed its last line under the percentage. `ReaderInsets` (via Readium's `navigatorContentInset` delegate) now reserves safe area + 4 + the caption's line height + 8, never below Readium's own floor — at the default size in portrait that is Readium's 62 exactly, so nothing reflows. `ReaderInsetsTests` (4); `docs/evidence/slice6/frame-page-large.png` is the page at 28 pt / 2.2 with the column clear of the footer.
+- **A selection drag could close the book.** Dragging a selection handle 80 pt down read as the close swipe. `ReaderGestures.closes` takes `selecting` (Readium's `currentSelection`), pinned by `testADragWhileSelectingDoesNotClose`.
+
+Gates after the fix pass: test exit 0, **177 cases across 22 suites**. The probe gained `READER=large` and `READER=reset`.

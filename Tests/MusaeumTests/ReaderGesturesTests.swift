@@ -29,23 +29,29 @@ final class ReaderGesturesTests: XCTestCase {
     }
 
     func testALongDownwardDragCloses() {
-        XCTAssertTrue(ReaderGestures.closes(startY: 200, dx: 10, dy: 120))
+        XCTAssertTrue(ReaderGestures.closes(startY: 200, dx: 10, dy: 120, selecting: false))
     }
 
     func testAShortDragDoesNotClose() {
-        XCTAssertFalse(ReaderGestures.closes(startY: 200, dx: 0, dy: 79))
+        XCTAssertFalse(ReaderGestures.closes(startY: 200, dx: 0, dy: 79, selecting: false))
     }
 
     func testADiagonalDragDoesNotClose() {
-        XCTAssertFalse(ReaderGestures.closes(startY: 200, dx: 70, dy: 120))
+        XCTAssertFalse(ReaderGestures.closes(startY: 200, dx: 70, dy: 120, selecting: false))
     }
 
     func testAnUpwardDragDoesNotClose() {
-        XCTAssertFalse(ReaderGestures.closes(startY: 400, dx: 0, dy: -200))
+        XCTAssertFalse(ReaderGestures.closes(startY: 400, dx: 0, dy: -200, selecting: false))
     }
 
     /// The top 44 pt belong to Notification Center.
     func testADragFromTheSystemEdgeDoesNotClose() {
-        XCTAssertFalse(ReaderGestures.closes(startY: 20, dx: 0, dy: 200))
+        XCTAssertFalse(ReaderGestures.closes(startY: 20, dx: 0, dy: 200, selecting: false))
+    }
+
+    /// Dragging a selection handle down the page copies text; it never closes
+    /// the book (final review, Important 2).
+    func testADragWhileSelectingDoesNotClose() {
+        XCTAssertFalse(ReaderGestures.closes(startY: 200, dx: 0, dy: 200, selecting: true))
     }
 }

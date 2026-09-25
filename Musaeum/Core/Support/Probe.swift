@@ -88,7 +88,8 @@ enum Probe {
     static var openDownloads: Bool { value("MUSAEUM_PROBE_DOWNLOADS") == "1" }
 
     /// Which reader surface the run raises once the book has laid out: `chrome`
-    /// or `contents` (slice 6a), `typography`, `ink` or `paper` (6b). A tap is the
+    /// or `contents` (slice 6a), `typography`, `ink` or `paper` (6b), `large` (the
+    /// largest size and line height, for the footer's clearance) or `reset`. A tap is the
     /// only other way to any of them.
     static var reader: String? { value("MUSAEUM_PROBE_READER") }
 

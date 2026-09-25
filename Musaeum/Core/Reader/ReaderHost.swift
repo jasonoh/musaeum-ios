@@ -32,6 +32,16 @@ final class PositionRecorder: NSObject, EPUBNavigatorDelegate {
         onTap?(point)
     }
 
+    /// The page's insets, reserving the hidden footer (`ReaderInsets`).
+    func navigatorContentInset(_ navigator: any VisualNavigator) -> UIEdgeInsets? {
+        guard let view = (navigator as? UIViewController)?.view else { return nil }
+        return ReaderInsets.content(
+            safeArea: view.window?.safeAreaInsets ?? .zero,
+            compactHeight: view.traitCollection.verticalSizeClass == .compact,
+            footerLine: UIFont.preferredFont(forTextStyle: .caption1).lineHeight
+        )
+    }
+
     /// The one `NavigatorDelegate` requirement Readium does not default. Without
     /// it the conformance fails to compile rather than at runtime, which is how
     /// this was found.
@@ -186,6 +196,11 @@ final class ReaderModel {
     /// RP8: edges turn the page (and put the chrome away), the middle toggles it.
     /// `goLeft`/`goRight` rather than backward/forward so a right-to-left book
     /// turns the way the finger expects.
+    /// Whether the reader has text selected — a drag then is a selection, not a close.
+    var isSelecting: Bool {
+        navigator?.currentSelection != nil
+    }
+
     func handleTap(at point: CGPoint) {
         guard let navigator else { return }
         switch ReaderGestures.zone(x: point.x, width: navigator.view.bounds.width) {

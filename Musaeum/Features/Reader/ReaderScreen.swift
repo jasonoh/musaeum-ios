@@ -38,7 +38,8 @@ struct ReaderScreen: View {
                                     let closes = ReaderGestures.closes(
                                         startY: value.startLocation.y,
                                         dx: value.translation.width,
-                                        dy: value.translation.height
+                                        dy: value.translation.height,
+                                        selecting: model.isSelecting
                                     )
                                     if closes {
                                         Probe.log("reader closed by swipe")
@@ -160,6 +161,12 @@ struct ReaderScreen: View {
             var prefs = model.prefs
             prefs.theme = reader == "ink" ? .ink : .paper
             model.apply(prefs)
+        case "large":
+            var prefs = model.prefs
+            prefs.fontSize = ReaderPrefs.fontSizeRange.upperBound
+            prefs.lineHeight = ReaderPrefs.lineHeightRange.upperBound
+            model.apply(prefs)
+        case "reset": model.apply(.default)
         default: break
         }
         Probe.log("probe reader=\(reader) chapter=\(model.chapterTitle ?? "nil") toc=\(model.toc.count)")
