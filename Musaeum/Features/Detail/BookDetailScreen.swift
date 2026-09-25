@@ -101,6 +101,8 @@ struct BookDetailScreen: View {
 
     @State private var model: BookDetailModel?
     @State private var reading: ReadingRequest?
+    @State private var sharing: ShareRequest?
+    @State private var shareFailure: String?
 
     var body: some View {
         ScrollView {
@@ -127,6 +129,9 @@ struct BookDetailScreen: View {
         }
         .fullScreenCover(item: $reading) { request in
             ReaderScreen(request: request)
+        }
+        .sheet(item: $sharing, onDismiss: { downloads.sweepStaging() }) { request in
+            ShareSheet(fileURL: request.fileURL)
         }
     }
 
@@ -174,6 +179,19 @@ struct BookDetailScreen: View {
                         .background(Palette.gold, in: .rect(cornerRadius: 12))
                         .foregroundStyle(Palette.ink)
                 }
+                // **The second thing you can do with a book that is on the phone.**
+                // It sits under *Read* because that is the decision it follows:
+                // the book is here, and now it can leave.
+                Button {
+                    share(model.book ?? book)
+                } label: {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Palette.raised, in: .rect(cornerRadius: 12))
+                        .foregroundStyle(Palette.parchment)
+                }
                 Button(role: .destructive) {
                     try? downloads.remove(id: book.id)
                     positions.forget(bookId: book.id)
@@ -205,6 +223,25 @@ struct BookDetailScreen: View {
             default:
                 EmptyView()
             }
+
+            if let shareFailure {
+                Text(shareFailure).font(.footnote).foregroundStyle(Palette.danger)
+            }
+        }
+    }
+
+    /// **A share is a file leaving, and it needs no Mac at all.** What the door
+    /// hands the sheet is the phone's own copy of the book, staged under a name a
+    /// recipient can read; the only thing that can go wrong is the copy itself,
+    /// which is what the line above the button says when it does.
+    private func share(_ book: ContractBook) {
+        do {
+            guard let request = try ShareRequest.staged(for: book, in: downloads) else { return }
+            shareFailure = nil
+            sharing = request
+        } catch {
+            shareFailure = "The book's file could not be prepared for sharing."
+            Probe.log("share failed book=\(book.id) error=\(String(describing: error))")
         }
     }
 

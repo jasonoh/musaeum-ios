@@ -1,0 +1,6 @@
+BASELINE  MusaeumTests/ShareStagingTests: exit=0  Executed 19 tests, with 0 failures (0 unexpected) in 0.039 (0.044) seconds
+RED (killed)    the door stops checking that the phone holds this book at all
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 2 failures (0 unexpected) in 0.067 (0.072) seconds | 2 cases reddened: testABookThePhoneHoldsNoCopyOfStagesNothing, testARecordWhoseFileIsGoneStagesNothing
+
+killed 1/1

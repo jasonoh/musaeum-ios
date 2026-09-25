@@ -1,0 +1,63 @@
+BASELINE  MusaeumTests/ShareStagingTests: exit=0  Executed 19 tests, with 0 failures (0 unexpected) in 0.036 (0.041) seconds
+RED (killed)    the name joins title and author with a space rather than a separator
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 2 failures (0 unexpected) in 0.055 (0.060) seconds | 2 cases reddened: testTheNameIsTheTitleTheAuthorAndTheStoredExtension, testTheShareCarriesTheExtensionOfTheFileThePhoneHolds
+RED (killed)    a book with no author is given a placeholder byline anyway
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 6 failures (0 unexpected) in 0.054 (0.059) seconds | 6 cases reddened: testABookWithNoAuthorLosesTheBylineRatherThanTheSeparator, testANameThatWouldBeHiddenIsMadeVisible, testANewlineOrAControlCharacterNeverReachesTheName, testAnIdThatSanitisesToNothingStillMakesAName, testAPathSeparatorAndAColonAreRemovedRatherThanSplitIntoFolders, testATitleWithNothingInItFallsBackToTheId
+RED (killed)    the extension is taken from the contract's preference, not the stored file
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 1 failure (0 unexpected) in 0.053 (0.059) seconds | 1 cases reddened: testTheShareCarriesTheExtensionOfTheFileThePhoneHolds
+RED (killed)    a path separator is left in the name
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 2 failures (0 unexpected) in 0.060 (0.065) seconds | 2 cases reddened: testAnIdThatSanitisesToNothingStillMakesAName, testAPathSeparatorAndAColonAreRemovedRatherThanSplitIntoFolders
+RED (killed)    a colon is left in the name
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 1 failure (0 unexpected) in 0.049 (0.054) seconds | 1 cases reddened: testAPathSeparatorAndAColonAreRemovedRatherThanSplitIntoFolders
+RED (killed)    a control character is left in the name
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 1 failure (0 unexpected) in 0.049 (0.054) seconds | 1 cases reddened: testANewlineOrAControlCharacterNeverReachesTheName
+RED (killed)    a name that would be hidden keeps its leading dot
+                suite=MusaeumTests/ShareStagingTests restored=True
+                BUILD ERROR: /Users/jasonoh/Projects/musaeum-ios/Musaeum/Core/Store/ShareStaging.swift:85:18: error: assigning a variable to itself
+RED (killed)    whitespace is replaced with an underscore rather than collapsed
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 8 failures (0 unexpected) in 0.062 (0.067) seconds | 7 cases reddened: testABookWithNoAuthorLosesTheBylineRatherThanTheSeparator, testANameThatWouldBeHiddenIsMadeVisible, testANewlineOrAControlCharacterNeverReachesTheName, testAPathSeparatorAndAColonAreRemovedRatherThanSplitIntoFolders, testATitleInsideTheLimitIsLeftExactlyAsItIs, testTheNameIsTheTitleTheAuthorAndTheStoredExtension, testTheShareCarriesTheExtensionOfTheFileThePhoneHolds
+RED (killed)    the byte clip is not applied at all
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 2 failures (0 unexpected) in 0.052 (0.057) seconds | 1 cases reddened: testALongTitleIsClippedByBytesAndNotByCharacters
+RED (killed)    a title with nothing in it is not given the id
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 3 failures (0 unexpected) in 0.055 (0.061) seconds | 2 cases reddened: testAnIdThatSanitisesToNothingStillMakesAName, testATitleWithNothingInItFallsBackToTheId
+RED (killed)    an id that sanitises away leaves an empty stem
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 1 failure (0 unexpected) in 0.052 (0.057) seconds | 1 cases reddened: testAnIdThatSanitisesToNothingStillMakesAName
+RED (killed)    the link branch reports itself as a copy
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 1 failure (0 unexpected) in 0.051 (0.056) seconds | 1 cases reddened: testTheStagedFileIsTheSameFileWhenTheFilesystemTakesALink
+RED (killed)    the link branch copies instead of linking
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 2 failures (0 unexpected) in 0.054 (0.059) seconds | 2 cases reddened: testALinkTheFilesystemRefusesFallsBackToACopy, testTheStagedFileIsTheSameFileWhenTheFilesystemTakesALink
+RED (killed)    the fallback copy is written somewhere the sheet will not read
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 2 failures (2 unexpected) in 0.062 (0.068) seconds | 1 cases reddened: testALinkTheFilesystemRefusesFallsBackToACopy
+RED (killed)    a stage no longer sweeps what the last one left
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 2 failures (0 unexpected) in 0.057 (0.062) seconds | 1 cases reddened: testAStageSweepsWhatTheLastOneLeft
+RED (killed)    a sweep aims at the directory instead of what is in it
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 4 failures (4 unexpected) in 0.063 (0.069) seconds | 4 cases reddened: testAShareLeftByAKilledAppIsSweptAtTheNextLaunch, testAStageSweepsWhatTheLastOneLeft, testASweepLeavesNothingBehind, testNothingIsStagedUntilAShareAsksForIt
+RED (killed)    dismissing the sheet leaves the staged copy behind
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 1 failure (0 unexpected) in 0.056 (0.061) seconds | 1 cases reddened: testNothingIsStagedUntilAShareAsksForIt
+RED (killed)    a launch leaves the copy a killed share left behind
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 1 failure (0 unexpected) in 0.058 (0.063) seconds | 1 cases reddened: testAShareLeftByAKilledAppIsSweptAtTheNextLaunch
+RED (killed)    a missing file is not noticed
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 1 failure (1 unexpected) in 0.059 (0.065) seconds | 1 cases reddened: testARecordWhoseFileIsGoneStagesNothing
+RED (killed)    staging renames the download instead of copying it
+                suite=MusaeumTests/ShareStagingTests restored=True
+                Executed 19 tests, with 4 failures (0 unexpected) in 0.061 (0.067) seconds | 3 cases reddened: testAShareLeftByAKilledAppIsSweptAtTheNextLaunch, testStagingRenamesNothing, testTheShareCarriesTheExtensionOfTheFileThePhoneHolds
+
+killed 20/20

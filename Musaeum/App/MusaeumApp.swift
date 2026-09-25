@@ -108,10 +108,57 @@ struct RootView: View {
             }
         }
 
+        // Before the "nothing to open" return: a share run's reading is the
+        // staged file, not the reader, and it is decidable even when the Mac
+        // answered nothing and the phone holds the book from an earlier run.
+        if Probe.action == "share" {
+            shareForProbe(id: id)
+        }
+
         guard let opened else {
             Probe.log("probe: nothing to open for \(id)")
             return
         }
         probeReading = opened
+    }
+
+    /// **What a share would hand out, without a tap.** The store's own call — the
+    /// same one both share doors make — followed by the reading only this path
+    /// takes: whether the staged file *is* the download (byte for byte), and where
+    /// it landed.
+    ///
+    /// It needs no Mac to answer, which is the point: the file comes off the
+    /// phone's own disk, so the run with nothing listening on the port is a
+    /// decider rather than a degraded case.
+    private func shareForProbe(id: String) {
+        guard let stored = downloads.downloaded(id), let book = try? stored.book() else {
+            Probe.log("share: nothing to stage for \(id) — the phone holds no download")
+            return
+        }
+        do {
+            guard let request = try ShareRequest.staged(for: book, in: downloads) else {
+                Probe.log("share: nothing to stage for \(id) — its file is gone")
+                return
+            }
+            let source = downloads.fileURL(for: id)
+            let staged = request.fileURL
+            let same = source.map {
+                FileManager.default.contentsEqual(atPath: $0.path, andPath: staged.path)
+            } ?? false
+            Probe.log(
+                "share reading name=\(staged.lastPathComponent) bytes=\(bytes(of: staged)) "
+                    + "source=\(bytes(of: source)) same=\(same ? 1 : 0) "
+                    + "dir=\(staged.deletingLastPathComponent().path)"
+            )
+        } catch {
+            Probe.log("share failed id=\(id) error=\(String(describing: error))")
+        }
+    }
+
+    private func bytes(of url: URL?) -> Int {
+        guard let url, let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize else {
+            return 0
+        }
+        return size
     }
 }

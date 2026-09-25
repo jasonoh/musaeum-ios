@@ -413,6 +413,15 @@ struct LibraryScreen: View {
                 await takePending(uploads: uploadModel, client: client)
                 if Probe.openSheet { showingFilters = true }
                 if Probe.openUploadSheet { showingUpload = true }
+                // **The share door's own screen, without a tap.** A detail is
+                // reached by tapping a cover, so this is the only instrument that
+                // can put the door in a frame (`MUSAEUM_PROBE_DETAIL`).
+                if let id = Probe.detailBookID, let opened = model.books.first(where: { $0.id == id }) {
+                    Probe.log("probe detail book=\(id) title=\(opened.title)")
+                    detail = opened
+                } else if let id = Probe.detailBookID {
+                    Probe.log("probe: the library has no book \(id) to open a detail for")
+                }
             }
         }
         .sheet(isPresented: $showingFilters) {

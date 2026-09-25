@@ -99,6 +99,29 @@
 # wants the Mac's own refusal reproduced — stop the Mac for `unreachable`, hold two
 # transfers for `busy`, or hand it a body past the cap for `tooLarge`.
 #
+# **The share (slice 5) is one more action, and the run that matters most is the
+# one with the Mac stopped.** `ACTION=share BOOK=<id>` stages what a share door
+# would hand the sheet, through the store's own call and under the name a
+# recipient reads, and reports it in two lines: the app's own
+# (`share staged book=… name=… linked=1 bytes=…`) and the probe's reading of it
+# (`share reading name=… bytes=… source=… same=1 dir=…`). The container listing
+# then shows the staged file itself.
+#
+#   TAG=share ACTION=share BOOK=<id> ./scripts/live-probe.sh     # with the Mac up: it downloads, then stages
+#   TAG=share-offline ACTION=share BOOK=<id> ./scripts/live-probe.sh   # Mac stopped: the run falls back to the
+#                                                         # phone's own copy — the same reading, and
+#                                                         # the one that decides a share needs no Mac
+#
+# What no run can decide is the sheet itself: `simctl` presents nothing and taps
+# nothing, so AirDrop/Mail/Messages appearing for the staged file is a human frame
+# and is named as one rather than implied.
+#
+# **And the door's own screen is a third run, with its own variable.** A book's
+# detail is reached by tapping a cover, so `DETAIL=<id>` opens it directly — it is
+# deliberately not `OPEN=`, which would open the reader over the very screen:
+#
+#   TAG=detail DETAIL=<id> ./scripts/live-probe.sh   # the detail with Read, Share and Remove on it
+#
 # Each line reports `sort=<field>:<direction> q=<term> filters=<set>` (with `-` for
 # an absent one) so all three halves of a query are readable without a frame: what
 # was asked for, and what came back. A QUERY is never stored, a SORT always is —
@@ -136,6 +159,20 @@ xcrun simctl install "$DEV" "$APP" || die "install failed"
 xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1
 sleep 1
 
+# **A tag is a label, not a switch.** `TAG=share` names a run; `ACTION=share` is
+# what makes it one — and a run that names an action it did not pass comes up,
+# lists the library, downloads and reads, then logs nothing about the action: it
+# reads as a share that found nothing, which is the one failure mode this script
+# already refuses for a missing base URL. Measured on this slice's first share run,
+# which reported four ordinary lines and no `share` line at all.
+case "${TAG:-}" in
+  share|upload|write)
+    if [ -z "$ACTION" ]; then
+      echo "warning: TAG=$TAG names an action but ACTION is empty — pass ACTION=$TAG" >&2
+    fi
+    ;;
+esac
+
 CONT=$(xcrun simctl get_app_container "$DEV" "$BUNDLE" data) || die "the app has never run on this device"
 rm -f "$CONT/Documents/probe.log"
 
@@ -167,6 +204,7 @@ SIMCTL_CHILD_MUSAEUM_PROBE_FILTERS="${FILTERS:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_SHEET="${SHEET:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD="$UPLOAD_PATH" \
 SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD_SHEET="${UPLOAD_SHEET:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_DETAIL="${DETAIL:-}" \
   xcrun simctl launch "$DEV" "$BUNDLE" | cat
 sleep "$WAIT"
 
@@ -178,6 +216,13 @@ echo "=== frame === $ROOT/frame-$TAG.png"
 
 echo "=== what the phone holds ==="
 find "$CONT/Library/Application Support/Musaeum" -type f 2>/dev/null | sed "s|$CONT|<container>|"
+
+# **The staged share is the one thing in this listing nothing else explains**:
+# empty until a share asks for it, one file while the sheet has it, empty again
+# once the sheet is dismissed.
+echo "=== staged for a share ==="
+find "$CONT/Library/Application Support/Musaeum/Share" -type f 2>/dev/null | sed "s|$CONT|<container>|"
+echo "(end of the staged listing)"
 
 if [ -n "${BOOK:-}" ]; then
   echo "=== the Mac's own row for $BOOK ==="

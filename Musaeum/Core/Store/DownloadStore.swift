@@ -36,6 +36,9 @@ final class DownloadStore {
     private let root: URL
     private let indexFile: URL
     private let booksDirectory: URL
+    /// Where a share's staged copy is put, and swept from. Not a store: it holds
+    /// at most the file one share is in the middle of handing out.
+    private let stagingDirectory: URL
 
     private(set) var downloads: [DownloadedBook] = []
 
@@ -47,13 +50,24 @@ final class DownloadStore {
         self.root = base
         indexFile = base.appendingPathComponent("downloads.json")
         booksDirectory = base.appendingPathComponent("Books", isDirectory: true)
-        try? FileManager.default.createDirectory(at: booksDirectory, withIntermediateDirectories: true)
-        // The books are a cache of files that live on the Mac; backing up half a
-        // gigabyte of EPUBs to iCloud buys no reader anything (CD6).
-        var values = URLResourceValues()
-        values.isExcludedFromBackup = true
-        var mutable = booksDirectory
-        try? mutable.setResourceValues(values)
+        stagingDirectory = ShareStaging.directory(in: base)
+        for directory in [booksDirectory, stagingDirectory] {
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            // The books are a cache of files that live on the Mac, and a staged
+            // share is on its way out; backing up either buys no reader anything
+            // (CD6).
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            var mutable = directory
+            try? mutable.setResourceValues(values)
+        }
+        // **What a share that was killed left behind, gone.** A sheet dismissal
+        // sweeps the staged copy, but an app the OS or the user ends mid-share never
+        // reaches it — and a staged 528 MiB book would then sit in the container
+        // until the next share replaced it. Sweeping at launch is what makes the
+        // directory mean what it says: it holds nothing unless a share is in flight
+        // *right now*.
+        ShareStaging.sweep(stagingDirectory)
         refresh()
     }
 
@@ -117,6 +131,30 @@ final class DownloadStore {
     func coverData(for id: String) -> Data? {
         guard let record = downloaded(id), let name = record.coverFileName else { return nil }
         return try? Data(contentsOf: booksDirectory.appendingPathComponent(name))
+    }
+
+    /// **The file a share would hand out:** the stored download, staged under the
+    /// name a recipient can read (`ShareStaging`).
+    ///
+    /// `nil` means the phone holds no file for this book — the condition both
+    /// share doors use to decide whether they exist. Note what is *not* here: no
+    /// request, no format question, no client. A share is the phone's own copy
+    /// leaving, which is why it works with the Mac asleep.
+    func stagedForSharing(_ book: ContractBook) throws -> ShareStaging.Staged? {
+        guard let record = downloaded(book.id), let source = fileURL(for: book.id) else { return nil }
+        let format = (record.fileName as NSString).pathExtension
+        let name = ShareStaging.fileName(
+            title: book.title,
+            author: book.author,
+            format: format,
+            fallback: book.id
+        )
+        return try ShareStaging.stage(source: source, named: name, into: stagingDirectory)
+    }
+
+    /// What a share left, gone — called when the sheet is dismissed.
+    func sweepStaging() {
+        ShareStaging.sweep(stagingDirectory)
     }
 
     func remove(id: String) throws {

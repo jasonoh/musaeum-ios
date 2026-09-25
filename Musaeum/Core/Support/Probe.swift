@@ -70,10 +70,22 @@ enum Probe {
     /// tap otherwise reaches has a frame of its own.
     static var openUploadSheet: Bool { value("MUSAEUM_PROBE_UPLOAD_SHEET") == "1" }
 
+    /// The book whose **detail screen** the run opens — the only way `simctl` can
+    /// put this slice's share door in a frame, since it can tap nothing and a
+    /// detail is reached by a tap in the app.
+    ///
+    /// Deliberately its own variable rather than `MUSAEUM_PROBE_OPEN`: `OPEN` also
+    /// opens the reader, which would cover the very screen this exists to
+    /// photograph.
+    static var detailBookID: String? { value("MUSAEUM_PROBE_DETAIL") }
+
     /// What the probe is exercising, so `library` and `read` runs are distinct.
     /// `write` additionally reports the fraction the reader landed at **through
     /// the app's own door** and reads the row back — the upward path's live
-    /// instrument (`ReaderScreen.runWriteProbe`).
+    /// instrument (`ReaderScreen.runWriteProbe`). `share` stages what a share
+    /// would hand out and reports its name, its bytes and where it landed
+    /// (`MusaeumApp.shareForProbe`) — the half of a share `simctl` can reach, the
+    /// other half being the sheet itself, which is a human frame.
     static var action: String? { value("MUSAEUM_PROBE_ACTION") }
 
     static var isActive: Bool { base != nil || token != nil || openBookID != nil }

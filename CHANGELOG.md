@@ -7,6 +7,8 @@
 - **A book can be sent to the Mac from the phone.** Pick an EPUB, MOBI, AZW3 or PDF in the app, or share one to Musaeum from Files, Safari or Mail, and it goes to the Mac's own importer — so what lands is what the Mac would have imported itself: the same metadata pass, the same covers, the same rule for a book you already had. The row reports what happened in the Mac's own words and does not claim the book is in the library until the Mac has answered.
 - **A refusal is reported as the refusal it is, and only the ones worth retrying offer a retry.** A book past the Mac's own limit, or one it cannot take, is that book's problem and says so; a Mac that is busy, or whose library drive is not mounted, is worth waiting out — and the app keeps its own copy of the bytes, so *Try again* sends the same book instead of asking you to find it again; a refused token offers the way back to the connect screen.
 - **A book shared while the phone cannot send it is kept, not lost.** The file another app hands over stays in Musaeum's own storage and goes out the next time the app can send it.
+- **A book you have on the phone can be sent to someone else.** Share it from the book's own screen or from a row on the downloaded shelf and the system share sheet takes it: AirDrop, Mail, Messages, *Save to Files*, or whatever else is installed. The recipient gets the book under **the title and author you know it by** rather than the file's internal name, and — because it comes off the phone's own storage — this works with the Mac asleep, shut, or off the network.
+- **Sharing a big book costs nothing extra.** The copy the sheet hands out is the download itself, one file with two names, so a 500 MB book is not duplicated on the phone to send it.
 - **The Mac's *content too large* answer is understood now, and it was not before.** An upload past the Mac's limit used to be reported as *the Mac is not answering* — and then sent again, indefinitely, on a book that could never fit.
 
 ### Fixed
@@ -17,8 +19,11 @@
 ### Not yet
 
 - The book is sent while the app is open. A send that outlives the app is a new send rather than a resumed one — the Mac's route has no resume, and a book it already has is added again rather than refused, so nothing is lost by trying; it just costs the transfer a second time.
-- One book at a time. Neither the picker nor the share sheet takes a batch.
+- One book at a time. Neither the picker nor the share sheet takes a batch, and a share is one book at a time too.
 - A book the app cannot read as a file — an iCloud Drive file that has not been downloaded, a photo, a link — is reported rather than worked around.
+- Only what is on the phone can be shared. A book you have not downloaded has no Share button, rather than one that downloads first.
+- A book is shared as the format it is on the phone — usually the EPUB, which Apple Books opens anywhere. A book the Mac holds only as a Kindle file is shared as that Kindle file, and a DRM-locked one is no more usable to the recipient than it was to you.
+- The share sheet is the system's list, unchanged. No subject line for a mail, no activities hidden, no link variant.
 
 ## [Unreleased] — 2026-09-23
 
