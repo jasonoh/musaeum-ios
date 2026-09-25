@@ -794,11 +794,23 @@ struct LibraryScreen: View {
     @ViewBuilder
     private func content(_ model: LibraryModel) -> some View {
         switch model.phase {
+        // **The shelf's door does not wait for the Mac.** A downloaded book reads
+        // with the Mac asleep, shut, or off the network — and a door drawn only
+        // once the library had loaded made that promise unreachable in exactly
+        // the case it is for: with the tailnet down the screen sat on a spinner,
+        // and with the Mac's app quit it showed this card and nothing else.
         case .idle, .loading:
-            ProgressView().tint(Palette.gold)
+            VStack(spacing: 0) {
+                downloadsRow
+                ProgressView().tint(Palette.gold)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         case let .failed(message):
-            MessageCard(title: "The Mac is not answering", message: message, action: "Try again") {
-                Task { await model.start() }
+            VStack(spacing: 0) {
+                downloadsRow
+                MessageCard(title: "The Mac is not answering", message: message, action: "Try again") {
+                    Task { await model.start() }
+                }
             }
         case .loaded:
             VStack(spacing: 0) {

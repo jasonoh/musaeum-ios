@@ -132,10 +132,19 @@ struct MusaeumClient: Sendable {
 
     // MARK: Routes
 
+    /// How long the connect check waits. **A tailnet that is down does not refuse,
+    /// it is silent**, so on the session's default 60 s the library sat on a
+    /// spinner for a minute before saying anything — with the downloaded shelf,
+    /// which needs no Mac, out of reach. The health payload is a few hundred bytes
+    /// over the tailnet; a Mac that cannot send it in this long is not answering.
+    static let healthTimeout: TimeInterval = 5
+
     /// The connect check. Refuses a contract version this app does not speak —
     /// half-decoding a payload whose version moved is how a client lies.
     func health() async throws -> Health {
-        let health: Health = try await sendJSON(request(path: "api/health"))
+        var check = request(path: "api/health")
+        check.timeoutInterval = Self.healthTimeout
+        let health: Health = try await sendJSON(check)
         guard health.apiVersion == supportedAPIVersion else {
             throw ClientError.unsupportedAPIVersion(health.apiVersion)
         }

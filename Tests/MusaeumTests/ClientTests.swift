@@ -36,6 +36,19 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-token")
     }
 
+    /// **A Mac that is off the network must be decided in seconds, not a minute.**
+    /// With the tailnet down the tailnet address is not refused, it is silent, and
+    /// on the session's default 60 s the library sat on a spinner for that long.
+    func testHealthRequestGivesUpQuickly() async throws {
+        let client = client { _ in
+            StubURLProtocol.Response(status: 200, body: self.fixture("health"))
+        }
+        _ = try await client.health()
+        let request = try XCTUnwrap(StubURLProtocol.requests.first)
+        XCTAssertEqual(request.timeoutInterval, MusaeumClient.healthTimeout)
+        XCTAssertLessThanOrEqual(MusaeumClient.healthTimeout, 5)
+    }
+
     func testLibraryRequestCarriesTheContractsDefaultWindow() async throws {
         let client = client { _ in StubURLProtocol.Response(status: 200, body: self.fixture("library")) }
         _ = try await client.library()
