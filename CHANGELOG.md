@@ -5,6 +5,7 @@
 ### Added
 
 - **The reader gets out of the way.** A book opens full-screen with only a faint chapter-and-percent line at the foot of the page. Tap the middle for the title, a close button and the book's contents; tap the edges to turn pages; swipe down to close.
+- **Typography, like the Mac's.** *Aa* opens serif or sans, size, line height, spacing, and an Ink or Paper page in the Mac reader's own colours. The page changes as you move each control, and the phone remembers your choice.
 - **Contents.** Every chapter and section, the one you are in highlighted; tap one to go there, and the Mac hears where you are as if you had turned the pages.
 
 - **A book can be sent to the Mac from the phone.** Pick an EPUB, MOBI, AZW3 or PDF in the app, or share one to Musaeum from Files, Safari or Mail, and it goes to the Mac's own importer — so what lands is what the Mac would have imported itself: the same metadata pass, the same covers, the same rule for a book you already had. The row reports what happened in the Mac's own words and does not claim the book is in the library until the Mac has answered.

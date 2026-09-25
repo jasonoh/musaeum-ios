@@ -145,3 +145,26 @@ Against a rebuilt probe profile (two books: Readium's `childrens-literature.epub
 ### Handed to the owner's own judgement
 
 `simctl` taps nothing, so these are claims for a human frame: a middle tap raises and lowers the chrome; edge taps turn pages and put the chrome away; the empty middle of the raised chrome passes taps through to the page; a contents tap lands on its chapter and the footer follows; and **a downward swipe closes the book** — RP2's stated risk. If Readium's web view swallows the swipe, it is removed with its tests and ✕ is the exit.
+
+## Built — slice 6b (2026-09-25)
+
+The owner confirmed 6a's five human-frame claims on a device the same day, the swipe included — RP2 stands whole.
+
+### Gates
+
+- Build exit 0, no warnings in this slice's files. Test exit 0, **172 cases across 21 suites** — 6a's 158 plus `ReaderPrefsTests` 7 and `ReaderPrefsMappingTests` 7.
+
+### The live probe
+
+- `docs/evidence/slice6/frame-page-ink.png` — Ink: `#14110d` page, `#e9e1d2` serif body text, the footer muted on it.
+- `docs/evidence/slice6/frame-page-paper.png` — Paper: `#f3ece0` / `#241f18`, set through `apply(_:)`, so it is also the `submitPreferences` path the sheet uses.
+- `docs/evidence/slice6/frame-typography.png` — the sheet at the medium detent over the page, showing the stored prefs (Serif, 18, Paper).
+
+### The readings this slice settled
+
+- **AC6 is met for the body, not for headings.** Readium CSS applies the reader's font to `body`, `p`, `li`, `div`, `dt` and `dd` and exempts `h1`–`h6` by design (`ReadiumCSS-after.css`, the `readium-font-on` block); with `publisherStyles: false` the book's own heading face still draws (the frames' *Structured Versus Unstructured Data*). Overriding it needs a per-resource style injection through the navigator's JavaScript, which is not in this slice. Revived if the owner wants headings in the reader's face.
+- **The margin constants stand at `0.5…3.0`.** At the default Spacing (48 → `1.056`) the side margin reads as Readium's own default — visible, modest — and the desktop's Spacing does not move the side edge either (`../musaeum/docs/invariants/reader.md`). The slider widens it.
+
+### Handed to the owner's own judgement
+
+Each control restyling the page live as it moves, and the choice surviving a close and a relaunch (AC5) — taps.

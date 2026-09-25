@@ -40,6 +40,8 @@ Slice 4 (sending a book to the Mac): a book picked in the app — or shared to M
 
 Slice 6a (the reader's furniture): the page opens full-bleed with only a faint `Chapter · %` footer; a tap in the middle raises a top bar (✕ to close, the title) and a bottom strip (the book's **contents**, the current chapter in gold), taps at the edges turn the page, and a downward swipe closes the book.
 
+Slice 6b (typography): **Aa** in the raised chrome opens the desktop's own controls — Serif or Sans, size, line height, spacing, and an Ink or Paper page in the desktop's colours — restyling the open page as they move and remembered on the phone. A book's own heading typeface still draws: Readium's reading styles leave headings to the publisher.
+
 **Not built yet:** PDF in the reader; resumable downloads (whole-file today, `docs/specs` CD6); an upload that outlives the app is a *new* send rather than a resumed one (the route has no `Range` and no idempotency key — a book the Mac already has is added rather than refused, so trying again loses nothing but the transfer); one book at a time; and a file that is not a file on the phone — an undehydrated iCloud Drive placeholder, a Photos item, a link — is reported rather than worked around. Plus the deferred list in `tasks.md`, each item revived only by its own stated condition.
 
 ## Layout
