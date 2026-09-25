@@ -15,6 +15,7 @@ struct ReaderScreen: View {
 
     @State private var model: ReaderModel
     @State private var showingContents = false
+    @State private var showingTypography = false
 
     init(request: ReadingRequest) {
         self.request = request
@@ -64,7 +65,7 @@ struct ReaderScreen: View {
                     hasContents: !model.toc.isEmpty,
                     onClose: { dismiss() },
                     onContents: { showingContents = true },
-                    onTypography: nil
+                    onTypography: { showingTypography = true }
                 )
             }
         }
@@ -74,6 +75,11 @@ struct ReaderScreen: View {
                 showingContents = false
                 Task { await model.jump(to: entry) }
             }
+        }
+        .sheet(isPresented: $showingTypography) {
+            TypographySheet(
+                prefs: Binding(get: { model.prefs }, set: { model.apply($0) })
+            )
         }
         .task {
             await model.load(
@@ -149,6 +155,11 @@ struct ReaderScreen: View {
         switch reader {
         case "chrome": model.chromeShown = true
         case "contents": showingContents = true
+        case "typography": showingTypography = true
+        case "ink", "paper":
+            var prefs = model.prefs
+            prefs.theme = reader == "ink" ? .ink : .paper
+            model.apply(prefs)
         default: break
         }
         Probe.log("probe reader=\(reader) chapter=\(model.chapterTitle ?? "nil") toc=\(model.toc.count)")

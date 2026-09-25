@@ -82,8 +82,14 @@ final class ReaderModel {
     private var recorder: PositionRecorder?
     private var positions: LocalPositions?
 
-    init(book: ContractBook) {
+    private let defaults: UserDefaults
+    /// The page's typography (RP3), read once at open and written on every change.
+    private(set) var prefs: ReaderPrefs
+
+    init(book: ContractBook, defaults: UserDefaults = .standard) {
         self.book = book
+        self.defaults = defaults
+        prefs = ReaderPrefs.load(from: defaults)
     }
 
     func load(fileURL: URL, serverPercent: Double?, positions: LocalPositions) async {
@@ -206,12 +212,19 @@ final class ReaderModel {
         }
     }
 
-    /// The dark page. Readium ships its own CSS, so this is the one place the
-    /// app's palette can reach the text: the reading system's own dark theme,
-    /// chosen for a reader who reads a library the app paints near-black. Tuned
-    /// further only against a frame — typography is judged by looking.
+    /// The page's typography (RP3/RP4): the reader's stored prefs, in Readium's
+    /// units. Readium's own stylesheet is the base; this is the one place the
+    /// desktop's page reaches it.
     private var readingPreferences: EPUBPreferences {
-        EPUBPreferences(theme: .dark)
+        ReaderPrefsMapping.epubPreferences(prefs)
+    }
+
+    /// A change in the sheet: stored, then restyled in place — nothing re-opens.
+    func apply(_ newPrefs: ReaderPrefs) {
+        guard newPrefs != prefs else { return }
+        prefs = newPrefs
+        newPrefs.save(to: defaults)
+        navigator?.submitPreferences(readingPreferences)
     }
 
     /// A fraction said out loud for a probe line. Kept as its own function so no
