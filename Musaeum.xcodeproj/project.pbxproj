@@ -27,6 +27,7 @@
 		47BFB54BA90D0B5E417BDE89 /* book.json in Resources */ = {isa = PBXBuildFile; fileRef = C7D6F6DBD356A9E3F800BB88 /* book.json */; };
 		4EC9234E1C8DEA1B6BB2C1FD /* UploadInboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 943627836D743EDD21485798 /* UploadInboxTests.swift */; };
 		50B864CFD77600CF2BE0DF98 /* import.json in Resources */ = {isa = PBXBuildFile; fileRef = 7AD0F2A9BD5D649A1595A6D4 /* import.json */; };
+		511C98731EACF1E32CE5CC0A /* ReaderFooterLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D5FA4ADC9ED8D63C302BA3 /* ReaderFooterLabel.swift */; };
 		5148A3A8EBBE6D270180EAC7 /* Probe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81EA6E53A91ED976505C5CFC /* Probe.swift */; };
 		518067CF6248F5842A387B43 /* ReadiumShared in Frameworks */ = {isa = PBXBuildFile; productRef = 0E91009E879C6C21C398DC2B /* ReadiumShared */; };
 		5ADCFCC99BC441704091509B /* ShareStaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = E094F08B3CA2B2756EC09D25 /* ShareStaging.swift */; };
@@ -61,6 +62,7 @@
 		DE9054036A3365FB6858FED3 /* MusaeumClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */; };
 		DE98447DF4AAA183B74466D2 /* error.json in Resources */ = {isa = PBXBuildFile; fileRef = 6D4512DC0B93D19548F957A5 /* error.json */; };
 		DEF018BD8943ACD9E036F2F2 /* CoverBoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0876647252FEFE073021B0A /* CoverBoxTests.swift */; };
+		E1B9DE2223E20EBCC9CC6C9C /* ReaderFooterLabelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB36927E3785EC48DFC518F2 /* ReaderFooterLabelTests.swift */; };
 		E23A2D8E666CF6D9D3A2262E /* LibrarySortTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1290B0CBF1415714055A5839 /* LibrarySortTests.swift */; };
 		E5B13C79A9500A704B211393 /* ReaderTocEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39C84C8529AD2550EE16AC92 /* ReaderTocEntryTests.swift */; };
 		EBB7A7E5F0B2B700BA4458F2 /* ShareStagingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E93329D9D859647FCA01DBC /* ShareStagingTests.swift */; };
@@ -103,6 +105,7 @@
 		64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusaeumClient.swift; sourceTree = "<group>"; };
 		6D4512DC0B93D19548F957A5 /* error.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = error.json; sourceTree = "<group>"; };
 		705A94184FA87C433B903CA4 /* DownloadsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsScreen.swift; sourceTree = "<group>"; };
+		73D5FA4ADC9ED8D63C302BA3 /* ReaderFooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFooterLabel.swift; sourceTree = "<group>"; };
 		771ED48F3450F3D1D1D66D38 /* UploadInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadInbox.swift; sourceTree = "<group>"; };
 		7AD0F2A9BD5D649A1595A6D4 /* import.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = import.json; sourceTree = "<group>"; };
 		7E93329D9D859647FCA01DBC /* ShareStagingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareStagingTests.swift; sourceTree = "<group>"; };
@@ -123,6 +126,7 @@
 		B0876647252FEFE073021B0A /* CoverBoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverBoxTests.swift; sourceTree = "<group>"; };
 		B371196CB66C88935EAF1104 /* reading.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = reading.json; sourceTree = "<group>"; };
 		B63F1F225076DC61903C6F6D /* ReaderTocEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderTocEntry.swift; sourceTree = "<group>"; };
+		BB36927E3785EC48DFC518F2 /* ReaderFooterLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFooterLabelTests.swift; sourceTree = "<group>"; };
 		C05FDE9002FE0B8A9DCA644F /* ReadingReporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingReporterTests.swift; sourceTree = "<group>"; };
 		C7D6F6DBD356A9E3F800BB88 /* book.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = book.json; sourceTree = "<group>"; };
 		D3BC2EBDAF3E4239A9692C34 /* FilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSheet.swift; sourceTree = "<group>"; };
@@ -199,6 +203,7 @@
 				AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */,
 				AFD07CD9819EF6B777F0EADE /* LibraryQueryTests.swift */,
 				1290B0CBF1415714055A5839 /* LibrarySortTests.swift */,
+				BB36927E3785EC48DFC518F2 /* ReaderFooterLabelTests.swift */,
 				88C2F652ABF4A1803AA3F559 /* ReaderGesturesTests.swift */,
 				39C84C8529AD2550EE16AC92 /* ReaderTocEntryTests.swift */,
 				C05FDE9002FE0B8A9DCA644F /* ReadingReporterTests.swift */,
@@ -335,6 +340,7 @@
 			isa = PBXGroup;
 			children = (
 				9FDD0012F3D8415AC1C59F55 /* InitialFraction.swift */,
+				73D5FA4ADC9ED8D63C302BA3 /* ReaderFooterLabel.swift */,
 				206E7990BDCE77A1666B328A /* ReaderGestures.swift */,
 				9B9F1D01B1824F1AC625C667 /* ReaderHost.swift */,
 				B63F1F225076DC61903C6F6D /* ReaderTocEntry.swift */,
@@ -513,6 +519,7 @@
 				DE9054036A3365FB6858FED3 /* MusaeumClient.swift in Sources */,
 				CA2A3AA26C5BF4623D310267 /* Palette.swift in Sources */,
 				5148A3A8EBBE6D270180EAC7 /* Probe.swift in Sources */,
+				511C98731EACF1E32CE5CC0A /* ReaderFooterLabel.swift in Sources */,
 				9268BEF9636FFA32EBE9C691 /* ReaderGestures.swift in Sources */,
 				98279CE527523DCFED68DFEF /* ReaderHost.swift in Sources */,
 				1E4DF7769F978772CCF9AE11 /* ReaderScreen.swift in Sources */,
@@ -542,6 +549,7 @@
 				161D4DF43BAA3CFFA539978D /* LibraryPagingTests.swift in Sources */,
 				7526287B8E561E72C5D5CFFD /* LibraryQueryTests.swift in Sources */,
 				E23A2D8E666CF6D9D3A2262E /* LibrarySortTests.swift in Sources */,
+				E1B9DE2223E20EBCC9CC6C9C /* ReaderFooterLabelTests.swift in Sources */,
 				CADAE87462F6195650B577DA /* ReaderGesturesTests.swift in Sources */,
 				E5B13C79A9500A704B211393 /* ReaderTocEntryTests.swift in Sources */,
 				13987E2006B73C01DCACD52C /* ReadingReporterTests.swift in Sources */,
