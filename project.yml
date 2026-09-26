@@ -109,10 +109,11 @@ targets:
         # **The app icon is the desktop app's own artwork** — the owner's call, so
         # the two clients read as one product on the home screen. The master
         # (`musaeum`'s `build/icon.png`) is a *macOS* icon: a squircle inset about
-        # 10% inside a transparent canvas, which iOS would then round a second
-        # time. `Musaeum/Resources/Assets.xcassets`'s `AppIcon-1024.png` is that
-        # artwork cropped to its own bounds, filled to the frame with the field's
-        # own edge colour, and scaled to 1024² — which lands its corner radius
+        # 4% inside a transparent canvas, with a soft rim, which iOS would then
+        # round a second time. `Musaeum/Resources/Assets.xcassets`'s
+        # `AppIcon-1024.png` is that artwork cropped to its own bounds, its rim
+        # trimmed, the corners filled with the field's own top-to-bottom
+        # gradient, flattened to RGB and scaled to 1024² — which lands its radius
         # (≈22.4% of the side, the fraction both platforms mask at) on iOS's own
         # mask radius. So the corners the fill invents are the corners iOS cuts
         # away, and what the home screen shows is the master's composition.
