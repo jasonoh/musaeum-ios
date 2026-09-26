@@ -319,6 +319,7 @@ struct LibraryScreen: View {
     /// anything.** The door to it is this screen's (`downloadsRow`) since the bar
     /// could not keep four controls and the longest order label at once.
     @Environment(DownloadStore.self) private var downloads
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     @State private var model: LibraryModel?
     @State private var detail: ContractBook?
@@ -326,10 +327,21 @@ struct LibraryScreen: View {
     /// about a **settled** value only: the debounce lives in the `.task(id:)`
     /// below, where the typing is, rather than inside the model.
     @State private var searchText = ""
-    /// The filter sheet, presented from the toolbar. A probe can open it
+    /// The filter sheet, presented from the search row. A probe can open it
     /// (`MUSAEUM_PROBE_SHEET`) because `simctl` cannot tap: without that the
     /// sheet's own contents would be a claim no instrument could decide.
     @State private var showingFilters = false
+
+    /// The screen's side safe area — zero in portrait, the notch's width in
+    /// landscape — read so the rows can take the bar's margin (`BarMargin`)
+    /// rather than the safe area's.
+    @State private var sideInset: CGFloat = 0
+
+    /// **The rows share the bar's edges.** Each row draws edge to edge (it ignores
+    /// the side safe area) and insets itself by this, so in landscape the search
+    /// field, the strips and the grid end where the bar's capsule ends instead of
+    /// 40 pt short of it.
+    private var barMargin: CGFloat { BarMargin.from(safeInset: sideInset) }
 
     /// **The phone's own shelf, as a pushed screen the probe can reach** —
     /// `MUSAEUM_PROBE_DOWNLOADS=1`, for the same reason the sheet has a variable:
@@ -359,33 +371,22 @@ struct LibraryScreen: View {
                 }
             }
             .background(Palette.ink)
-            .navigationTitle("Library")
             // Always shown, not revealed by scrolling: a search nobody can find is
-            // the same as no search, and this is the drawer that keeps it in sight.
-            .searchable(
-                text: $searchText,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search titles, authors, series…"
-            )
-            .toolbar {
-                // **Three controls in the bar, not four, and the missing one is the
-                // only *destination* of the four.** Measured on the built app at
-                // 402 pt with the widest order label (`Recently Added`,
-                // `docs/evidence/toolbar-alignment/`): four trailing items overflow,
-                // which iOS answers by taking the sort control *and* the shelf ring
-                // off the bar into a `•••` — hiding the remembered order that 3a's
-                // label exists to show. **A leading item is not a way out**, which
-                // was measured too and is why this reads as one group: the same ring
-                // in `.topBarLeading` left the trailing cluster overflowing
-                // (`Send · filter · •••`), so the toolbar's width is one budget, not
-                // one per group. Three trailing items measure 307 pt and the longest
-                // label stays inline, where the same three with the ring beside them
-                // come to roughly 363 pt and iOS collapses the cluster; the shelf
-                // keeps a door on the screen itself (`downloadsRow`).
-                ToolbarItem(placement: .topBarTrailing) { uploadButton }
-                ToolbarItem(placement: .topBarTrailing) { filterButton }
-                ToolbarItem(placement: .topBarTrailing) { sortMenu }
-            }
+            // the same as no search. **Our own row rather than `.searchable`,
+            // because the filter lives beside the field** — the drawer takes no
+            // accessory on iOS 18, and the filter narrows the same list the term
+            // does, so the two belong on one line.
+            .safeAreaInset(edge: .top, spacing: 0) { header }
+            // **The screen draws its own bar.** The system's could not hold the
+            // title at one size beside the controls: a large title draws on a row
+            // of its own below them, `.inlineLarge` shrank it to the small centred
+            // title as soon as the grid scrolled (and a phone in landscape started
+            // it shrunk), and a leading title item made iOS cap the trailing side,
+            // hiding the sort behind `•••` even beside `Title A–Z` — measured,
+            // 2026-09-25. The title stays set for the back button a pushed screen
+            // shows.
+            .navigationTitle("Musaeum")
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(item: $detail) { book in
                 BookDetailScreen(book: book, library: model)
             }
@@ -395,6 +396,12 @@ struct LibraryScreen: View {
             .navigationDestination(isPresented: $showingDownloads) {
                 DownloadsScreen()
             }
+        }
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            max(proxy.safeAreaInsets.leading, proxy.safeAreaInsets.trailing)
+        } action: { inset in
+            sideInset = inset
+            Probe.log("library side inset=\(inset) margin=\(BarMargin.from(safeInset: inset))")
         }
         // **The debounce and the cancellation in one primitive.** `.task(id:)`
         // cancels its predecessor when the id changes, so a keystroke supersedes
@@ -557,6 +564,10 @@ struct LibraryScreen: View {
         HStack(spacing: Self.barSpacing) {
             Image(systemName: symbol)
                 .font(.system(size: Self.symbolSizes[symbol] ?? Self.barSymbolSize))
+                // The scale a toolbar gives its symbols, which the tables above
+                // were measured under; outside one a glyph drew ~15% smaller
+                // beside words of the same size.
+                .imageScale(.large)
                 .offset(y: Self.symbolOffsets[symbol] ?? 0)
             if let text { Text(text) }
         }
@@ -568,20 +579,77 @@ struct LibraryScreen: View {
     /// number, so no control can sit loose against its own label.
     private static let barSpacing: CGFloat = 5
 
+    /// The screen's title, at the large title's own size — the size the owner
+    /// approved while `.inlineLarge` still drew it. On a narrow phone beside the
+    /// longest order label it steps down to the largest size that fits whole,
+    /// rather than pushing the controls or truncating: a `minimumScaleFactor`
+    /// drew `Musaeu…` beside `Recently Added` on the 402 pt phone with room to
+    /// spare, so the sizes are explicit.
+    private var screenTitle: some View {
+        ViewThatFits(in: .horizontal) {
+            ForEach(Self.titleSizes, id: \.self) { size in
+                Text("Musaeum")
+                    .font(.system(size: size, weight: .bold))
+                    .foregroundStyle(Palette.parchment)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+        }
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    /// The large title's 34 pt, then the steps down to the smallest that still
+    /// reads as a title.
+    private static let titleSizes: [CGFloat] = [34, 32, 30, 28, 26, 24]
+
+    /// The title, the send and the order on one row, over the search row.
+    private var header: some View {
+        VStack(spacing: 0) {
+            titleRow
+            searchRow
+        }
+        .background(Palette.raised.ignoresSafeArea())
+    }
+
+    /// **Two controls beside the title: the send and the order.** The shelf left
+    /// for a door on the screen (`downloadsRow`) and the filter for the search row
+    /// (`docs/evidence/toolbar-alignment/` has why the row cannot take four). The
+    /// controls never compress; the title is the one that gives way.
+    private var titleRow: some View {
+        HStack(spacing: 12) {
+            screenTitle
+                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: 22) {
+                uploadButton
+                sortMenu
+            }
+            .padding(.horizontal, 18)
+            .frame(height: Self.searchRowHeight)
+            .barCapsule()
+            .fixedSize()
+        }
+        .padding(.horizontal, barMargin)
+        // In landscape there is no status bar above the row, so it keeps the
+        // distance from the top edge the system's bar kept.
+        .padding(.top, verticalSizeClass == .compact ? 16 : 6)
+        .padding(.bottom, 10)
+        .ignoresSafeArea(.container, edges: .horizontal)
+    }
+
     /// The upload's way in — the one control that starts a send.
     ///
-    /// **The explicit `HStack` is load-bearing here, for the reason the sort and
-    /// filter controls each paid for once (3.13): a toolbar renders a `Label`
-    /// icon-only, and a toolbar item that is a bare glyph is a control the reader
-    /// has to guess at.** Measured twice on this screen, so this one is spelled
-    /// out from the start — through `barControl`, so it is also the size of the
-    /// three beside it.
+    /// **The one bare glyph in the bar, and it is the owner's call.** The sort and
+    /// filter keep their words because each carries *state* the list is shaped by
+    /// (3.13); the share glyph carries none, and its word was the ~43 pt that kept
+    /// the title from sharing the bar's row beside `Recently Added` (it drew
+    /// `Lib…`). The word lives on as its accessibility label.
     private var uploadButton: some View {
         Button {
             showingUpload = true
         } label: {
-            barControl("square.and.arrow.up", "Send")
+            barControl("square.and.arrow.up")
         }
+        .accessibilityLabel("Send")
     }
 
     /// The Mac's eight curated options, as a menu whose label **is** the current
@@ -628,6 +696,9 @@ struct LibraryScreen: View {
     /// same defect as the sort control's, one control over, and it cost two builds
     /// the first time. The count is the bar's own type size like everything else:
     /// one size in the bar, and the number is a number.
+    ///
+    /// It sits at the end of the search row, drawn on the field's own fill, so the
+    /// two read as one control for narrowing the list.
     private var filterButton: some View {
         Button {
             showingFilters = true
@@ -639,8 +710,61 @@ struct LibraryScreen: View {
                 activeFilterCount,
                 narrowed: model?.hasActiveFilters == true
             )
+            .padding(.horizontal, activeFilterCount == nil ? 0 : 12)
+            .frame(minWidth: Self.searchRowHeight, minHeight: Self.searchRowHeight)
+            .background(Capsule().fill(Self.fieldFill))
+            .contentShape(Capsule())
         }
+        .buttonStyle(.plain)
         .accessibilityLabel(activeFilterCount.map { "Filters, \($0) on" } ?? "Filters")
+    }
+
+    /// The field and the filter share one height, so the row's two shapes line up
+    /// top and bottom — the system search field's own 44 pt tap height.
+    private static let searchRowHeight: CGFloat = 44
+
+    /// The field's fill: parchment over the header, which is what the system's own
+    /// search field drew here (a light veil, not a second surface colour).
+    private static let fieldFill = Palette.parchment.opacity(0.12)
+
+    /// The search field and the filter, on one line under the bar.
+    private var searchRow: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(Palette.muted)
+                TextField(
+                    "Search",
+                    text: $searchText,
+                    prompt: Text("Search titles, authors, series…").foregroundStyle(Palette.muted)
+                )
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
+                .foregroundStyle(Palette.parchment)
+                .tint(Palette.gold)
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(Palette.muted)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear search")
+                }
+            }
+            .font(.body)
+            .padding(.horizontal, 14)
+            .frame(height: Self.searchRowHeight)
+            .background(Capsule().fill(Self.fieldFill))
+
+            filterButton
+        }
+        .padding(.horizontal, barMargin)
+        .padding(.top, 4)
+        .padding(.bottom, 10)
+        .ignoresSafeArea(.container, edges: .horizontal)
     }
 
     private var activeFilterCount: String? {
@@ -683,7 +807,7 @@ struct LibraryScreen: View {
                     Image(systemName: "chevron.right").font(.caption2.weight(.semibold))
                 }
                 .foregroundStyle(Palette.parchment)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, barMargin)
                 .padding(.vertical, 10)
                 .background(Palette.raised)
             }
@@ -691,6 +815,7 @@ struct LibraryScreen: View {
             // than the system accent — the same reason the filter bar's Clear is
             // `.plain` (a tinted label is a colour the palette does not own).
             .buttonStyle(.plain)
+            .ignoresSafeArea(.container, edges: .horizontal)
         }
     }
 
@@ -706,8 +831,9 @@ struct LibraryScreen: View {
         } dismissOutcome: {
             uploads.reset()
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, barMargin)
         .padding(.top, 8)
+        .ignoresSafeArea(.container, edges: .horizontal)
     }
 
     /// What the library screen says about a narrowing the reader may not remember
@@ -734,9 +860,10 @@ struct LibraryScreen: View {
             .buttonStyle(.plain)
         }
         .foregroundStyle(Palette.gold)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, barMargin)
         .padding(.vertical, 8)
         .background(Palette.raised)
+        .ignoresSafeArea(.container, edges: .horizontal)
     }
 
     private func makeClient() -> MusaeumClient? {
@@ -915,7 +1042,7 @@ struct LibraryScreen: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, barMargin)
             .padding(.vertical, 12)
 
             if model.hasMore {
@@ -930,6 +1057,10 @@ struct LibraryScreen: View {
         // A pull re-runs the *current* query: `start()` composes every request from
         // `query`, so a refresh cannot quietly show the whole library.
         .refreshable { await model.start() }
+        // The drawer put the keyboard away when the grid moved; our own field has
+        // to ask for that.
+        .scrollDismissesKeyboard(.immediately)
+        .ignoresSafeArea(.container, edges: .horizontal)
         .overlay(alignment: .top) {
             if model.health?.library == .offline {
                 Text("The Mac's library share is not mounted — covers and downloads will fail until it is")
