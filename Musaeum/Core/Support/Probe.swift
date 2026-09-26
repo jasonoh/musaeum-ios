@@ -87,6 +87,16 @@ enum Probe {
     /// about one book: it is the screen a row's geometry is judged on.
     static var openDownloads: Bool { value("MUSAEUM_PROBE_DOWNLOADS") == "1" }
 
+    /// **The list's own scroll, which no `simctl` verb can make.** A run's reading of
+    /// anything that depends on scrolling — today the library header's rule — has no
+    /// instrument at all without this, because a simulator can be launched and
+    /// photographed and cannot be swiped.
+    ///
+    /// `MUSAEUM_PROBE_SCROLL=14,4` names positions in the list as it stands, one leg
+    /// each, comma-separated: to the 14th book, then to the 4th. Every leg is logged
+    /// with the book that landed there, where the list is and what the header did.
+    static var scroll: String? { value("MUSAEUM_PROBE_SCROLL") }
+
     /// Which reader surface the run raises once the book has laid out: `chrome`
     /// or `contents` (slice 6a), `typography`, `ink` or `paper` (6b), `large` (the
     /// largest size and line height, for the footer's clearance) or `reset`. A tap is the

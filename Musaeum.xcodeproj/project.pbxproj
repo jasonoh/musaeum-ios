@@ -35,6 +35,7 @@
 		5148A3A8EBBE6D270180EAC7 /* Probe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81EA6E53A91ED976505C5CFC /* Probe.swift */; };
 		518067CF6248F5842A387B43 /* ReadiumShared in Frameworks */ = {isa = PBXBuildFile; productRef = 0E91009E879C6C21C398DC2B /* ReadiumShared */; };
 		537089B808E7DC5173F3C8D0 /* ReaderChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCE4A68F4F6A5E43FEB018E /* ReaderChrome.swift */; };
+		589518CA22ADACD68D26CFD4 /* HeaderRevealTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779BDEE581195B23AE7C0BB5 /* HeaderRevealTests.swift */; };
 		5ADCFCC99BC441704091509B /* ShareStaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = E094F08B3CA2B2756EC09D25 /* ShareStaging.swift */; };
 		7526287B8E561E72C5D5CFFD /* LibraryQueryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD07CD9819EF6B777F0EADE /* LibraryQueryTests.swift */; };
 		76FB888F6D5F4716D97CFB1F /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13AC425473E30C78BD743148 /* ShareSheet.swift */; };
@@ -44,6 +45,7 @@
 		80C44FF6E6A280EBDADABA85 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2560A771DBF4AD1074DF4EF /* SettingsStore.swift */; };
 		8C352ECFE591104E553FE931 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84DFCD0452CDB9D9D05D6305 /* Assets.xcassets */; };
 		8C80A3334B6993DEAEA9C20B /* ReaderTocEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63F1F225076DC61903C6F6D /* ReaderTocEntry.swift */; };
+		8CFDD22D2A4A36CF3A9064F1 /* HeaderReveal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC487EAC860370C9205564F /* HeaderReveal.swift */; };
 		8FE4404F97C00E2F6798E5EF /* ReaderPrefsMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B381316F176EA9D569F963 /* ReaderPrefsMappingTests.swift */; };
 		900CB3A9A9DD31CE9E251C27 /* UploadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8411E698FF06349D5FEA6869 /* UploadTests.swift */; };
 		9268BEF9636FFA32EBE9C691 /* ReaderGestures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 206E7990BDCE77A1666B328A /* ReaderGestures.swift */; };
@@ -111,6 +113,7 @@
 		39C84C8529AD2550EE16AC92 /* ReaderTocEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderTocEntryTests.swift; sourceTree = "<group>"; };
 		3CF6C673F4216694D54A57BC /* LibraryFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFilterTests.swift; sourceTree = "<group>"; };
 		4651E4E29334A9A7C4CCFC40 /* MusaeumTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MusaeumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4AC487EAC860370C9205564F /* HeaderReveal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderReveal.swift; sourceTree = "<group>"; };
 		4ACC2BB482D74A107EE0A5C2 /* UploadModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadModel.swift; sourceTree = "<group>"; };
 		4CCE4A68F4F6A5E43FEB018E /* ReaderChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderChrome.swift; sourceTree = "<group>"; };
 		4D760338EA134B5E6B03898A /* UploadSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadSheet.swift; sourceTree = "<group>"; };
@@ -124,6 +127,7 @@
 		705A94184FA87C433B903CA4 /* DownloadsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsScreen.swift; sourceTree = "<group>"; };
 		73D5FA4ADC9ED8D63C302BA3 /* ReaderFooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFooterLabel.swift; sourceTree = "<group>"; };
 		771ED48F3450F3D1D1D66D38 /* UploadInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadInbox.swift; sourceTree = "<group>"; };
+		779BDEE581195B23AE7C0BB5 /* HeaderRevealTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderRevealTests.swift; sourceTree = "<group>"; };
 		7AD0F2A9BD5D649A1595A6D4 /* import.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = import.json; sourceTree = "<group>"; };
 		7CA64BCA1807755A8142C08B /* ContentsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentsSheet.swift; sourceTree = "<group>"; };
 		7E93329D9D859647FCA01DBC /* ShareStagingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareStagingTests.swift; sourceTree = "<group>"; };
@@ -207,6 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				77845C1FCDB6459B28A33C7E /* API */,
+				CAE792C1BC4B58E4C4C293CC /* Library */,
 				C8B9EBE4D3255826D10A69B3 /* Reader */,
 				BC522C089CC3F82C5317ED65 /* Store */,
 				00BD3F23E14D4CFD645DA43E /* Support */,
@@ -223,6 +228,7 @@
 				105384EF3C60158460BBCFDA /* ContractDecodeTests.swift */,
 				B0876647252FEFE073021B0A /* CoverBoxTests.swift */,
 				096300ACDD30C93737BCE6D2 /* CoverPipelineTests.swift */,
+				779BDEE581195B23AE7C0BB5 /* HeaderRevealTests.swift */,
 				3599D559223B796E5E027836 /* InitialFractionTests.swift */,
 				3CF6C673F4216694D54A57BC /* LibraryFilterTests.swift */,
 				AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */,
@@ -390,6 +396,14 @@
 			path = Downloads;
 			sourceTree = "<group>";
 		};
+		CAE792C1BC4B58E4C4C293CC /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				4AC487EAC860370C9205564F /* HeaderReveal.swift */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
 		D61FFF833D25C623447D45E5 /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -548,6 +562,7 @@
 				7C4EF58A56676EE54814444C /* DownloadStore.swift in Sources */,
 				A955D005F98F32B8AC1BD626 /* DownloadsScreen.swift in Sources */,
 				A418F78B272DA58E98E34ACF /* FilterSheet.swift in Sources */,
+				8CFDD22D2A4A36CF3A9064F1 /* HeaderReveal.swift in Sources */,
 				3897F8B16DE196FF21634649 /* InitialFraction.swift in Sources */,
 				BEE03C229ADD1635A670DDD8 /* LibraryFilters.swift in Sources */,
 				77C027784AE592406CF67195 /* LibraryQuery.swift in Sources */,
@@ -589,6 +604,7 @@
 				14C099AD9613A50E7A8AD277 /* ContractDecodeTests.swift in Sources */,
 				DEF018BD8943ACD9E036F2F2 /* CoverBoxTests.swift in Sources */,
 				25512185A79BD14C74DAAF76 /* CoverPipelineTests.swift in Sources */,
+				589518CA22ADACD68D26CFD4 /* HeaderRevealTests.swift in Sources */,
 				0CC5A047D7CEE77CE7E64147 /* InitialFractionTests.swift in Sources */,
 				2E259BD6E5770217BB4F71CD /* LibraryFilterTests.swift in Sources */,
 				161D4DF43BAA3CFFA539978D /* LibraryPagingTests.swift in Sources */,

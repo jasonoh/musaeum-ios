@@ -1,0 +1,44 @@
+[
+  {
+    "mutation": "the floor is dropped: the header may leave before the band has gone by",
+    "file": "Musaeum/Core/Library/HeaderReveal.swift",
+    "old": "        guard band > 0, progress >= band else {",
+    "new": "        guard band > 0, progress >= 0 else {",
+    "test": "MusaeumTests/HeaderRevealTests"
+  },
+  {
+    "mutation": "an unmeasured band acts: the floor's own guard on `band` is dropped",
+    "file": "Musaeum/Core/Library/HeaderReveal.swift",
+    "old": "        guard band > 0, progress >= band else {",
+    "new": "        guard progress >= band else {",
+    "test": "MusaeumTests/HeaderRevealTests"
+  },
+  {
+    "mutation": "the travel is not required: any movement moves the bar",
+    "file": "Musaeum/Core/Library/HeaderReveal.swift",
+    "old": "        if run >= Self.travel {",
+    "new": "        if run > 0 {",
+    "test": "MusaeumTests/HeaderRevealTests"
+  },
+  {
+    "mutation": "the reveal half is dropped: a pull never brings the header back",
+    "file": "Musaeum/Core/Library/HeaderReveal.swift",
+    "old": "        } else if run <= -Self.travel {",
+    "new": "        } else if 1 < 0 {",
+    "test": "MusaeumTests/HeaderRevealTests"
+  },
+  {
+    "mutation": "a change of mind keeps the run it interrupted",
+    "file": "Musaeum/Core/Library/HeaderReveal.swift",
+    "old": "        if (delta > 0) != (run > 0) { run = 0 }",
+    "new": "        if 1 < 0 { run = 0 }",
+    "test": "MusaeumTests/HeaderRevealTests"
+  },
+  {
+    "mutation": "the box takes the position as the travel rather than the difference",
+    "file": "Musaeum/Core/Library/HeaderReveal.swift",
+    "old": "        let delta = progress - self.progress",
+    "new": "        let delta = progress",
+    "test": "MusaeumTests/HeaderRevealTests"
+  }
+]

@@ -312,6 +312,22 @@ final class LibraryModel {
     }
 }
 
+/// One reading of the list's own geometry — the values the header's rule needs, and
+/// the numbers a probe reports beside its verdict.
+///
+/// `progress` is where the list is: at rest the content sits exactly its top margin down
+/// from the top of the screen, so `contentOffset + contentInsets` is 0 at the top of the
+/// list, grows as the reader pushes it away, and goes negative only on a
+/// pull-to-refresh. `band` is what has to go by before the header may leave — the
+/// chrome's own height, **measured**, not the scroll view's inset (the space above the
+/// list is a content margin, so the inset the platform reports is not it).
+struct ScrollReading: Equatable {
+    var progress: CGFloat
+    var band: CGFloat
+    var contentHeight: CGFloat
+    var viewportHeight: CGFloat
+}
+
 struct LibraryScreen: View {
     @Environment(SettingsStore.self) private var settings
 
@@ -336,6 +352,30 @@ struct LibraryScreen: View {
     /// landscape — read so the rows can take the bar's margin (`BarMargin`)
     /// rather than the safe area's.
     @State private var sideInset: CGFloat = 0
+
+    /// The status bar's own band, read from the screen's safe area. The header sits
+    /// inside it, and it is the top half of the band the header has to clear to be
+    /// off the screen.
+    @State private var safeTop: CGFloat = 0
+
+    /// **The chrome's rule, and the two values that move it.** The rule's own state
+    /// lives in a box rather than in `@State` — see `HeaderRevealBox`; the verdict is
+    /// `@State` because it moves the chrome, and it changes twice per gesture.
+    @State private var reveal = HeaderRevealBox()
+    @State private var chromeHidden = false
+
+    /// The header's own height, **measured rather than computed**: three of its four
+    /// paddings change with the vertical size class and one of them moved with the
+    /// title's own size, so a constant here would be a second copy of this layout
+    /// waiting to drift from it.
+    @State private var headerHeight: CGFloat = 0
+
+    @State private var chromeHeight: CGFloat = 0
+
+    /// Whether this launch has reported the chrome's own numbers. One line per launch,
+    /// because the arithmetic in `HeaderReveal` rests on them and a band that is *not*
+    /// what the layout says is the one way this feature can be wrong while looking right.
+    @State private var chromeReported = false
 
     /// **The rows share the bar's edges.** Each row draws edge to edge (it ignores
     /// the side safe area) and insets itself by this, so in landscape the search
@@ -363,20 +403,30 @@ struct LibraryScreen: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if let model {
-                    content(model)
-                } else {
-                    ProgressView().tint(Palette.gold)
-                }
+            // **The chrome is drawn *over* the list, not above it.** A band makes the
+            // list start below it; an overlay lets the list run underneath — which is
+            // the whole of what makes the header's departure reveal *content* rather
+            // than the background. Nothing about the resting screen changes: the list
+            // holds the chrome's own height open as a margin on its content
+            // (`contentMargins` in `list`), so its first row still starts under the
+            // chrome. What changes is what is behind the header when it goes.
+            //
+            // The band is **measured rather than computed**: three of the header's
+            // four paddings move with the vertical size class, the title steps down a
+            // size on a narrow phone, and up to three strips above the list come and
+            // go with the filter, the upload and the shelf.
+            ZStack(alignment: .top) {
+                content(model)
+                chrome
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { chromeHeight = $0 }
             }
+            // **The whole stack runs to the top of the screen**, and the list is the
+            // reason: a band *below* the status bar cannot be drawn on by the list, so
+            // the header's departure would reveal the background instead of the books
+            // behind it. The chrome pays for this by carrying the status bar's band in
+            // its own padding (`titleRow`), so nothing about the resting screen moves.
+            .ignoresSafeArea(.container, edges: .top)
             .background(Palette.ink)
-            // Always shown, not revealed by scrolling: a search nobody can find is
-            // the same as no search. **Our own row rather than `.searchable`,
-            // because the filter lives beside the field** — the drawer takes no
-            // accessory on iOS 18, and the filter narrows the same list the term
-            // does, so the two belong on one line.
-            .safeAreaInset(edge: .top, spacing: 0) { header }
             // **The screen draws its own bar.** The system's could not hold the
             // title at one size beside the controls: a large title draws on a row
             // of its own below them, `.inlineLarge` shrank it to the small centred
@@ -402,6 +452,13 @@ struct LibraryScreen: View {
         } action: { inset in
             sideInset = inset
             Probe.log("library side inset=\(inset) margin=\(BarMargin.from(safeInset: inset))")
+        }
+        // The status bar's band, which is the top half of what the header has to clear.
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.safeAreaInsets.top
+        } action: { top in
+            safeTop = top
+            Probe.log("library safe top=\(top)")
         }
         // **The debounce and the cancellation in one primitive.** `.task(id:)`
         // cancels its predecessor when the id changes, so a keystroke supersedes
@@ -602,13 +659,21 @@ struct LibraryScreen: View {
     /// reads as a title.
     private static let titleSizes: [CGFloat] = [34, 32, 30, 28, 26, 24]
 
-    /// The title, the send and the order on one row, over the search row.
+    /// The title, the send and the order on one row, over the search row: **the part
+    /// of the chrome a reader has finished with first**, and the tallest part of it.
+    ///
+    /// It does not move on its own. The whole chrome leaves together and comes back
+    /// together (see `chrome`): the owner's own frame of 2026-09-26 showed the shelf's
+    /// row sitting still under a departed header, and a strip left behind in a band
+    /// that is otherwise content reads as a bar that is stuck rather than as a bar
+    /// that has been put away.
     private var header: some View {
         VStack(spacing: 0) {
             titleRow
             searchRow
         }
         .background(Palette.raised.ignoresSafeArea())
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0 }
     }
 
     /// **Two controls beside the title: the send and the order.** The shelf left
@@ -629,9 +694,16 @@ struct LibraryScreen: View {
             .fixedSize()
         }
         .padding(.horizontal, barMargin)
-        // In landscape there is no status bar above the row, so it keeps the
-        // distance from the top edge the system's bar kept.
-        .padding(.top, verticalSizeClass == .compact ? 16 : 6)
+        // **The status bar's band is part of the header's own height.** The screen's
+        // chrome starts at the very top of the screen (the whole stack ignores the top
+        // safe area, so that the list can be *behind* the header rather than below it),
+        // which means the header clears the status bar by carrying it — and that it
+        // paints behind it, which the background above does and only does if it is
+        // inside this padding rather than under it.
+        //
+        // In landscape there is no status bar above the row, so it keeps the distance
+        // from the top edge the system's bar kept.
+        .padding(.top, safeTop + (verticalSizeClass == .compact ? 16 : 6))
         .padding(.bottom, 10)
         .ignoresSafeArea(.container, edges: .horizontal)
     }
@@ -918,55 +990,101 @@ struct LibraryScreen: View {
         }
     }
 
+    /// **The band at the top of the screen, in one place.**
+    ///
+    /// The header, and under it every strip that has something to say about the list
+    /// below: the filter's cause, the upload's outcome, the shelf's own door, and the
+    /// Mac's library when the share is not mounted. They are one view because they are
+    /// one band — the list holds this whole height open whether or not the reader can
+    /// see the top of it.
+    ///
+    /// **And they leave as one.** The owner's frame of 2026-09-26 (a shelf row sitting
+    /// still under a departed header) is why: a strip left behind in a band that is
+    /// otherwise content reads as a bar that is stuck. The offset is the chrome's own
+    /// **measured** height — the very band the list keeps clear for it — so at
+    /// `progress == band` the last of it is exactly off the screen and the list's
+    /// content occupies every point of the band.
+    ///
+    /// **The shelf's door does not wait for the Mac.** A downloaded book reads with the
+    /// Mac asleep, shut, or off the network — and a door drawn only once the library had
+    /// loaded made that promise unreachable in exactly the case it is for: with the
+    /// tailnet down the screen sat on a spinner, and with the Mac's app quit it showed
+    /// an error card and nothing else.
     @ViewBuilder
-    private func content(_ model: LibraryModel) -> some View {
-        switch model.phase {
-        // **The shelf's door does not wait for the Mac.** A downloaded book reads
-        // with the Mac asleep, shut, or off the network — and a door drawn only
-        // once the library had loaded made that promise unreachable in exactly
-        // the case it is for: with the tailnet down the screen sat on a spinner,
-        // and with the Mac's app quit it showed this card and nothing else.
-        case .idle, .loading:
-            VStack(spacing: 0) {
-                downloadsRow
-                ProgressView().tint(Palette.gold)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        case let .failed(message):
-            VStack(spacing: 0) {
-                downloadsRow
-                MessageCard(title: "The Mac is not answering", message: message, action: "Try again") {
-                    Task { await model.start() }
-                }
-            }
-        case .loaded:
-            VStack(spacing: 0) {
-                // **The cause stays on screen, and it stays above the empty card
-                // too** — that is exactly where the reader asks "why is this
-                // empty?". A filter can narrow the library to nothing without any
-                // request being wrong, and without this bar the screen has no way
-                // to say so: 3.13's own requirement, and the reason it is a frame's
-                // job rather than a source read's.
+    private var chrome: some View {
+        VStack(spacing: 0) {
+            header
+            if let model {
+                // **The cause stays on screen, and it stays above the empty card too**
+                // — that is exactly where the reader asks "why is this empty?". A filter
+                // can narrow the library to nothing without any request being wrong, and
+                // without this bar the screen has no way to say so.
                 if model.hasActiveFilters { filterBar(model) }
-                // **The upload's own row, above the grid and above the empty card**
-                // — it belongs to the same place as the filter bar for the same
-                // reason: it is the one thing on screen that explains what the
-                // library is about to look like, and an outcome must not be lost
-                // when the sheet closes.
+                // **The upload's own row, above the list and above the empty card** — the
+                // same place as the filter bar, for the same reason: it is the one thing
+                // on screen that explains what the library is about to look like, and an
+                // outcome must not be lost when the sheet closes.
                 if let uploads, uploads.isSending || uploads.outcome != nil {
                     uploadRow(uploads)
                 }
-                // **The shelf's door, in the strips above the grid** — beside the
-                // filter bar and the upload's row, because it is the same kind of
-                // thing: a sentence about this screen, one tap from the thing it
-                // names. It is drawn only when the shelf holds something.
-                downloadsRow
+            }
+            downloadsRow
+            if model?.health?.library == .offline { offlineNotice }
+        }
+        .offset(y: chromeHidden ? -chromeHeight : 0)
+        .animation(.snappy(duration: 0.26), value: chromeHidden)
+    }
+
+    /// The chrome's own height, **status bar included**: where the list's content starts,
+    /// and so how far the list has to have gone past it before the header can leave.
+    private var chromeBand: CGFloat { chromeHeight }
+
+    /// A phase that does not scroll — the spinner, the error card, the three "nothing to
+    /// show" cards — **with the chrome's band held open above it**. The screen therefore
+    /// does not move when a list arrives, and what centres itself centres where the
+    /// reader can actually see it: measured, a `.safeAreaInset` does **not** move a
+    /// `.frame(maxHeight: .infinity)` child's centre on this OS, so the band is a real
+    /// view here rather than an inset (the card sat 110 pt high until it was).
+    private func placeholder<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+        VStack(spacing: 0) {
+            Color.clear.frame(height: chromeBand)
+            content()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    /// What the screen itself says about the Mac's own share being unmounted.
+    private var offlineNotice: some View {
+        Text("The Mac's library share is not mounted — covers and downloads will fail until it is")
+            .font(.caption)
+            .foregroundStyle(Palette.muted)
+            .padding(8)
+            .frame(maxWidth: .infinity)
+            .background(Palette.raised)
+    }
+
+    @ViewBuilder
+    private func content(_ model: LibraryModel?) -> some View {
+        if let model {
+            switch model.phase {
+            case .idle, .loading:
+                placeholder { ProgressView().tint(Palette.gold) }
+            case let .failed(message):
+                placeholder {
+                    MessageCard(title: "The Mac is not answering", message: message, action: "Try again") {
+                        Task { await model.start() }
+                    }
+                }
+            case .loaded:
                 if let empty = model.emptyState {
-                    emptyCard(model, empty)
+                    placeholder { emptyCard(model, empty) }
                 } else {
                     grid(model)
                 }
             }
+        } else {
+            placeholder { ProgressView().tint(Palette.gold) }
         }
     }
 
@@ -1026,6 +1144,17 @@ struct LibraryScreen: View {
     }
 
     private func grid(_ model: LibraryModel) -> some View {
+        ScrollViewReader { proxy in
+            list(model)
+                // The probe's own scroll: a finger on the glass is the one thing
+                // `simctl` cannot supply, so this is where a run's legs are driven.
+                .task { await runScrollSeam(proxy, model) }
+        }
+    }
+
+    /// The list itself — the grid, its footer, and the one reading the header's rule
+    /// is fed from.
+    private func list(_ model: LibraryModel) -> some View {
         ScrollView {
             LazyVGrid(
                 columns: [GridItem(.adaptive(minimum: 112), spacing: 14)],
@@ -1061,15 +1190,79 @@ struct LibraryScreen: View {
         // to ask for that.
         .scrollDismissesKeyboard(.immediately)
         .ignoresSafeArea(.container, edges: .horizontal)
-        .overlay(alignment: .top) {
-            if model.health?.library == .offline {
-                Text("The Mac's library share is not mounted — covers and downloads will fail until it is")
-                    .font(.caption)
-                    .foregroundStyle(Palette.muted)
-                    .padding(8)
-                    .frame(maxWidth: .infinity)
-                    .background(Palette.raised)
+        // **The list runs from the top of the screen, under the chrome.** The chrome is
+        // an overlay, so the list has to leave room for the band above it — as a
+        // *margin on its content* rather than a band in the layout, which is what makes
+        // the space something the list scrolls under instead of something it starts after.
+        .contentMargins(.top, chromeBand, for: .scrollContent)
+        // **One reading per frame, and the header's whole rule is fed from it.**
+        // `progress` is how far the list has gone past its own start — the content's
+        // offset plus the inset above it, so 0 is at rest and negative is a pull — and
+        // `band` is that inset, which is the header's band: the rule will not let the
+        // header leave before the list has gone by it.
+        //
+        // The verdict is `@State` and the rule's own state is not, which is the whole
+        // reason the two are split (see `HeaderRevealBox`).
+        .onScrollGeometryChange(for: ScrollReading.self) { geometry in
+            ScrollReading(
+                progress: geometry.contentOffset.y + geometry.contentInsets.top,
+                band: chromeBand,
+                contentHeight: geometry.contentSize.height,
+                viewportHeight: geometry.containerSize.height
+            )
+        } action: { _, reading in
+            observe(reading)
+        }
+    }
+
+    /// Feeds the rule, moves the header when the verdict changes, and reports the
+    /// chrome's own numbers once per launch.
+    private func observe(_ reading: ScrollReading) {
+        let verdict = reveal.feed(progress: reading.progress, band: reading.band)
+        if verdict != chromeHidden {
+            chromeHidden = verdict
+            Probe.log(
+                "chrome \(verdict ? "out" : "in") progress=\(Int(reading.progress)) band=\(Int(reading.band))"
+            )
+        }
+        // **One line, at layout, with the three numbers this feature turns on.** They
+        // are all measurements — a band that is not what the layout says, or a viewport
+        // that does not reach the top of the screen, is the way this feature can be
+        // wrong while every frame still looks right.
+        if !chromeReported, reading.band > 0 {
+            chromeReported = true
+            Probe.log(
+                "library list band=\(Int(reading.band)) header=\(Int(headerHeight)) viewport=\(Int(reading.viewportHeight)) content=\(Int(reading.contentHeight))"
+            )
+        }
+    }
+
+    /// **The header's rule, made reachable without a finger.** `simctl` can launch the
+    /// app and take a frame; it can neither scroll nor tap, so a scroll-driven
+    /// behaviour has no reading at all unless the run can move the list itself.
+    ///
+    /// `MUSAEUM_PROBE_SCROLL=14,4` takes the list to the 14th book and then back to the
+    /// 4th — the second leg being the half that matters, because a header that returns
+    /// with the list still scrolled is the behaviour the rule exists for. Each leg
+    /// names the position it was given, the book that landed there, where the list is
+    /// and what the header did, so a leg that was never honoured says so instead of
+    /// looking like a run that decided nothing.
+    private func runScrollSeam(_ proxy: ScrollViewProxy, _ model: LibraryModel) async {
+        guard let raw = Probe.scroll else { return }
+        // The grid has to have laid out before a position means anything.
+        try? await Task.sleep(for: .seconds(2))
+        for leg in raw.split(separator: ",") {
+            let token = leg.trimmingCharacters(in: .whitespaces)
+            guard let position = Int(token), position >= 1, position <= model.books.count else {
+                Probe.log("probe: scroll '\(token)' is not a position among the \(model.books.count) books the list holds")
+                continue
             }
+            let book = model.books[position - 1]
+            proxy.scrollTo(book.id, anchor: .top)
+            try? await Task.sleep(for: .seconds(2))
+            Probe.log(
+                "chrome scroll item=\(position) title=\(book.title) progress=\(Int(reveal.progress)) chrome=\(chromeHidden ? "out" : "in")"
+            )
         }
     }
 }

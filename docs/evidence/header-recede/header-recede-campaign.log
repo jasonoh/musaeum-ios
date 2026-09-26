@@ -1,0 +1,21 @@
+BASELINE  MusaeumTests/HeaderRevealTests: exit=0  Executed 11 tests, with 0 failures (0 unexpected) in 0.006 (0.010) seconds
+RED (killed)    the floor is dropped: the header may leave before the band has gone by
+                suite=MusaeumTests/HeaderRevealTests restored=True
+                Executed 11 tests, with 2 failures (0 unexpected) in 0.025 (0.029) seconds | 2 cases reddened: testAPullAtTheTopNeverHidesTheHeader, testTheHeaderCannotLeaveBeforeItsOwnBandHasGoneBy
+RED (killed)    an unmeasured band acts: the floor's own guard on `band` is dropped
+                suite=MusaeumTests/HeaderRevealTests restored=True
+                Executed 11 tests, with 1 failure (0 unexpected) in 0.018 (0.021) seconds | 1 cases reddened: testAnUnmeasuredBandHidesNothing
+RED (killed)    the travel is not required: any movement moves the bar
+                suite=MusaeumTests/HeaderRevealTests restored=True
+                Executed 11 tests, with 3 failures (0 unexpected) in 0.018 (0.022) seconds | 3 cases reddened: testAChangeOfMindDiscardsTheRunItInterrupted, testAPushUnderTheTravelLeavesTheHeaderIn, testJitterNeverMovesTheHeader
+RED (killed)    the reveal half is dropped: a pull never brings the header back
+                suite=MusaeumTests/HeaderRevealTests restored=True
+                Executed 11 tests, with 2 failures (0 unexpected) in 0.018 (0.022) seconds | 2 cases reddened: testAPullOfTheSameSizeBringsItBack, testTheBoxTakesItsDeltaFromTheLastReading
+RED (killed)    a change of mind keeps the run it interrupted
+                suite=MusaeumTests/HeaderRevealTests restored=True
+                Executed 11 tests, with 1 failure (0 unexpected) in 0.017 (0.021) seconds | 1 cases reddened: testAChangeOfMindDiscardsTheRunItInterrupted
+RED (killed)    the box takes the position as the travel rather than the difference
+                suite=MusaeumTests/HeaderRevealTests restored=True
+                Executed 11 tests, with 1 failure (0 unexpected) in 0.017 (0.021) seconds | 1 cases reddened: testTheBoxTakesItsDeltaFromTheLastReading
+
+killed 6/6

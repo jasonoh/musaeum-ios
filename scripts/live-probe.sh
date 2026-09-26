@@ -129,6 +129,17 @@
 #
 #   TAG=downloads DOWNLOADS=1 ./scripts/live-probe.sh   # the downloaded shelf, one row per book
 #
+# **The list's own scroll is a fifth, and it is the one `simctl` cannot make.**
+# `SCROLL=` names positions in the list as it stands (1 is the first book), one
+# leg each, comma-separated, each leg logged with the book that landed there and
+# what the library's header did. It is the instrument the header's own rule is
+# read with — `SCROLL=14` for the header giving way, `SCROLL=14,4` for it coming
+# back with the list still scrolled — and the two runs are worth keeping as a
+# pair, because the second is the half that decides anything:
+#
+#   TAG=recede    SCROLL=14   ./scripts/live-probe.sh   # the header out of the way
+#   TAG=returned  SCROLL=14,4 ./scripts/live-probe.sh   # …and back, mid-list
+#
 # Each line reports `sort=<field>:<direction> q=<term> filters=<set>` (with `-` for
 # an absent one) so all three halves of a query are readable without a frame: what
 # was asked for, and what came back. A QUERY is never stored, a SORT always is —
@@ -213,6 +224,7 @@ SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD="$UPLOAD_PATH" \
 SIMCTL_CHILD_MUSAEUM_PROBE_UPLOAD_SHEET="${UPLOAD_SHEET:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_DETAIL="${DETAIL:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_DOWNLOADS="${DOWNLOADS:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_SCROLL="${SCROLL:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_READER="${READER:-}" \
   xcrun simctl launch "$DEV" "$BUNDLE" | cat
 sleep "$WAIT"
