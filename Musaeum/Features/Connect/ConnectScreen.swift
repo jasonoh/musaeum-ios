@@ -64,9 +64,8 @@ struct ConnectScreen: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Musaeum")
-                .font(.display(40, weight: .semibold))
-                .foregroundStyle(Palette.parchment)
+            Wordmark(size: 34)
+                .accessibilityAddTraits(.isHeader)
             Text("Your library lives on the Mac. Point this phone at it over the tailnet to browse, download and read.")
                 .font(.callout)
                 .foregroundStyle(Palette.muted)

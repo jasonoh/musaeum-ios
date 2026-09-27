@@ -388,9 +388,6 @@ struct LibraryScreen: View {
     /// `DownloadsScreen` is behind a `NavigationLink`, `simctl` taps nothing, and
     /// a row whose geometry is being judged is not a claim a source read settles.
     @State private var showingDownloads = false
-    /// The wordmark's finish; only a DEBUG long-press moves it off the pick.
-    @State private var wordmarkStyle: WordmarkStyle = .embossed
-
     /// **The upload's state belongs to the screen, not to the sheet.** An outcome
     /// has to survive the sheet closing (the annex's own reason for the library
     /// screen's row), and the probe's upload run has to go through exactly the door
@@ -646,14 +643,10 @@ struct LibraryScreen: View {
     private var screenTitle: some View {
         ViewThatFits(in: .horizontal) {
             ForEach(Self.titleSizes, id: \.self) { size in
-                Wordmark(style: wordmarkStyle, size: size)
+                Wordmark(size: size)
             }
         }
         .accessibilityAddTraits(.isHeader)
-        #if DEBUG
-        // While the finish is being chosen: a long-press steps through the styles.
-        .onLongPressGesture { wordmarkStyle = wordmarkStyle.next }
-        #endif
     }
 
     /// Tracked caps run about 6 em against mixed case's 4.5, so the steps start
