@@ -30,7 +30,7 @@ An iOS reading client for a Musaeum library on the Mac. SwiftUI, deployment targ
 ```bash
 xcodegen generate     # first, always — a file added since the last generate is not in the target
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # xcode-select points at the Command Line Tools on this machine
-DEV=39D29C73-B2DD-4041-8ECD-46923376D0F9   # iPhone 18 Pro, iOS 27.0 (slice 6 onward; the iOS 26.1 device is gone)
+DEV=DE0B5601-7874-455E-A965-9AD80567C30E   # iPhone 17 Pro, iOS 26.1 (since 2026-09-26; the iPhone 18 Pro / iOS 27.0 device is gone)
 xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD build
 xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" -derivedDataPath ./DD test
 TAG=library BOOK=<book id> ./scripts/live-probe.sh   # the UI instrument; its header carries the server recipe
@@ -45,6 +45,8 @@ TAG=chrome READER=chrome BOOK=<book id> ./scripts/live-probe.sh   # the reader's
 **The probe profile** the last three slices measured against is `~/.hermes/profiles/dev/cache/scratch/ios-probe` (its own `musaeum.db`, `library_root` pointed at its own folder, **13 books** — 8 seeded EPUBs plus the rows upload and smoke runs left — a `rest_api_token`, and `rest_api_port` **8789**, because the owner's packaged app holds 8788) — and scratch is pruned when idle, so if it is gone, rebuild it from the header of `scripts/live-probe.sh` rather than hunting for it: the seeding is six commands and the imports hydrate in about a minute. The Mac app is started with `env -u ELECTRON_RUN_AS_NODE MUSAEUM_USER_DATA=<that profile> npm run dev` from `../musaeum` (`ELECTRON_RUN_AS_NODE` is set in this shell and makes Electron run as plain Node — no window, no app).
 
 **The probe needs two things, and the script refuses to guess either:** `$ROOT/token.txt` and `$ROOT/base.txt` (the server binds the **tailnet** address, so `127.0.0.1` answers nothing — `lsof -nP -iTCP:8788 -sTCP:LISTEN` says which). A run with no base URL comes up unconfigured, logs nothing, and reads as "the probe found nothing" — which is why it is a hard failure now.
+
+**The simulator moved, verified 2026-09-26:** the iPhone 18 Pro / iOS 27.0 device (`39D29C73-…`) no longer exists — `xcrun simctl list devices available` shows runtimes iOS 17.5 through 26.1 only — and the gates ran green on iPhone 17 Pro / iOS 26.1 (`DE0B5601-…`, booted). That device has `dev.jasonoh.Musaeum` installed but **unconfigured** (it launches to the connect screen) and holds none of the state described below, so a probe against it starts from a fresh download and a fresh position. The paragraph below is the old device's state, kept for its numbers.
 
 **The simulator's state, verified 2026-09-25 after slice 6a's probes:** device `39D29C73-…` booted, `dev.jasonoh.Musaeum` installed, holding `Books/63e85c8d-….epub` (**Designing Machine Learning Systems**, 173 contents entries) with its position at `0.2`; the Mac's row for it is `reading` at `0.2`. The probe profile was rebuilt that day (two books, `rest_api_port` 8789) and the scripts' `DEVICE=` must name this device. **A reading taken on a shut-down simulator returns nothing and reads as "the app is gone"** — `xcrun simctl listapps` on a `Shutdown` device lists no apps and `get_app_container` fails with *Unable to lookup in current state: Shutdown*; boot it first (`xcrun simctl bootstatus <id> -b`), then look.
 
