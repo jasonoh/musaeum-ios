@@ -11,6 +11,10 @@ enum Palette {
     static let parchment = Color(red: 0.925, green: 0.906, blue: 0.871)
     static let muted = Color(red: 0.604, green: 0.569, blue: 0.514)
     static let gold = Color(red: 0.855, green: 0.667, blue: 0.318)
+    /// The Mac's `--gold-300` and `--gold-600`: the wordmark's lit edge and its
+    /// shadowed metal.
+    static let goldLight = Color(red: 0.910, green: 0.788, blue: 0.529)
+    static let goldDeep = Color(red: 0.612, green: 0.439, blue: 0.157)
     static let danger = Color(red: 0.804, green: 0.427, blue: 0.345)
     static let hairline = Color.white.opacity(0.08)
 }

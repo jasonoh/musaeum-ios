@@ -388,6 +388,8 @@ struct LibraryScreen: View {
     /// `DownloadsScreen` is behind a `NavigationLink`, `simctl` taps nothing, and
     /// a row whose geometry is being judged is not a claim a source read settles.
     @State private var showingDownloads = false
+    /// The wordmark's finish; only a DEBUG long-press moves it off the pick.
+    @State private var wordmarkStyle: WordmarkStyle = .embossed
 
     /// **The upload's state belongs to the screen, not to the sheet.** An outcome
     /// has to survive the sheet closing (the annex's own reason for the library
@@ -636,28 +638,27 @@ struct LibraryScreen: View {
     /// number, so no control can sit loose against its own label.
     private static let barSpacing: CGFloat = 5
 
-    /// The screen's title, at the large title's own size — the size the owner
-    /// approved while `.inlineLarge` still drew it. On a narrow phone beside the
-    /// longest order label it steps down to the largest size that fits whole,
-    /// rather than pushing the controls or truncating: a `minimumScaleFactor`
-    /// drew `Musaeu…` beside `Recently Added` on the 402 pt phone with room to
-    /// spare, so the sizes are explicit.
+    /// The screen's title: the Mac's wordmark (`Wordmark`). On a narrow phone
+    /// beside the longest order label it steps down to the largest size that fits
+    /// whole, rather than pushing the controls or truncating: a
+    /// `minimumScaleFactor` drew `Musaeu…` beside `Recently Added` on the 402 pt
+    /// phone with room to spare, so the sizes are explicit.
     private var screenTitle: some View {
         ViewThatFits(in: .horizontal) {
             ForEach(Self.titleSizes, id: \.self) { size in
-                Text("Musaeum")
-                    .font(.system(size: size, weight: .bold))
-                    .foregroundStyle(Palette.parchment)
-                    .lineLimit(1)
-                    .fixedSize()
+                Wordmark(style: wordmarkStyle, size: size)
             }
         }
         .accessibilityAddTraits(.isHeader)
+        #if DEBUG
+        // While the finish is being chosen: a long-press steps through the styles.
+        .onLongPressGesture { wordmarkStyle = wordmarkStyle.next }
+        #endif
     }
 
-    /// The large title's 34 pt, then the steps down to the smallest that still
-    /// reads as a title.
-    private static let titleSizes: [CGFloat] = [34, 32, 30, 28, 26, 24]
+    /// Tracked caps run about 6 em against mixed case's 4.5, so the steps start
+    /// where `MUSAEUM` covers the width the 34 pt bold `Musaeum` did.
+    private static let titleSizes: [CGFloat] = [28, 26, 24, 22, 20, 18]
 
     /// The title, the send and the order on one row, over the search row: **the part
     /// of the chrome a reader has finished with first**, and the tallest part of it.
