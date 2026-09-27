@@ -5,7 +5,9 @@ import SwiftUI
 /// a gold gradient face, a lit top edge, a dark lip below.
 ///
 /// The finish was chosen on the device against engraved, extruded and flat; all
-/// four are in the history at the commit that introduced this view.
+/// four are in the history at the commit that introduced this view. The weight is
+/// Roman, not Bold: the app icon's M is drawn in hairlines, and Bold beside it
+/// read as a different hand — compared side by side with the icon, 2026-09-26.
 ///
 /// Every finishing layer is the same `Text` offset by a fraction of a point and
 /// drawn as a background, so the finish never changes the footprint — the
@@ -37,7 +39,7 @@ struct Wordmark: View {
 
     private func letters(_ fill: some ShapeStyle) -> some View {
         Text("MUSAEUM")
-            .font(.custom("IowanOldStyle-Bold", fixedSize: size))
+            .font(.custom("IowanOldStyle-Roman", fixedSize: size))
             .tracking(tracking)
             .foregroundStyle(fill)
             .lineLimit(1)

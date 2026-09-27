@@ -4,7 +4,7 @@
 
 ### Added
 
-- **The Mac's wordmark.** The library's header and the connect screen set *MUSAEUM* the way the Mac's sidebar does — Iowan Old Style caps, widely tracked, in the gold — embossed as raised metal. Beside the longest order label on a narrow phone it steps down to the largest size that fits whole rather than truncating.
+- **The Mac's wordmark.** The library's header and the connect screen set *MUSAEUM* the way the Mac's sidebar does — Iowan Old Style Roman caps, widely tracked, in the gold — embossed as raised metal, in the same fine hand as the app icon's M. Beside the longest order label on a narrow phone it steps down to the largest size that fits whole rather than truncating.
 
 - **The reader gets out of the way.** A book opens full-screen with only a faint chapter-and-percent line at the foot of the page. Tap the middle for the title, a close button and the book's contents; tap the edges to turn pages; swipe down to close.
 - **Typography, like the Mac's.** *Aa* opens serif or sans, size, line height, spacing, and an Ink or Paper page in the Mac reader's own colours. The page changes as you move each control, and the phone remembers your choice.
