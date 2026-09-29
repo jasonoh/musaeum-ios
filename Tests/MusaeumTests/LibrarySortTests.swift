@@ -20,7 +20,7 @@ final class LibrarySortTests: XCTestCase {
     /// phone sort and a Mac sort that named one order two ways would be two names
     /// for one question.
     func testThePhoneOffersTheMacsOwnEightOptionsInItsOwnOrder() {
-        XCTAssertEqual(LibrarySort.options.map(\.storedKey), [
+        XCTAssertEqual(LibrarySort.allBooksOptions.map(\.storedKey), [
             "title:asc",
             "title:desc",
             "author:asc",
@@ -30,7 +30,7 @@ final class LibrarySortTests: XCTestCase {
             "rating:desc",
             "read_status:asc",
         ])
-        XCTAssertEqual(LibrarySort.options.map(\.label), [
+        XCTAssertEqual(LibrarySort.allBooksOptions.map(\.label), [
             "Title A–Z",
             "Title Z–A",
             "Author A–Z",
@@ -41,7 +41,7 @@ final class LibrarySortTests: XCTestCase {
             "Read Status",
         ])
         XCTAssertEqual(LibrarySort.default, LibrarySort(field: .title, direction: .asc))
-        XCTAssertEqual(LibrarySort.options.first, LibrarySort.default, "the menu opens on the order the library opens in")
+        XCTAssertEqual(LibrarySort.allBooksOptions.first, LibrarySort.default, "the menu opens on the order the library opens in")
     }
 
     /// The other half of 3.1: a *restored* preference may name any of the twelve
@@ -62,22 +62,27 @@ final class LibrarySortTests: XCTestCase {
     /// ("a client that asked for `sort=athor` and silently received title order
     /// could never learn it had a typo"), so a value invented here would surface to
     /// a reader as a library that looks broken rather than as one in the wrong
-    /// order. This case is what holds the menu and the contract's own six values
-    /// together.
+    /// order. This case is what holds the menu and the contract's own seven
+    /// values together.
+    ///
+    /// **The seventh is inside-only**, and that is a rule this case states rather
+    /// than a detail it hides: the server accepts `shelf_added` with a `shelf` to
+    /// order by and refuses it without one (D8), which is why the menu draws its
+    /// pairs only in a scope — the half `ShelvesTests` decides.
     func testEveryOptionIsAValueTheContractAccepts() {
-        let contractFields = ["title", "author", "series", "date_added", "rating", "read_status"]
-        XCTAssertEqual(Set(LibrarySort.Field.allCases.map(\.rawValue)), Set(contractFields), "the enum and the contract's six fields are one list")
+        let contractFields = ["title", "author", "series", "date_added", "rating", "read_status", "shelf_added"]
+        XCTAssertEqual(Set(LibrarySort.Field.allCases.map(\.rawValue)), Set(contractFields), "the enum and the contract's seven fields are one list")
 
         let everyPair = LibrarySort.Field.allCases.flatMap { field in
             LibrarySort.Direction.allCases.map { LibrarySort(field: field, direction: $0) }
         }
-        XCTAssertEqual(everyPair.count, 12)
+        XCTAssertEqual(everyPair.count, 14)
         for pair in everyPair {
             XCTAssertTrue(contractFields.contains(pair.wireField), "\(pair.storedKey) names a field the contract does not")
             XCTAssertTrue(["asc", "desc"].contains(pair.wireDirection), "\(pair.storedKey) names a direction the contract does not")
             XCTAssertFalse(pair.label.isEmpty)
         }
-        for option in LibrarySort.options {
+        for option in LibrarySort.allBooksOptions {
             XCTAssertTrue(everyPair.contains(option), "\(option.storedKey) is offered but is not a pair the contract accepts")
         }
     }
@@ -97,7 +102,7 @@ final class LibrarySortTests: XCTestCase {
 
         // …and every value the build *does* know survives the round trip, the
         // eight the menu offers included.
-        for option in LibrarySort.options {
+        for option in LibrarySort.allBooksOptions {
             XCTAssertEqual(LibrarySort.stored(option.storedKey), option)
         }
         XCTAssertEqual(LibrarySort.stored("author:desc"), LibrarySort(field: .author, direction: .desc))

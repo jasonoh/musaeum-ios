@@ -22,6 +22,20 @@ final class BookDetailModel {
     private(set) var transfer: Transfer = .idle
     private(set) var cover: Data?
 
+    /// The Mac's shelves: `[]` until asked, then the contract's own list.
+    private(set) var shelves: [Shelf] = []
+    /// Whether the Mac has the shelf feature at all — the same three states the
+    /// library's probe has (`nil` unknown, `false` a 404), because it is the
+    /// same question. The *Shelves* row draws only on `true` (AC34's rule
+    /// reaching the detail, which is the feature's only other surface).
+    private(set) var shelvesSupported: Bool?
+    /// The shelf whose write is in flight, so a second tap cannot race the
+    /// first — and so exactly one row shows the spinner.
+    private(set) var toggling: String?
+    /// The failure line under the checklist, cleared by the next attempt (CD7:
+    /// a failure is a surface, not a dialog).
+    private(set) var shelfFailure: String?
+
     private let client: MusaeumClient
     private let downloads: DownloadStore
 
@@ -53,6 +67,50 @@ final class BookDetailModel {
 
     private func transfers(from error: ClientError) {
         transfer = .failed(error.description)
+    }
+
+    /// What shelves this Mac has. One small GET per detail open, and again when
+    /// the checklist appears: both are the moment the answer is about to be
+    /// drawn, and neither is the per-page cost the facet doctrine refuses.
+    func loadShelves() async {
+        do {
+            shelves = try await client.shelves()
+            shelvesSupported = true
+        } catch let error as ClientError {
+            if case .notFound = error {
+                shelves = []
+                shelvesSupported = false
+                Probe.log("shelves unsupported (detail 404)")
+            }
+        } catch {}
+    }
+
+    /// **One toggle, one request** (F6): the act decides the method, and the
+    /// book the Mac answers with replaces the row — never a local flip, which
+    /// could only guess. A failure leaves the checklist exactly as it was: the
+    /// Mac's writes are idempotent (D10), so the retry is a second tap and
+    /// nothing has to be unwound.
+    func toggle(_ shelf: Shelf) async {
+        guard toggling == nil, let current = book else { return }
+        toggling = shelf.id
+        defer { toggling = nil }
+        shelfFailure = nil
+        let on = current.shelves.contains(shelf.id)
+        do {
+            let updated = on
+                ? try await client.removeFromShelf(shelfId: shelf.id, bookId: current.id)
+                : try await client.addToShelf(shelfId: shelf.id, bookId: current.id)
+            phase = .loaded(updated)
+            Probe.log("shelf \(on ? "removed" : "added") book=\(current.id) shelf=\(shelf.id) shelves=\(updated.shelves.joined(separator: ","))")
+            // The shelf's own count moved with the write, so the list's number
+            // is refetched rather than guessed — one small GET per toggle.
+            await loadShelves()
+        } catch let error as ClientError {
+            shelfFailure = error.description
+            Probe.log("shelf toggle failed book=\(current.id) shelf=\(shelf.id) error=\(error)")
+        } catch {
+            shelfFailure = String(describing: error)
+        }
     }
 
     func loadCover(_ book: ContractBook, size: String) async {
@@ -103,6 +161,9 @@ struct BookDetailScreen: View {
     @State private var reading: ReadingRequest?
     @State private var sharing: ShareRequest?
     @State private var shareFailure: String?
+    /// The checklist's own presentation — its own state, the shape `reading`
+    /// and `sharing` already use.
+    @State private var showingShelves = false
 
     var body: some View {
         ScrollView {
@@ -126,12 +187,31 @@ struct BookDetailScreen: View {
             )
             self.model = model
             await model.load(seed: book)
+            await model.loadShelves()
+            // **The write's own instrument.** `simctl` can tap no check, so
+            // `ACTION=shelf-toggle SHELF=<id>` drives the model's own toggle —
+            // the same call the sheet makes — and logs the membership before and
+            // after. The sheet itself stays a frame for the owner.
+            if Probe.action == "shelf-toggle", let id = Probe.shelfID {
+                if let shelf = model.shelves.first(where: { $0.id == id }) {
+                    let before = (model.book?.shelves ?? []).joined(separator: ",")
+                    Probe.log("probe: shelf-toggle before book=\(book.id) shelves=\(before)")
+                    await model.toggle(shelf)
+                    let after = (model.book?.shelves ?? []).joined(separator: ",")
+                    Probe.log("probe: shelf-toggle after book=\(book.id) shelves=\(after) failure=\(model.shelfFailure ?? "-")")
+                } else {
+                    Probe.log("probe: shelf-toggle \(id) is not among the \(model.shelves.count) this Mac reports")
+                }
+            }
         }
         .fullScreenCover(item: $reading) { request in
             ReaderScreen(request: request)
         }
         .sheet(item: $sharing, onDismiss: { downloads.sweepStaging() }) { request in
             ShareSheet(fileURL: request.fileURL)
+        }
+        .sheet(isPresented: $showingShelves) {
+            if let model { ShelfChecklistSheet(model: model) }
         }
     }
 
@@ -259,8 +339,41 @@ struct BookDetailScreen: View {
                     .foregroundStyle(Palette.muted)
             }
             detailRows(book)
+            if let model, model.shelvesSupported == true {
+                shelvesRow(model)
+            }
         }
         .padding(.top, 4)
+    }
+
+    /// The book's shelves, and the door to the checklist. The value is read from
+    /// **the model's own book** — the same freshly-fetched row the rest of this
+    /// screen shows — and *None* is a fact, not an absence.
+    private func shelvesRow(_ model: BookDetailModel) -> some View {
+        let names = model.shelves
+            .filter { (model.book?.shelves ?? []).contains($0.id) }
+            .map(\.name)
+        return Button {
+            showingShelves = true
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("Shelves")
+                    .font(.caption)
+                    .foregroundStyle(Palette.muted)
+                    .frame(width: 88, alignment: .leading)
+                Text(names.isEmpty ? "None" : names.joined(separator: ", "))
+                    .font(.caption)
+                    .foregroundStyle(Palette.parchment)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+                    .foregroundStyle(Palette.muted)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Shelves")
     }
 
     private func detailRows(_ book: ContractBook) -> some View {

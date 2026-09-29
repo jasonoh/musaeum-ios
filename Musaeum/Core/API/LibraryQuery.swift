@@ -24,7 +24,9 @@ import Foundation
 /// a phone sort and a Mac sort that named the same order differently would be two
 /// names for one question.
 struct LibrarySort: Equatable, Hashable, Sendable {
-    /// The six fields the contract's `sort` accepts. A seventh would be a 400.
+    /// The seven fields the contract's `sort` accepts — six anywhere, and
+    /// `shelf_added` **only inside a shelf** (D8): the server refuses it without
+    /// a `shelf` to order by, with a 400, so nothing outside a scope may send it.
     enum Field: String, CaseIterable, Sendable {
         case title
         case author
@@ -32,6 +34,7 @@ struct LibrarySort: Equatable, Hashable, Sendable {
         case dateAdded = "date_added"
         case rating
         case readStatus = "read_status"
+        case shelfAdded = "shelf_added"
     }
 
     enum Direction: String, CaseIterable, Sendable {
@@ -68,14 +71,19 @@ struct LibrarySort: Equatable, Hashable, Sendable {
         case (.rating, .desc): "Highest Rated"
         case (.readStatus, .asc): "Read Status"
         case (.readStatus, .desc): "Read Status (reversed)"
+        // The Mac's own strings (`../musaeum/src/types/book.types.ts:219-221`),
+        // like every other label here — and its natural direction is `desc`
+        // (`:249`), which is what D8 makes the default inside a shelf.
+        case (.shelfAdded, .desc): "Date Added to Shelf, Newest First"
+        case (.shelfAdded, .asc): "Date Added to Shelf, Oldest First"
         }
     }
 
     /// Where the phone starts, and the Mac's own default.
     static let `default` = LibrarySort(field: .title, direction: .asc)
 
-    /// The Mac's curated shortcuts, in its own order.
-    static let options: [LibrarySort] = [
+    /// The Mac's curated shortcuts for the whole library, in its own order.
+    static let allBooksOptions: [LibrarySort] = [
         LibrarySort(field: .title, direction: .asc),
         LibrarySort(field: .title, direction: .desc),
         LibrarySort(field: .author, direction: .asc),
@@ -85,6 +93,21 @@ struct LibrarySort: Equatable, Hashable, Sendable {
         LibrarySort(field: .rating, direction: .desc),
         LibrarySort(field: .readStatus, direction: .asc),
     ]
+
+    /// The two *Date Added to Shelf* pairs — **drawn inside a shelf only** (F2):
+    /// the order is meaningless outside one, and the server refuses
+    /// `sort=shelf_added` without a `shelf` with a 400, so a menu that offered
+    /// it outside would be offering a refusal.
+    static let shelfAddedOptions: [LibrarySort] = [
+        LibrarySort(field: .shelfAdded, direction: .desc),
+        LibrarySort(field: .shelfAdded, direction: .asc),
+    ]
+
+    /// What the sort menu draws: the All Books eight, plus the shelf pairs when
+    /// a shelf is open.
+    static func options(inShelf: Bool) -> [LibrarySort] {
+        inShelf ? allBooksOptions + shelfAddedOptions : allBooksOptions
+    }
 
     /// How this is stored: `field:direction`.
     ///
@@ -115,7 +138,14 @@ struct LibrarySort: Equatable, Hashable, Sendable {
         let parts = raw.split(separator: ":", maxSplits: 1).map(String.init)
         guard parts.count == 2,
               let field = Field(rawValue: parts[0]),
-              let direction = Direction(rawValue: parts[1])
+              let direction = Direction(rawValue: parts[1]),
+              // **`shelf_added` is refused here** (F2): it is inside-only, and
+              // the model never persists it — a sort chosen inside a shelf is the
+              // scope's own order, restored from `priorSort` and not from
+              // storage. A stored key naming it could only come from a build
+              // that did not know the rule, and outside a shelf the server
+              // answers it with a 400.
+              field != .shelfAdded
         else { return .default }
         return LibrarySort(field: field, direction: direction)
     }
@@ -140,6 +170,15 @@ struct LibrarySort: Equatable, Hashable, Sendable {
 struct LibraryQuery: Equatable, Sendable {
     var sort: LibrarySort = .default
     var text: String = ""
+    /// The shelf this screen is scoped to (slice 7a), or `nil` for the whole
+    /// library. It sits here for the same reason `filters` does: every request
+    /// is composed from the whole query at once, and a scope kept on the model
+    /// instead would be a second thing a page two could forget — 3.3's failure.
+    ///
+    /// It carries the whole `Shelf`, not an id: the label beside the field and
+    /// the empty shelf's own sentence both need the name, and a second
+    /// id-and-name pair would be a second vocabulary for one thing.
+    var shelf: Shelf?
     /// The axes a term cannot express (slice 3b): read status, format, a rating
     /// floor, and the author/series/tag values.
     ///
@@ -149,6 +188,13 @@ struct LibraryQuery: Equatable, Sendable {
     /// once. A second property on the model would be a second thing a `request`
     /// could forget, and forgetting it is the failure 3.3 and 3.12 both name.
     var filters: LibraryFilters = .none
+
+    /// What the field's prompt says — the scope's own name when one is open
+    /// (the Mac's copy, `Search “To Read”`, R3), the stock line otherwise.
+    /// A rule rather than a view's private string, so a case can decide it.
+    var searchPlaceholder: String {
+        shelf.map { "Search “\($0.name)”" } ?? "Search titles, authors, series…"
+    }
 
     /// The term that actually travels, or `nil` when the whole library is meant.
     var term: String? {
@@ -161,7 +207,7 @@ struct LibraryQuery: Equatable, Sendable {
 
 // MARK: - Nothing to show
 
-/// Which of the **three** "nothing to show" screens applies.
+/// Which of the **four** "nothing to show" screens applies.
 ///
 /// This distinction only becomes reachable once search exists, and it is the
 /// difference between "the connection works and the Mac has no books", "this
@@ -186,6 +232,11 @@ struct LibraryQuery: Equatable, Sendable {
 enum LibraryEmptyState: Equatable, Sendable {
     /// The Mac reports no books at all: there is no library to browse.
     case libraryIsEmpty
+    /// **A shelf is open and it holds nothing.** Its own case and its own
+    /// sentence, because `libraryIsEmpty` would say *the Mac reports no books
+    /// yet* over a library of thousands — the exact lie slice 3b fixed for the
+    /// filters, one scope further out.
+    case shelfIsEmpty(String)
     /// The library has books and this term matched none of them. Carries the
     /// trimmed term, which is what the sentence names.
     case noMatches(String)
@@ -209,6 +260,11 @@ enum LibraryEmptyState: Equatable, Sendable {
         guard isEmpty else { return nil }
         if let term = query.term { return .noMatches(term) }
         let filters = query.filters.selectedCount
-        return filters > 0 ? .noFilterMatches(filters) : .libraryIsEmpty
+        if filters > 0 { return .noFilterMatches(filters) }
+        // The scope is the outermost narrowing, so it is asked last: a term or a
+        // filter inside a shelf is still the narrower question, and only an
+        // otherwise-unexplained empty grid is the shelf's own emptiness.
+        if let shelf = query.shelf { return .shelfIsEmpty(shelf.name) }
+        return .libraryIsEmpty
     }
 }

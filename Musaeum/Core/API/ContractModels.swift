@@ -64,6 +64,19 @@ struct StrictObject {
     func bool(_ key: String) throws -> Bool { try value(key, as: Bool.self) }
     func strings(_ key: String) throws -> [String] { try value(key, as: [String].self) }
 
+    /// **The one deliberate exception to the always-present rule (invariant 4).**
+    /// `shelves` is absent on a Mac older than the shelf slice: the member is not
+    /// sent at all, and a required read would throw — taking the whole library
+    /// down over a field the reader never sees. Absent and `null` both read as
+    /// `[]`, because both spellings mean *this Mac reports no shelves*; every
+    /// other member still throws when its key is missing.
+    func stringsOrEmpty(_ key: String) throws -> [String] {
+        let codingKey = AnyCodingKey(key)
+        guard container.contains(codingKey) else { return [] }
+        if (try? container.decodeNil(forKey: codingKey)) == true { return [] }
+        return try value(key, as: [String].self)
+    }
+
     /// A member that is always present and may be `null` — the contract's whole
     /// point, and the case synthesized decoding silently gets wrong.
     func optional<T: Decodable>(_ key: String, as: T.Type = T.self) throws -> T? {
@@ -204,6 +217,12 @@ struct ContractBook: Decodable, Equatable, Hashable, Identifiable, Sendable {
     let fileSizeBytes: Int?
     let cover: CoverInfo
     let reading: Reading
+    /// The shelves this book is on, **ids only** — names come from
+    /// `GET /api/shelves`, so a rename changes no book payload. Read through
+    /// `stringsOrEmpty`: this is the contract's one member whose absence is not
+    /// a refusal (see `StrictObject.stringsOrEmpty`), because a pre-shelves Mac
+    /// omits it and the library must still decode.
+    let shelves: [String]
 
     /// The format this client asks for: the wire's preference order is the
     /// server's own rule, so the client does not re-derive it.
@@ -233,6 +252,7 @@ struct ContractBook: Decodable, Equatable, Hashable, Identifiable, Sendable {
         fileSizeBytes = try o.optionalInt("fileSizeBytes")
         cover = try o.object("cover", as: CoverInfo.self)
         reading = try o.object("reading", as: Reading.self)
+        shelves = try o.stringsOrEmpty("shelves")
     }
 }
 
@@ -288,6 +308,57 @@ struct Facets: Decodable, Equatable, Sendable {
         tags = try o.value("tags", as: [Facet].self)
         formats = try o.value("formats", as: [Facet].self)
         readStatus = try o.value("readStatus", as: [Facet].self)
+    }
+}
+
+// MARK: - GET /api/shelves, and the membership writes
+
+/// One shelf as the route answers it (D6/D10): `count` is the books the library
+/// holds on it, and `updatedAt` is the shelf file's own clock.
+///
+/// `kind` is decoded and **not branched on**: the document says the route
+/// answers `"manual"` only, so the route is the filter — an enum here would
+/// refuse a payload the contract could legitimately grow. `updatedAt` is drawn
+/// nowhere (no screen asks when a shelf was last touched) but is decoded so the
+/// golden decides the whole shape.
+struct Shelf: Decodable, Equatable, Hashable, Identifiable, Sendable {
+    let id: String
+    let name: String
+    let kind: String
+    let count: Int
+    let updatedAt: Date?
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "shelf")
+        id = try o.string("id")
+        name = try o.string("name")
+        kind = try o.string("kind")
+        count = try o.int("count")
+        updatedAt = try o.optionalDate("updatedAt")
+    }
+}
+
+/// The `GET /api/shelves` envelope. The order is the contract's own
+/// (alphabetical, `COLLATE NOCASE` then id) and this client lists shelves in it
+/// rather than re-sorting: one order for the Mac's sidebar and the phone's menu.
+struct Shelves: Decodable, Equatable, Sendable {
+    let shelves: [Shelf]
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "shelves")
+        shelves = try o.value("shelves", as: [Shelf].self)
+    }
+}
+
+/// The membership writes' reply: `200 { "book": … }`, the book read back **after**
+/// the write (D10) — which is what lets the checklist refresh from the server's
+/// own answer rather than from a local flip (F6).
+struct MembershipResult: Decodable, Equatable, Sendable {
+    let book: ContractBook
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "membership")
+        book = try o.object("book", as: ContractBook.self)
     }
 }
 

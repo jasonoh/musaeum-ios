@@ -31,6 +31,27 @@ final class LibraryModel {
     private(set) var facets: Facets?
     private(set) var facetsPhase: Phase = .idle
 
+    /// The Mac's shelves, and **whether this Mac has the shelf feature at all**.
+    ///
+    /// Three states on purpose (F3): `true` (the probe answered 200), `false`
+    /// (it answered 404 — a pre-shelves Mac), and `nil` (not asked yet, or asked
+    /// and unreachable). `nil` is *unknown*, which is not the same as absent: a
+    /// Mac that is asleep must not make the UI claim its shelf feature is
+    /// missing — the distinction `Reading.percent`'s `null` draws one level
+    /// down.
+    private(set) var shelves: [Shelf] = []
+    private(set) var shelvesSupported: Bool?
+
+    /// The sort that was on before a shelf was opened, restored when it is left
+    /// (F2). Session state, never persisted: the stored key is the reader's
+    /// *All Books* order.
+    private var priorSort: LibrarySort?
+
+    /// One line the reader may need to see about the scope: a shelf that was
+    /// open and that the Mac no longer has (R5). Drawn under the header while it
+    /// applies, cleared by the next narrowing the reader chooses.
+    private(set) var scopeNotice: String?
+
     /// What the screen is showing: the whole library, or a search of it, in one
     /// order. Settable only through the three methods below, because every change
     /// to it has to re-fetch — a `query` a view could assign directly would leave
@@ -130,6 +151,18 @@ final class LibraryModel {
             return
         } catch let error as ClientError {
             guard mine == generation else { return }
+            // **R5 — the scoped 404.** The contract's 404 is uniformly
+            // reason-free (a client cannot map what the Mac holds), so the phone
+            // cannot quote the Mac's own sentence; it says its own, leaves the
+            // scope the Mac can no longer answer for, and refetches unscoped.
+            // `query.shelf` is nil by the time the refetch runs, so this cannot
+            // loop.
+            if case .notFound = error, let gone = query.shelf {
+                Probe.log("shelf gone id=\(gone.id)")
+                await leaveGoneShelf(name: gone.name)
+                await loadShelves()
+                return
+            }
             phase = .failed(error.description)
             Probe.log("library failed \(error)")
         } catch {
@@ -174,6 +207,7 @@ final class LibraryModel {
             sort: query.sort.wireField,
             direction: query.sort.wireDirection,
             query: query.term,
+            shelf: query.shelf?.id,
             filters: query.filters.queryItems
         )
     }
@@ -186,6 +220,7 @@ final class LibraryModel {
     func search(_ text: String) async {
         guard text != query.text else { return }
         query.text = text
+        scopeNotice = nil
         await start()
     }
 
@@ -195,7 +230,11 @@ final class LibraryModel {
     func chooseSort(_ sort: LibrarySort) async {
         guard sort != query.sort else { return }
         query.sort = sort
-        persistSort(sort)
+        scopeNotice = nil
+        // **A sort chosen inside a shelf is the scope's own order and is not
+        // remembered** (F2): leaving restores the reader's *All Books* sort, and
+        // `shelf_added` is meaningless — and a 400 — outside a shelf.
+        if query.shelf == nil { persistSort(sort) }
         await start()
     }
 
@@ -210,6 +249,7 @@ final class LibraryModel {
     func setFilters(_ new: LibraryFilters) async {
         guard new != query.filters else { return }
         query.filters = new
+        scopeNotice = nil
         await start()
     }
 
@@ -252,6 +292,80 @@ final class LibraryModel {
     func clearNarrowing() async {
         query.filters.clear()
         query.text = ""
+        scopeNotice = nil
+        await start()
+    }
+
+    // MARK: The shelf scope (slice 7a)
+
+    /// Probe `GET /api/shelves` and hold its answer. Called on every load, so a
+    /// Mac that gains the feature — or a base URL pointed at one that has it —
+    /// needs no relaunch, and a 404 is remembered as *no feature* rather than
+    /// re-asked by every screen.
+    ///
+    /// The fresh list also **reconciles the open scope**: a shelf the Mac no
+    /// longer has is the same fact as the scoped 404 below, read from the other
+    /// direction, and both leave the scope the same way.
+    func loadShelves() async {
+        do {
+            shelves = try await client.shelves()
+            shelvesSupported = true
+            Probe.log("shelves count=\(shelves.count) names=\(shelves.map(\.name).joined(separator: " | "))")
+            if let open = query.shelf, !shelves.contains(where: { $0.id == open.id }) {
+                await leaveGoneShelf(name: open.name)
+            }
+        } catch let error as ClientError {
+            if case .notFound = error {
+                shelves = []
+                shelvesSupported = false
+                Probe.log("shelves unsupported (404)")
+            } else {
+                Probe.log("shelves probe failed \(error)")
+            }
+        } catch {
+            Probe.log("shelves probe failed \(String(describing: error))")
+        }
+    }
+
+    /// **Open a shelf:** scope the list, and mirror the Mac's own default (D8) —
+    /// *Date Added to Shelf, newest first*, sent explicitly rather than left to
+    /// the server's default. The sort that was on is remembered and restored on
+    /// the way out; the scope itself is session state, so a relaunch is
+    /// unshelved, like a relaunch is unsearched.
+    func openShelf(_ shelf: Shelf) async {
+        guard query.shelf?.id != shelf.id else { return }
+        if priorSort == nil { priorSort = query.sort }
+        query.shelf = shelf
+        query.sort = LibrarySort(field: .shelfAdded, direction: .desc)
+        scopeNotice = nil
+        await start()
+    }
+
+    /// **Leave the shelf:** the whole library, in the sort the reader had.
+    func closeShelf() async {
+        guard query.shelf != nil else { return }
+        query.shelf = nil
+        if let prior = priorSort {
+            query.sort = prior
+            priorSort = nil
+        }
+        scopeNotice = nil
+        await start()
+    }
+
+    /// The picker's own label: what the list is showing.
+    var scopeLabel: String { query.shelf?.name ?? "All Books" }
+
+    /// The one way a scope is left without the reader asking (R5): the Mac no
+    /// longer has that shelf. Reached from the scoped 404 and from a probe whose
+    /// fresh list has lost the open shelf — both are that one fact.
+    private func leaveGoneShelf(name: String) async {
+        query.shelf = nil
+        if let prior = priorSort {
+            query.sort = prior
+            priorSort = nil
+        }
+        scopeNotice = "“\(name)” is gone from the Mac."
         await start()
     }
 
@@ -266,7 +380,7 @@ final class LibraryModel {
     func loadFacets() async {
         if facets == nil { facetsPhase = .loading }
         do {
-            let fetched = try await client.facets()
+            let fetched = try await client.facets(shelf: query.shelf?.id)
             facets = fetched
             facetsPhase = .loaded
             let formats = fetched.formats.map { "\($0.value):\($0.count)" }.joined(separator: ",")
@@ -480,6 +594,7 @@ struct LibraryScreen: View {
                 let uploadModel = UploadModel()
                 uploads = uploadModel
                 await model.start()
+                await model.loadShelves()
                 await applyProbeSeam(model, client: client)
                 // **What a share left for a run that was not there yet.** A book
                 // handed over while the app was closed (or not yet configured) is
@@ -665,6 +780,9 @@ struct LibraryScreen: View {
         VStack(spacing: 0) {
             titleRow
             searchRow
+            if let notice = model?.scopeNotice {
+                noticeRow(notice)
+            }
         }
         .background(Palette.raised.ignoresSafeArea())
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0 }
@@ -702,6 +820,20 @@ struct LibraryScreen: View {
         .ignoresSafeArea(.container, edges: .horizontal)
     }
 
+    /// R5's one line, drawn only while it applies. The header is measured, so
+    /// this row's own height rides the band and the list's content margin follows
+    /// it — nothing else about the screen moves when it appears or goes.
+    private func noticeRow(_ text: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "books.vertical").font(.caption)
+            Text(text).font(.caption)
+            Spacer(minLength: 0)
+        }
+        .foregroundStyle(Palette.muted)
+        .padding(.horizontal, barMargin)
+        .padding(.bottom, 8)
+    }
+
     /// The upload's way in — the one control that starts a send.
     ///
     /// **The one bare glyph in the bar, and it is the owner's call.** The sort and
@@ -737,7 +869,7 @@ struct LibraryScreen: View {
     private var sortMenu: some View {
         Menu {
             Picker("Sort", selection: sortSelection) {
-                ForEach(LibrarySort.options, id: \.self) { option in
+                ForEach(LibrarySort.options(inShelf: model?.query.shelf != nil), id: \.self) { option in
                     Text(option.label).tag(option)
                 }
             }
@@ -785,6 +917,49 @@ struct LibraryScreen: View {
         .accessibilityLabel(activeFilterCount.map { "Filters, \($0) on" } ?? "Filters")
     }
 
+    /// The field's prompt, from the query's own rule (AC8).
+    private var searchPrompt: String {
+        model?.query.searchPlaceholder ?? LibraryQuery().searchPlaceholder
+    }
+
+    /// The scope menu: *All Books*, then every shelf the Mac reports, in the
+    /// contract's own order with its own count (R4). The label **is** the
+    /// current scope, so a scoped screen says so on its face — and *All Books*
+    /// as the menu's first row is the way back (R1).
+    private var scopeMenu: some View {
+        Menu {
+            Picker("Shelf", selection: scopeSelection) {
+                Text("All Books").tag(Shelf?.none)
+                ForEach(model?.shelves ?? []) { shelf in
+                    Text("\(shelf.name) (\(shelf.count))").tag(Shelf?.some(shelf))
+                }
+            }
+        } label: {
+            barControl("books.vertical", model?.scopeLabel, narrowed: model?.query.shelf != nil)
+                .padding(.horizontal, 12)
+                .frame(minWidth: Self.searchRowHeight, minHeight: Self.searchRowHeight)
+                .background(Capsule().fill(Self.fieldFill))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Shelf")
+    }
+
+    private var scopeSelection: Binding<Shelf?> {
+        Binding(
+            get: { model?.query.shelf },
+            set: { chosen in
+                Task {
+                    if let chosen {
+                        await model?.openShelf(chosen)
+                    } else {
+                        await model?.closeShelf()
+                    }
+                }
+            }
+        )
+    }
+
     /// The field and the filter share one height, so the row's two shapes line up
     /// top and bottom — the system search field's own 44 pt tap height.
     private static let searchRowHeight: CGFloat = 44
@@ -796,13 +971,23 @@ struct LibraryScreen: View {
     /// The search field and the filter, on one line under the bar.
     private var searchRow: some View {
         HStack(spacing: 10) {
+            // **The scope control, and why it is here rather than in the bar.**
+            // `titleRow`'s own comment records the measurement: a fourth control
+            // in the bar pushes the widest sort label off it into `•••`. The
+            // search row is the row whose whole job is *narrowing the list*, so
+            // the scope joins it — first, because it is the widest narrowing and
+            // the one the other two read under. Absent until the Mac has said it
+            // has shelves (AC1).
+            if model?.shelvesSupported == true {
+                scopeMenu
+            }
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(Palette.muted)
                 TextField(
                     "Search",
                     text: $searchText,
-                    prompt: Text("Search titles, authors, series…").foregroundStyle(Palette.muted)
+                    prompt: Text(searchPrompt).foregroundStyle(Palette.muted)
                 )
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -979,6 +1164,18 @@ struct LibraryScreen: View {
         // the app can read without a scope: the script copies the book into the
         // app's own container and passes that path, which is also why the
         // security-scoped half of the picker's flow is a claim for a human frame.
+        // **The scope runs the app's own door.** `openShelf` is what the picker
+        // calls, so a run decides the request the scope composes and the page it
+        // returns with no tap. The picker *menu* itself is a human frame.
+        if Probe.action == "shelf", let id = Probe.shelfID {
+            if model.shelvesSupported == true, let shelf = model.shelves.first(where: { $0.id == id }) {
+                await model.openShelf(shelf)
+                let first = model.books.prefix(3).map(\.id).joined(separator: ",")
+                Probe.log("probe: shelf open id=\(shelf.id) name=\(shelf.name) count=\(shelf.count) total=\(model.total) first=\(first)")
+            } else {
+                Probe.log("probe: shelf \(id) is not among the \(model.shelves.count) this Mac reports")
+            }
+        }
         if let path = Probe.uploadPath, let uploads {
             await uploads.send(file: URL(fileURLWithPath: path), to: client)
         }
@@ -1111,6 +1308,17 @@ struct LibraryScreen: View {
                 message: filterMatchesMessage(model, count),
                 action: "Clear filters"
             ) { Task { await clearNarrowing(model) } }
+        case let .shelfIsEmpty(name):
+            // R2: the Mac's rule is that an empty shelf's copy names a route
+            // that works **from where the reader is standing**. The phone may
+            // not copy the Mac's sentence (no drag, no right-click here); its
+            // working route is a book's own page, and the control below is the
+            // way out of the scope.
+            MessageCard(
+                title: "No books on “\(name)” yet",
+                message: "Open a book and use Shelves to put it here.",
+                action: "Show all books"
+            ) { Task { await model.closeShelf() } }
         }
     }
 

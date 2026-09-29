@@ -164,6 +164,61 @@ final class ContractDecodeTests: XCTestCase {
         XCTAssertEqual(zero.books[0].reading.percent, 0)
     }
 
+    // MARK: the shelves (slice 7)
+
+    func testShelvesPayloadDecodes() throws {
+        let payload = try decode(Shelves.self, "shelves")
+        XCTAssertEqual(payload.shelves.count, 1)
+        let shelf = try XCTUnwrap(payload.shelves.first)
+        XCTAssertEqual(shelf.id, "b2c3d4e5-6f70-4182-93a4-b5c6d7e8f901")
+        XCTAssertEqual(shelf.name, "To Read")
+        XCTAssertEqual(shelf.kind, "manual")
+        XCTAssertEqual(shelf.count, 3)
+        XCTAssertNotNil(shelf.updatedAt)
+    }
+
+    func testMembershipReplyDecodes() throws {
+        let result = try decode(MembershipResult.self, "membership")
+        XCTAssertEqual(result.book.id, "6f1a1f2e-3c4d-4e5f-8a9b-0c1d2e3f4a5b")
+        XCTAssertEqual(result.book.shelves, ["b2c3d4e5-6f70-4182-93a4-b5c6d7e8f901"])
+    }
+
+    func testTheBookGoldenCarriesItsShelves() throws {
+        let book = try decode(ContractBook.self, "book")
+        XCTAssertEqual(book.shelves, ["b2c3d4e5-6f70-4182-93a4-b5c6d7e8f901"])
+    }
+
+    /// **The one deliberate exception to the always-present rule** (invariant 4,
+    /// and D11 names it): a pre-shelves Mac omits `shelves`, and a required read
+    /// would take the whole library down over a member the reader never sees.
+    /// Absent reads as `[]`; so does an explicit `null` — both mean *this Mac
+    /// reports no shelves*. Every other member's absence still throws, which the
+    /// case above holds unchanged.
+    func testBookShelvesAreTheOneAbsenceThatDecodes() throws {
+        let absent = try book(with: "shelves", setTo: .remove)
+        XCTAssertEqual(try JSONDecoder().decode(ContractBook.self, from: absent).shelves, [])
+
+        let nulled = try book(with: "shelves", setTo: .null)
+        XCTAssertEqual(try JSONDecoder().decode(ContractBook.self, from: nulled).shelves, [])
+    }
+
+    /// The shelf model itself is strict like every other — only the *book's*
+    /// `shelves` member bends invariant 4; the payload that carries the shelf
+    /// list does not.
+    func testAShelfMissingAnAlwaysPresentFieldIsRefused() throws {
+        for field in ["id", "name", "kind", "count"] {
+            var object = try JSONSerialization.jsonObject(with: try fixture("shelves")) as! [String: Any]
+            var shelves = object["shelves"] as! [[String: Any]]
+            shelves[0] = applying(Mutation.remove, to: field, in: shelves[0])
+            object["shelves"] = shelves
+            let data = try JSONSerialization.data(withJSONObject: object)
+            XCTAssertThrowsError(
+                try JSONDecoder().decode(Shelves.self, from: data),
+                "\(field) is always present per the contract, so its absence must throw"
+            )
+        }
+    }
+
     // MARK: fixture surgery
 
     private enum Mutation {

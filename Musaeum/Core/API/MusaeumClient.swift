@@ -165,20 +165,77 @@ struct MusaeumClient: Sendable {
         sort: String? = nil,
         direction: String? = nil,
         query: String? = nil,
+        shelf: String? = nil,
         filters: [URLQueryItem] = []
     ) async throws -> LibraryPage {
         var items: [URLQueryItem] = []
         if let sort { items.append(URLQueryItem(name: "sort", value: sort)) }
         if let direction { items.append(URLQueryItem(name: "dir", value: direction)) }
         if let query, !query.isEmpty { items.append(URLQueryItem(name: "q", value: query)) }
+        if let shelf, !shelf.isEmpty { items.append(URLQueryItem(name: "shelf", value: shelf)) }
         items.append(contentsOf: filters)
         items.append(URLQueryItem(name: "limit", value: String(limit)))
         items.append(URLQueryItem(name: "offset", value: String(offset)))
         return try await sendJSON(request(path: "api/library", query: items))
     }
 
-    func facets() async throws -> Facets {
-        try await sendJSON(request(path: "api/library/facets"))
+    /// The facet counts, scoped when a shelf is open — the Mac's own rule
+    /// (`?shelf=` on both library routes), so a shelf's filter counts are the
+    /// shelf's, not the library's.
+    func facets(shelf: String? = nil) async throws -> Facets {
+        var items: [URLQueryItem] = []
+        if let shelf, !shelf.isEmpty { items.append(URLQueryItem(name: "shelf", value: shelf)) }
+        return try await sendJSON(request(path: "api/library/facets", query: items))
+    }
+
+    // MARK: Shelves
+
+    /// `GET /api/shelves` — every shelf the Mac holds, in the contract's own
+    /// order, with the books the library holds on each.
+    ///
+    /// The route is also this client's **capability probe** (D10): a Mac without
+    /// the shelf slice answers `404`, and the app's own answer to that is the
+    /// caller's business, not this method's.
+    func shelves() async throws -> [Shelf] {
+        let payload: Shelves = try await sendJSON(request(path: "api/shelves"))
+        return payload.shelves
+    }
+
+    /// The membership pair's request, composed where a case can read it: the
+    /// method the act decides, the two ids in the path, and **no body** — the
+    /// contract's writes send none.
+    static func membershipRequest(
+        base: URL,
+        token: String,
+        shelfId: String,
+        bookId: String,
+        adding: Bool
+    ) -> URLRequest {
+        request(
+            base: base,
+            token: token,
+            path: "api/shelves/\(shelfId)/books/\(bookId)",
+            method: adding ? "PUT" : "DELETE"
+        )
+    }
+
+    /// `PUT /api/shelves/{id}/books/{bookId}` — idempotent on the Mac's own
+    /// rules (an existing member keeps its `added_at`), which is what makes a
+    /// retry after a failure safe.
+    func addToShelf(shelfId: String, bookId: String) async throws -> ContractBook {
+        let result: MembershipResult = try await sendJSON(
+            Self.membershipRequest(base: base, token: token, shelfId: shelfId, bookId: bookId, adding: true)
+        )
+        return result.book
+    }
+
+    /// `DELETE` on the same path — removing a book that is not on the shelf is a
+    /// `200`, so a retry is safe here too.
+    func removeFromShelf(shelfId: String, bookId: String) async throws -> ContractBook {
+        let result: MembershipResult = try await sendJSON(
+            Self.membershipRequest(base: base, token: token, shelfId: shelfId, bookId: bookId, adding: false)
+        )
+        return result.book
     }
 
     func book(id: String) async throws -> ContractBook {

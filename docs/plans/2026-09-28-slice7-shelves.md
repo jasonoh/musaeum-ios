@@ -67,12 +67,15 @@
 
 **Recommendation: (a).** The report queue exists because a *position* is precious, has one writer, and its clock ordering already answers the conflict question; a membership toggle has none of that — it has a person looking at a checklist, and a queued toggle would need an answer for what the row shows until it lands (checked? unchecked? both are wrong). **Reversal condition:** the owner wanting shelf edits from the sofa with the Mac asleep, which would bring the row-state question and be its own design.
 
-### F5 — where the picker lives: the title becomes a menu, or a second control
+### F5 — where the picker lives: the narrowing row (**amended during the build, 2026-09-28**)
 
-- **(a) the title itself is the menu** — the screen's title reads *All Books* (or the open shelf's name) with a chevron, opening a menu of shelves.
-- **(b) a second control** beside the store door and the sort.
+**The recommendation below was written against a tree five days older than the one it was executed on, and the build corrected it.** It said the title becomes the menu (*All Books ▾*). Executing it found two things the write-up had not looked at: the title is the **Mac's wordmark** (the owner's own design, landed 2026-09-27), and `titleRow`'s own comment records a measurement — the bar **cannot take a fourth control**, because a wider label pushes the sort off it into `•••`, which is exactly what slice 3b's fix un-did.
 
-**Recommendation: (a).** The header is measured geometry (`HeaderReveal`, invariant 12): its controls sit beside the title and the chrome's own band; a third control would re-open a layout decision for a feature that does not need one, while the title is currently *only* a label and this is exactly the question a title can answer — *which library am I looking at*. It also mirrors the Mac, where the scope lives in the header's own shelf control. **Reversal condition:** the owner finding the title-as-menu undiscoverable, which a chevron mitigates and a frame would settle.
+- **(a) the scope joins the narrowing row** — the search row, before the field: scope, field, filter, the three narrowings together on the same 44 pt capsule, the scope's own label gold when the screen is narrowed, like the filter's count. **Chosen; the frame is `docs/evidence/slice7/frame-scoped-grid.png`.**
+- **(b) the title becomes a menu.** Rejected: it would overwrite the wordmark, and the wordmark is not this slice's to replace.
+- **(c) a fourth control in the bar.** Rejected on the recorded measurement, not on taste.
+
+**Reversal condition:** the owner finding the scope undiscoverable in the narrowing row — the same class of judgement the store door's own move carried (`docs/evidence/toolbar-alignment/`).
 
 ### F6 — a toggle's answer: the returned book, or an optimistic check
 
@@ -111,7 +114,7 @@ The Mac's own answer is *“That shelf no longer exists”* and a sidebar refres
 | `Musaeum/Core/API/ContractModels.swift` (edited) | `stringsOrEmpty` (the one documented exception); `Shelf`; `Shelves` (the `{ "shelves": … }` envelope); `MembershipResult` (`{ "book": … }`); `shelves: [String]` on `ContractBook` |
 | `Musaeum/Core/API/MusaeumClient.swift` (edited) | `shelves()`, `addToShelf(shelfId:bookId:)`, `removeFromShelf(shelfId:bookId:)` — the membership request composed by one `membershipRequest(base:token:shelfId:bookId:adding:)` so a case reads its method and path |
 | `Musaeum/Core/API/LibraryQuery.swift` (edited) | `shelf: Shelf?`; `LibrarySort.Field.shelfAdded` with the Mac's two labels; `options(inShelf:)`; `stored`'s guard against a persisted `shelf_added`; `LibraryEmptyState.shelfIsEmpty` |
-| `Musaeum/Features/Library/LibraryScreen.swift` (edited) | the model's shelves state, probe, `openShelf`/`closeShelf` and the prior-sort memory; the title-as-menu; the scoped placeholder; the 404 exit path |
+| `Musaeum/Features/Library/LibraryScreen.swift` (edited) | the model's shelves state, probe, `openShelf`/`closeShelf` and the prior-sort memory; **the scope control in the narrowing row (F5, amended)**; the scoped placeholder; the notice row and the 404 exit path |
 | `Musaeum/Features/Detail/ShelfChecklist.swift` (new) | the sheet: rows, checks, one toggle in flight, the failure line — `ShareSheet.swift`'s own precedent for a sheet living in its own file |
 | `Musaeum/Features/Detail/BookDetailScreen.swift` (edited) | the *Shelves* row, the sheet item, and the toggle call into the model |
 | `Musaeum/Core/Support/Probe.swift` (edited) | `ACTION=shelf` (open the scope, log `total` and the first ids, close) and `ACTION=shelf-toggle BOOK= SHELF=` (drive the model's own toggle, log membership before/after) |

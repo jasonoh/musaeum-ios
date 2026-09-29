@@ -103,6 +103,12 @@ enum Probe {
     /// only other way to any of them.
     static var reader: String? { value("MUSAEUM_PROBE_READER") }
 
+    /// The shelf a run opens (`ACTION=shelf`) or toggles (`ACTION=shelf-toggle`).
+    /// `simctl` can present no menu and tap no check, so this is the only way a
+    /// scope run and the checklist's own call are decidable without a human —
+    /// while the picker open and the sheet itself stay frames for the owner.
+    static var shelfID: String? { value("MUSAEUM_PROBE_SHELF") }
+
     /// What the probe is exercising, so `library` and `read` runs are distinct.
     /// `write` additionally reports the fraction the reader landed at **through
     /// the app's own door** and reads the row back — the upward path's live

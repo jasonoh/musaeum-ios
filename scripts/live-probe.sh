@@ -145,6 +145,20 @@
 # was asked for, and what came back. A QUERY is never stored, a SORT always is —
 # `SORT=title:asc` is also how you put the phone back.
 #
+# **The shelves (slice 7) are two more actions, and they reach the two surfaces a
+# tap cannot.** `ACTION=shelf SHELF=<id>` opens the scope through the app's own door
+# (`LibraryModel.openShelf`) and reports the scoped page — the run's own `sort=`
+# line reads `shelf_added:desc`, which is the Mac's default inside a shelf, and
+# `shelf=` names the scope on the request. `ACTION=shelf-toggle BOOK=<id> SHELF=<id>`
+# opens the book's detail (through `DETAIL`'s own path) and drives the checklist's
+# own call, logging the membership **before and after**; the Mac's own count for the
+# shelf is printed below, so one run decides both halves of the write and its retry.
+# The picker menu and the checklist sheet themselves are frames for the owner:
+#
+#   TAG=shelf        ACTION=shelf        SHELF=<id>        ./scripts/live-probe.sh
+#   TAG=shelf-add    ACTION=shelf-toggle BOOK=<id> SHELF=<id> ./scripts/live-probe.sh
+#   TAG=shelf-remove ACTION=shelf-toggle BOOK=<id> SHELF=<id> ./scripts/live-probe.sh
+#
 # Every run prints the Mac's own row for $BOOK at the end, read straight out of the
 # probe profile's SQLite — so the decider is the Mac's number rather than the app's.
 #
@@ -152,7 +166,9 @@
 # the container listing — printed below.
 set -uo pipefail
 
-DEV=${DEVICE:-DE0B5601-7874-455E-A965-9AD80567C30E}   # iPhone 17 Pro, iOS 26.1
+# iPhone 18 Pro, iOS 27.0 — verified 2026-09-28, after the 26.1 runtime left this
+# machine and took `DE0B5601-…` (the id in AGENTS.md and the README) with it.
+DEV=${DEVICE:-39D29C73-B2DD-4041-8ECD-46923376D0F9}
 BUNDLE=dev.jasonoh.Musaeum
 ROOT=${PROBE_ROOT:-$HOME/.hermes/profiles/dev/cache/scratch/ios-probe}
 APP=${APP:-$(cd "$(dirname "$0")/.." && pwd)/DD/Build/Products/Debug-iphonesimulator/Musaeum.app}
@@ -184,7 +200,7 @@ sleep 1
 # already refuses for a missing base URL. Measured on this slice's first share run,
 # which reported four ordinary lines and no `share` line at all.
 case "${TAG:-}" in
-  share|upload|write)
+  share|upload|write|shelf|shelf-add|shelf-remove|shelf-toggle)
     if [ -z "$ACTION" ]; then
       echo "warning: TAG=$TAG names an action but ACTION is empty — pass ACTION=$TAG" >&2
     fi
@@ -216,6 +232,7 @@ SIMCTL_CHILD_MUSAEUM_PROBE_BASE="$BASE" \
 SIMCTL_CHILD_MUSAEUM_PROBE_TOKEN="${TOKEN:-$(cat "$ROOT/token.txt")}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_OPEN="${BOOK:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_ACTION="$ACTION" \
+SIMCTL_CHILD_MUSAEUM_PROBE_SHELF="${SHELF:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_QUERY="${QUERY:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_SORT="${SORT:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_FILTERS="${FILTERS:-}" \
@@ -244,6 +261,19 @@ find "$CONT/Library/Application Support/Musaeum" -type f 2>/dev/null | sed "s|$C
 echo "=== staged for a share ==="
 find "$CONT/Library/Application Support/Musaeum/Share" -type f 2>/dev/null | sed "s|$CONT|<container>|"
 echo "(end of the staged listing)"
+
+if [ -n "${SHELF:-}" ]; then
+  echo "=== the Mac's own count for shelf $SHELF ==="
+  if [ -f "$DB" ]; then
+    sqlite3 "$DB" "select count(*) from shelf_books where shelf_id='$SHELF';" 2>/dev/null || echo "(could not read $DB)"
+    if [ -n "${BOOK:-}" ]; then
+      echo "=== the Mac's own membership of $BOOK on it (1 = on) ==="
+      sqlite3 "$DB" "select count(*) from shelf_books where shelf_id='$SHELF' and book_id='$BOOK';" 2>/dev/null || echo "(could not read $DB)"
+    fi
+  else
+    echo "(no $DB — see this script's header for the server recipe)"
+  fi
+fi
 
 if [ -n "${BOOK:-}" ]; then
   echo "=== the Mac's own row for $BOOK ==="
