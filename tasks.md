@@ -136,6 +136,6 @@ The one thing it settled for itself that the annex left open: **toggles are refu
 Deferred and named:
 
 - **Frames that need a tap:** the picker menu open, the checklist sheet, a check moving under a finger — the owner's, as everywhere.
-- **A shorter in-shelf sort label**, if the Mac's own *Date Added to Shelf, Newest First* reads badly in the phone's bar (the frame shows it pressing the wordmark; it does not collapse the control).
+- **A shorter in-shelf sort label** — *"if the Mac's own *Date Added to Shelf, Newest First* reads badly in the phone's bar"*. **Revived 2026-09-29 and landed.** The owner's device showed what the frame had only hinted at: the label is 255.5 pt at the bar's 17 pt, the title row came to **532 pt on a 402 pt screen**, and the page itself was laid out to that width — every shelf, portrait only, until the phone was turned. The bar draws `Shelf: Newest` / `Shelf: Oldest` (the menu keeps the Mac's sentence), the title row gives way by construction, and the bar's own width is a probe line now (`docs/evidence/shelf-bar/`).
 - **Shelf edits with the Mac asleep** (F4's reversal condition) — a queue with a row-state question attached, not a debt.
 - **Creating, renaming and deleting shelves** remain the Mac's: the document's *Not in this version*.

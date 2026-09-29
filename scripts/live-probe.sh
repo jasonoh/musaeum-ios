@@ -21,6 +21,15 @@
 #   cp some.epub "$S/library/imports/"
 #   cd ../musaeum && env -u ELECTRON_RUN_AS_NODE MUSAEUM_USER_DATA="$S/profile" npm run dev
 #
+# **That recipe is a script now, and it carries one thing the prose could not:
+# a shelf.** `bash scripts/seed-probe-profile.sh` writes the profile (port **8789**
+# — the owner's packaged app holds 8788), seeds eight books with covers
+# (`scripts/seed-epubs.py`, which needs nothing but the Mac's own sidecar venv),
+# and, once the Mac has imported them, a second run writes the two
+# `shelves.json` shelves a *scoped* run needs — a shelf is created by the Mac's
+# own UI and nowhere else, so the file is the only way to put one in a profile.
+# Scratch is pruned when idle, so this is the recipe a later session runs.
+#
 # (`env -u ELECTRON_RUN_AS_NODE` matters: Hermes exports that variable, and with
 # it set Electron runs as plain Node — no window, no app.)
 #

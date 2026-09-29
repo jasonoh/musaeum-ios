@@ -467,6 +467,21 @@ struct LibraryScreen: View {
     /// rather than the safe area's.
     @State private var sideInset: CGFloat = 0
 
+    /// **The screen's own width, and the bar's whole budget.** A row that asks for
+    /// more than this is the one way the library screen can bleed: the chrome is a
+    /// `ZStack` child, so a row wider than the screen makes the *screen* wider and
+    /// the grid under it is laid out to match and clipped at both edges — the
+    /// owner's report of 2026-09-29, opened on any shelf in portrait. Read beside
+    /// the side inset so the probe's own line carries the number that report was
+    /// about.
+    @State private var screenWidth: CGFloat = 0
+
+    /// The bar's capsule, **measured**: the send control and the sort control live
+    /// inside it, and it is the row's only fixed demand — the title is the piece
+    /// that gives way. So this is the number the row's arithmetic turns on, and the
+    /// one a probe reads when a new label is longer than the bar can hold.
+    @State private var capsuleWidth: CGFloat = 0
+
     /// The status bar's own band, read from the screen's safe area. The header sits
     /// inside it, and it is the top half of the band the header has to clear to be
     /// off the screen.
@@ -531,7 +546,18 @@ struct LibraryScreen: View {
             ZStack(alignment: .top) {
                 content(model)
                 chrome
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { chromeHeight = $0 }
+                    .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+                        chromeHeight = size.height
+                        // **The whole of the bleed, as a number.** A chrome wider than
+                        // the screen is not a cosmetic overhang: this view is the
+                        // `ZStack`'s widest child when it happens, so the *screen* is
+                        // that wide, and `content` above is laid out to match and
+                        // clipped at both edges. The line is emitted whenever the
+                        // chrome moves, and `overflow` is the verdict.
+                        Probe.log(
+                            "library chrome width=\(Int(size.width)) height=\(Int(size.height)) screen=\(Int(screenWidth)) overflow=\(Int(size.width - screenWidth))"
+                        )
+                    }
             }
             // **The whole stack runs to the top of the screen**, and the list is the
             // reason: a band *below* the status bar cannot be drawn on by the list, so
@@ -565,6 +591,14 @@ struct LibraryScreen: View {
         } action: { inset in
             sideInset = inset
             Probe.log("library side inset=\(inset) margin=\(BarMargin.from(safeInset: inset))")
+        }
+        // **The screen's own width: the bar's whole budget**, and the number the
+        // owner's bleed is measured against — the row that caused it was wider than
+        // this, and the `ZStack` under the chrome grew to match (`library chrome`
+        // carries the verdict).
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width in
+            screenWidth = width
+            Probe.log("library screen width=\(width)")
         }
         // The status bar's band, which is the top half of what the header has to clear.
         .onGeometryChange(for: CGFloat.self) { proxy in
@@ -740,7 +774,15 @@ struct LibraryScreen: View {
                 // beside words of the same size.
                 .imageScale(.large)
                 .offset(y: Self.symbolOffsets[symbol] ?? 0)
-            if let text { Text(text) }
+            if let text {
+                // **One line, and it is allowed to shorten.** The label is the
+                // control's state, so it is asked for first — but a row can only
+                // hold so much, and a label that refuses to shorten takes the row
+                // past the screen instead (the owner's bleed, 2026-09-29). A
+                // truncated tail is the loudest this can now fail, and only a label
+                // past the bar's whole budget — about 246 pt at 17 pt — reaches it.
+                Text(text).lineLimit(1)
+            }
         }
         .font(.body)
         .foregroundStyle(narrowed ? Palette.gold : Palette.parchment)
@@ -755,11 +797,22 @@ struct LibraryScreen: View {
     /// whole, rather than pushing the controls or truncating: a
     /// `minimumScaleFactor` drew `Musaeu…` beside `Recently Added` on the 402 pt
     /// phone with room to spare, so the sizes are explicit.
+    ///
+    /// **The last rung draws nothing at all, and it is what makes the row
+    /// unbounded-proof.** `ViewThatFits` uses its *last* child when none of them
+    /// fits, so a bar whose label needs the whole width loses the wordmark instead
+    /// of overhanging the screen — the same rule, taken to its end, that the
+    /// stepped sizes were already following: the order label is state (3.13) and
+    /// the wordmark is the app's own name, so the name is what goes. It is the rung
+    /// *Read Status (reversed)* reaches, the longest order this bar can be asked to
+    /// draw (`docs/evidence/shelf-bar/`).
     private var screenTitle: some View {
         ViewThatFits(in: .horizontal) {
             ForEach(Self.titleSizes, id: \.self) { size in
                 Wordmark(size: size)
             }
+            // Zero width, so it fits whatever is left — including nothing.
+            Color.clear.frame(width: 0, height: 0)
         }
         .accessibilityAddTraits(.isHeader)
     }
@@ -791,19 +844,53 @@ struct LibraryScreen: View {
     /// **Two controls beside the title: the send and the order.** The shelf left
     /// for a door on the screen (`downloadsRow`) and the filter for the search row
     /// (`docs/evidence/toolbar-alignment/` has why the row cannot take four). The
-    /// controls never compress; the title is the one that gives way.
+    /// controls are asked for their width first; the title is the one that gives
+    /// way — and, when the label is long enough, all the way to nothing, which is
+    /// the rule that keeps this row inside the screen (`docs/evidence/shelf-bar/`).
     private var titleRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Self.titleGap) {
             screenTitle
                 .frame(maxWidth: .infinity, alignment: .leading)
+                // **The controls take their width first and the title is laid out
+                // last — and it may go to nothing.** That is the whole of what
+                // keeps this row inside the screen, and it replaces the
+                // `.fixedSize()` that used to sit on the capsule below: a
+                // fixed-size capsule kept its ideal width whatever the row had
+                // left, so the in-shelf order label made the row wider than the
+                // phone. The label is the Mac's own *Date Added to Shelf, Newest
+                // First* — **255.5 pt** at the bar's 17 pt — and the bar's whole
+                // budget for a label is about 120 pt, which is what *Recently
+                // Added*, the longest of the eight, already takes. Measured on the
+                // built app, the row came to **532 pt on a 402 pt screen**.
+                //
+                // And it did not stay in the row: the chrome is a child of this
+                // screen's top-`ZStack`, whose width is its widest child's, so the
+                // *screen* became 532 pt wide — the grid was laid out to match,
+                // centred, and clipped off both edges, and the whole page was
+                // wrong until the phone was turned (874 pt in landscape holds the
+                // row, which is why only portrait bled). `docs/evidence/shelf-bar/`
+                // has the frames and the numbers.
+                .layoutPriority(-1)
             HStack(spacing: 22) {
                 uploadButton
                 sortMenu
             }
             .padding(.horizontal, 18)
             .frame(height: Self.searchRowHeight)
+            // **No `.fixedSize()` here any more, and that is half the fix.** It used
+            // to be fixed in both axes, which is what let the capsule keep its ideal
+            // width whatever the row had left; without it the capsule is proposed
+            // the row's width and its label — `.lineLimit(1)` inside `barControl` —
+            // truncates rather than pushing the row out. It is still asked for
+            // everything it wants first: the title's own priority below is what
+            // decides who gives way.
             .barCapsule()
-            .fixedSize()
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width in
+                capsuleWidth = width
+                Probe.log(
+                    "library bar capsule=\(Int(width)) screen=\(Int(screenWidth)) margin=\(Int(barMargin))"
+                )
+            }
         }
         .padding(.horizontal, barMargin)
         // **The status bar's band is part of the header's own height.** The screen's
@@ -874,7 +961,7 @@ struct LibraryScreen: View {
                 }
             }
         } label: {
-            barControl("arrow.up.arrow.down", model?.query.sort.label ?? LibrarySort.default.label)
+            barControl("arrow.up.arrow.down", model?.query.sort.barLabel ?? LibrarySort.default.barLabel)
         }
     }
 
@@ -964,6 +1051,17 @@ struct LibraryScreen: View {
     /// top and bottom — the system search field's own 44 pt tap height.
     private static let searchRowHeight: CGFloat = 44
 
+    /// The gap between the title and the controls it shares its row with. One
+    /// number, because the row's arithmetic — `screenWidth` less the two margins
+    /// and this gap — is what decides how wide a label the wordmark can survive
+    /// beside.
+    private static let titleGap: CGFloat = 12
+
+    /// The width the search field may never be squeezed below, however long the
+    /// open shelf's name is. The chip beside it is asked for its width first, so
+    /// this is the other half of that rule rather than a second one.
+    private static let searchFloor: CGFloat = 120
+
     /// The field's fill: parchment over the header, which is what the system's own
     /// search field drew here (a light veil, not a second surface colour).
     private static let fieldFill = Palette.parchment.opacity(0.12)
@@ -980,6 +1078,16 @@ struct LibraryScreen: View {
             // has shelves (AC1).
             if model?.shelvesSupported == true {
                 scopeMenu
+                    // **The scope's own name outranks the field's hint.** Both are
+                    // squeezed in this row once the scope is on it, and the two
+                    // things they say are not equal: the chip is the state — which
+                    // shelf the list is narrowed to, and the control that leaves it
+                    // — while the prompt beside it is a hint about a field the
+                    // reader is about to type in. So the chip is asked for its
+                    // width first, and the field keeps a floor (`searchFloor`) so a
+                    // shelf whose name is very long truncates the *chip* rather
+                    // than swallowing the field whole.
+                    .layoutPriority(1)
             }
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
@@ -1008,6 +1116,12 @@ struct LibraryScreen: View {
             .font(.body)
             .padding(.horizontal, 14)
             .frame(height: Self.searchRowHeight)
+            // **The field's floor.** The chip beside it is asked for its width
+            // first (see `scopeMenu`'s priority), so without a floor a shelf named
+            // longer than half the row would take the whole row and leave the field
+            // nothing to be. 120 pt is the magnifier, the field's own 14 pt padding
+            // and room for a short term beside the clear button.
+            .frame(minWidth: Self.searchFloor)
             .background(Capsule().fill(Self.fieldFill))
 
             filterButton

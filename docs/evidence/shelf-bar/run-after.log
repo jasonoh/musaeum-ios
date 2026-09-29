@@ -1,0 +1,30 @@
+=== launched (shelf-after) ===
+dev.jasonoh.Musaeum: 850
+=== probe lines ===
+MUSAEUM_PROBE|library side inset=0.0 margin=16.0
+MUSAEUM_PROBE|library screen width=402.0
+MUSAEUM_PROBE|library safe top=62.0
+MUSAEUM_PROBE|library chrome width=206 height=157 screen=402 overflow=-195
+MUSAEUM_PROBE|library bar capsule=154 screen=402 margin=16
+MUSAEUM_PROBE|library chrome width=206 height=219 screen=402 overflow=-195
+MUSAEUM_PROBE|library chrome width=206 height=233 screen=402 overflow=-195
+MUSAEUM_PROBE|library chrome width=402 height=219 screen=402 overflow=0
+MUSAEUM_PROBE|library bar capsule=186 screen=402 margin=16
+MUSAEUM_PROBE|library page count=8 total=8 limit=100 offline=online sort=title:asc q=- filters=- first=Boss Rove | The Changing Face of Empire | The divide
+MUSAEUM_PROBE|library list band=219 header=180 viewport=620 content=787
+MUSAEUM_PROBE|shelves count=2 names=gov & politics | Twentieth Century Politics and its Discontents
+MUSAEUM_PROBE|library bar capsule=223 screen=402 margin=16
+MUSAEUM_PROBE|library page count=5 total=5 limit=100 offline=online sort=shelf_added:desc q=- filters=- first=The Revolt Against the Masses | The Partnership | The Changing Face of Empire
+MUSAEUM_PROBE|probe: shelf open id=61ab5d66-69f5-4996-a2d7-4ba11c3d3f5c name=gov & politics count=5 total=5 first=0b98e007-ffd0-468f-88a2-7db9cc9862cf,09301114-8ad6-4f50-93ac-f5bdc40542b0,6ba54731-7e8f-49de-974d-85ecea6651aa
+=== frame === /Users/oh/.hermes/profiles/dev/cache/scratch/ios-probe/frame-shelf-after.png
+=== what the phone holds ===
+<container>/Library/Application Support/Musaeum/reports.json
+<container>/Library/Application Support/Musaeum/Books/6f1a1f2e-3c4d-4e5f-8a9b-0c1d2e3f4a5b.epub
+<container>/Library/Application Support/Musaeum/Books/63e85c8d-9dec-43a4-8377-5dba25f6e0d6.epub
+<container>/Library/Application Support/Musaeum/Books/63e85c8d-9dec-43a4-8377-5dba25f6e0d6.cover.jpg
+<container>/Library/Application Support/Musaeum/downloads.json
+<container>/Library/Application Support/Musaeum/positions.json
+=== staged for a share ===
+(end of the staged listing)
+=== the Mac's own count for shelf 61ab5d66-69f5-4996-a2d7-4ba11c3d3f5c ===
+5

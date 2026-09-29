@@ -79,6 +79,35 @@ struct LibrarySort: Equatable, Hashable, Sendable {
         }
     }
 
+    /// **What the bar draws, where the Mac's own wording will not fit.**
+    ///
+    /// `label` is the Mac's phrase and stays the Mac's phrase: it is what the sort
+    /// menu offers, and a phone that *named* an order differently from the Mac would
+    /// be two names for one question. The bar is not a name, though — it is a 402 pt
+    /// phone, and the Mac's shelf phrase measures **255.5 pt** at the bar's own
+    /// 17 pt (`scripts/measure-bar-text.swift`), against a whole budget of about
+    /// 120 pt — the width *Recently Added*, the longest of the eight, already takes.
+    /// That is not a label that wants truncating in front of a reader; it is a
+    /// sentence written for a menu row, and the bar is where it gets its short form.
+    ///
+    /// The short form keeps what the control is *for* — which order the list is in —
+    /// and drops what the screen already says: the scope chip beside the search field
+    /// names the open shelf, so the bar names the shelf's own axis and its direction.
+    /// The menu still offers the Mac's whole sentence, and the wire still carries
+    /// `shelf_added`, so nothing else about the order changes.
+    ///
+    /// **It is also the fix for the owner's bleed of 2026-09-29** — 255 pt of label
+    /// beside a wordmark is a row wider than the phone, and the row took the whole
+    /// page with it (`docs/evidence/shelf-bar/`). Reversal is one line: this property
+    /// is the only place the bar's wording lives.
+    var barLabel: String {
+        switch (field, direction) {
+        case (.shelfAdded, .desc): "Shelf: Newest"
+        case (.shelfAdded, .asc): "Shelf: Oldest"
+        default: label
+        }
+    }
+
     /// Where the phone starts, and the Mac's own default.
     static let `default` = LibrarySort(field: .title, direction: .asc)
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased] — 2026-09-29
+
+### Fixed
+
+- **Opening a shelf no longer takes the page with it.** Inside a shelf the sort control drew the Mac's own *Date Added to Shelf, Newest First* — **255.5 pt** of label on a 402 pt phone — so the bar's title row came to **532 pt**, and because the header is drawn *over* the grid rather than above it, the whole screen grew to that width: the grid was laid out to match, and every page came out centred with about 65 pt cut off each edge until the phone was turned. Landscape was never wrong (874 pt holds that row); portrait never fitted it. The bar now draws **Shelf: Newest** / **Shelf: Oldest** — the order's own state, with the Mac's whole sentence still on the sort menu — and the row gives way by construction: the title may step down to nothing and a label past the bar's budget may lose its tail, but neither can widen the screen again. The scope chip also outranks the search field's hint now, so a long shelf name shortens the chip rather than swallowing the field. Measured on the built app: `chrome=532 overflow=130` before, `chrome=402 overflow=0` after (`docs/evidence/shelf-bar/`).
+
 ## [Unreleased] — 2026-09-28
 
 ### Added

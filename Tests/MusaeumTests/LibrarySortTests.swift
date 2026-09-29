@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 @testable import Musaeum
 
@@ -175,5 +176,54 @@ final class LibrarySortTests: XCTestCase {
             .libraryIsEmpty,
             "whitespace is not a search, empty or not"
         )
+    }
+
+    // MARK: What the bar draws
+
+    /// **Every order the bar can be put into fits the bar** — the case the owner's
+    /// bleed of 2026-09-29 needed, and the one that would have caught it.
+    ///
+    /// The arithmetic is measured, not invented. On this machine's phone the screen
+    /// is **402 pt**; the bar's inner width is that less its two 16 pt margins and
+    /// the 12 pt gap before the controls (`LibraryScreen.titleRow`), and the title
+    /// keeps at least its smallest rung — the 18 pt wordmark, **114.7 pt** — so the
+    /// capsule may be at most **243.3 pt**. The capsule's own chrome (its 36 pt of
+    /// padding, the two glyphs and the 22 pt between them) measures **117.5 pt** on
+    /// the built app — the frame's *Read Status (reversed)*, whose capsule logged
+    /// `292` against a label of 174.5 pt — which leaves **126 pt** for a label.
+    ///
+    /// The menu's widest label, *Recently Added*, is 120.2 pt and fits with 5 pt
+    /// to spare; the in-shelf label used to be the Mac's own *Date Added to Shelf,
+    /// Newest First* at **255.5 pt**, which is 129 pt past this budget — 129 pt of
+    /// row, taken off a 402 pt screen, and with it the whole page
+    /// (`docs/evidence/shelf-bar/`).
+    func testEveryOrderTheBarCanDrawFitsItsLabelBudget() {
+        let budget: CGFloat = 126
+        let font = UIFont.preferredFont(forTextStyle: .body)
+        for option in LibrarySort.options(inShelf: true) {
+            let width = (option.barLabel as NSString).size(withAttributes: [.font: font]).width
+            XCTAssertLessThanOrEqual(
+                width,
+                budget,
+                "“\(option.barLabel)” is wider than the bar can hold beside its title"
+            )
+        }
+    }
+
+    /// **The short form is the bar's alone.** The menu offers the Mac's own
+    /// sentence, and only the shelf's pair is shortened — a phone that renamed a
+    /// *question* would be naming one order two ways, which is the reason every
+    /// other label here is the Mac's verbatim.
+    func testTheBarShortensOnlyTheShelfOrdersAndTheMenuKeepsTheMacsWords() {
+        XCTAssertEqual(LibrarySort(field: .shelfAdded, direction: .desc).barLabel, "Shelf: Newest")
+        XCTAssertEqual(LibrarySort(field: .shelfAdded, direction: .asc).barLabel, "Shelf: Oldest")
+        XCTAssertEqual(
+            LibrarySort(field: .shelfAdded, direction: .desc).label,
+            "Date Added to Shelf, Newest First",
+            "the menu still offers the Mac's own words"
+        )
+        for option in LibrarySort.options(inShelf: true) where option.field != .shelfAdded {
+            XCTAssertEqual(option.barLabel, option.label, "\(option.storedKey) keeps the Mac's words in the bar too")
+        }
     }
 }
