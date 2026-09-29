@@ -26,7 +26,12 @@ final class ContractDecodeTests: XCTestCase {
     func testHealthDecodes() throws {
         let health = try decode(Health.self, "health")
         XCTAssertEqual(health.apiVersion, 1)
-        XCTAssertEqual(health.version, "0.1.0")
+        // The document's own block, which moved 0.1.0 → 0.5.0 without the
+        // fixtures being re-vendored: the re-vendor of 2026-09-28 (the shelves
+        // slice) brought it up to date and this assertion was the one stale
+        // thing it exposed. It asserts **the document's value**, never a
+        // version this app remembers the Mac having.
+        XCTAssertEqual(health.version, "0.5.0")
         XCTAssertEqual(health.books, 7100)
         XCTAssertEqual(health.library, .online)
     }
