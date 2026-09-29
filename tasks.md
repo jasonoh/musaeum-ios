@@ -126,3 +126,16 @@ Gates: `xcodegen generate` then `xcodebuild build` **exit 0**; `xcodebuild test`
 - **Choosing the format a share carries.** What goes out is `formats.first` as the phone stored it — an EPUB for this library, which Apple Books opens anywhere; a Kindle-format-only book goes as that file and a DRM-locked one is no more useful to a recipient than it was to the owner. Revived by a share refused because of the format, which is also when `ebook-convert` on the Mac becomes relevant to the client at all.
 - **A seam onto the downloads shelf.** Slice 5's second door is real but has no frame, because `downloadsRow` is a `NavigationLink` and the run cannot reach the shelf — so whether the row's two glyphs read as *open* and *share* at a glance is the owner's judgement on the device rather than a reading. Revived the next time a slice wants a frame of that screen, which is also when the seam should be added (`Probe` carries the pattern). **Revived 2026-09-24 — the shelf's rows were reported misaligned, `DOWNLOADS=1` pushes the same destination, and the row's geometry is now a reading (`docs/evidence/downloads-row-alignment/`); the two glyphs' frames are unchanged in kind, so what remains the owner's is only what a *tap* does, not what the row looks like.**
 - **A staged share left by an app the OS killed, on a device that is never relaunched.** The launch sweep covers every launch, and the sweep before a stage covers every share; the gap is a device whose app is killed mid-sheet and then uninstalled or never opened again, where one file sits in the container until it is. Accepted rather than deferred, and named here because it is the only residue this slice can leave.
+
+## Slice 7 — shelves on the phone (2026-09-28)
+
+**The scope, and the checklist.** `../musaeum`'s slice 5 put shelves on the wire; this slice reads it — `GET /api/shelves` as the capability probe, `?shelf=` on both library reads, `shelves` on every book payload, and the membership `PUT`/`DELETE` behind a book's own page. Annex: `docs/plans/2026-09-28-slice7-shelves.md` (its F5 amended during the build); readings: `docs/evidence/slice7/`; record: the design doc's *Built — slice 7*. Gates: **209 cases across 25 suites, 0 failures** (from 191/24), build exit 0. **No contract change, no Mac-repo slice.**
+
+The one thing it settled for itself that the annex left open: **toggles are refused with a sentence, never queued** (F4), because the writes are idempotent and a queued toggle would need an answer for what the row shows until it lands. Its reversal condition is the third item below.
+
+Deferred and named:
+
+- **Frames that need a tap:** the picker menu open, the checklist sheet, a check moving under a finger — the owner's, as everywhere.
+- **A shorter in-shelf sort label**, if the Mac's own *Date Added to Shelf, Newest First* reads badly in the phone's bar (the frame shows it pressing the wordmark; it does not collapse the control).
+- **Shelf edits with the Mac asleep** (F4's reversal condition) — a queue with a row-state question attached, not a debt.
+- **Creating, renaming and deleting shelves** remain the Mac's: the document's *Not in this version*.

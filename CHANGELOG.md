@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased] — 2026-09-28
+
+### Added
+
+- **Shelves, on the phone.** The Mac's shelves appear in the library's own row of narrowings — *All Books* first, then every shelf with its count — and choosing one scopes the list to it the way the sort and the filters already narrow it: search and filters keep working inside a shelf, the field says *Search “To Read”*, and an empty shelf says **that** rather than blaming the library. Inside a shelf the order starts at *Date Added to Shelf, Newest First*, and leaving restores the order you had. A book's page gains a **Shelves** row whose checklist is the phone's only membership surface: each tap is one add or one remove, the row refreshes from the Mac's own answer, and a failure is a sentence rather than a lost tap — retrying is safe, because the Mac's writes are idempotent. **Against a Mac without the feature the app says nothing rather than guessing**: it asks once, and the picker and the row are absent rather than wrong.
+
 ## [Unreleased] — 2026-09-25
 
 ### Added

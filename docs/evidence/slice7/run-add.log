@@ -1,0 +1,24 @@
+=== launched (shelf-add) ===
+dev.jasonoh.Musaeum: 83331
+=== probe lines ===
+MUSAEUM_PROBE|library side inset=0.0 margin=16.0
+MUSAEUM_PROBE|library safe top=62.0
+MUSAEUM_PROBE|library page count=3 total=3 limit=100 offline=online sort=title:asc q=- filters=- first=Seed One | Seed Two | Smoke Upload 20260928-221801
+MUSAEUM_PROBE|library list band=219 header=180 viewport=620 content=296
+MUSAEUM_PROBE|shelves count=1 names=To Read
+MUSAEUM_PROBE|probe detail book=2ee7b426-796a-44c1-b61a-77b1e5d6572a title=Smoke Upload 20260928-221801
+MUSAEUM_PROBE|probe: shelf-toggle before book=2ee7b426-796a-44c1-b61a-77b1e5d6572a shelves=
+MUSAEUM_PROBE|shelf added book=2ee7b426-796a-44c1-b61a-77b1e5d6572a shelf=2c8e4c18-321c-4d3a-a1d4-37b07c2c9855 shelves=2c8e4c18-321c-4d3a-a1d4-37b07c2c9855
+MUSAEUM_PROBE|probe: shelf-toggle after book=2ee7b426-796a-44c1-b61a-77b1e5d6572a shelves=2c8e4c18-321c-4d3a-a1d4-37b07c2c9855 failure=-
+=== frame === /Users/oh/.hermes/profiles/dev/cache/scratch/slice5-smoke/frame-shelf-add.png
+=== what the phone holds ===
+<container>/Library/Application Support/Musaeum/reports.json
+<container>/Library/Application Support/Musaeum/Books/6f1a1f2e-3c4d-4e5f-8a9b-0c1d2e3f4a5b.epub
+<container>/Library/Application Support/Musaeum/Books/63e85c8d-9dec-43a4-8377-5dba25f6e0d6.epub
+<container>/Library/Application Support/Musaeum/Books/63e85c8d-9dec-43a4-8377-5dba25f6e0d6.cover.jpg
+<container>/Library/Application Support/Musaeum/downloads.json
+<container>/Library/Application Support/Musaeum/positions.json
+=== staged for a share ===
+(end of the staged listing)
+=== the Mac's own count for shelf 2c8e4c18-321c-4d3a-a1d4-37b07c2c9855 ===
+3
