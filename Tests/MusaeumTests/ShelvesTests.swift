@@ -203,6 +203,36 @@ final class ShelvesTests: XCTestCase {
         XCTAssertEqual(model.shelves.map(\.id), [shelfId])
     }
 
+    /// **A refresh the reader asked for brings the Mac's current counts** — the
+    /// owner's report of 2026-09-30, that a pull left the scope menu's counts
+    /// where they were. An ordinary load still does not re-ask.
+    func testARefreshBringsTheShelvesCurrentCounts() async throws {
+        try stub(page: try page(ids: ["a"], total: 1))
+        let model = makeModel()
+        await model.start()
+        XCTAssertEqual(model.shelves.first?.count, 3, "the golden's own count")
+
+        var object = try JSONSerialization.jsonObject(with: fixture("shelves")) as! [String: Any]
+        var rows = object["shelves"] as! [[String: Any]]
+        rows[0]["count"] = 4
+        object["shelves"] = rows
+        let moved = try JSONSerialization.data(withJSONObject: object)
+        let health = try fixture("health")
+        let library = try page(ids: ["a"], total: 1)
+        StubURLProtocol.configure { request in
+            guard let url = request.url else { return StubURLProtocol.Response(status: 500) }
+            if url.path.hasSuffix("/api/health") { return StubURLProtocol.Response(body: health) }
+            if url.path.hasSuffix("/api/shelves") { return StubURLProtocol.Response(body: moved) }
+            return StubURLProtocol.Response(body: library)
+        }
+
+        await model.search("dune")
+        XCTAssertEqual(model.shelves.first?.count, 3, "a keystroke is not a refresh")
+
+        await model.refresh()
+        XCTAssertEqual(model.shelves.first?.count, 4, "a pull brings the Mac's current count")
+    }
+
     /// The other half of the rule: an answer in hand — yes or no — is not re-asked
     /// by every sort and settled keystroke.
     func testAKnownAnswerIsNotAskedAgainByEveryLoad() async throws {

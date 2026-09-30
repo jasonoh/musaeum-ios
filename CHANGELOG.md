@@ -9,6 +9,7 @@
 ### Fixed
 
 - **The shelves no longer vanish for a whole session after the Mac restarts.** The phone asked the Mac for its shelves once, at launch; a launch that met the Mac mid-restart got no answer, and the scope control stayed hidden until the app was relaunched, with every shelf intact on the Mac. Now any later load that lands — a retry, a pull, a reconnect — asks again while the answer is still unknown. A known answer (the feature, or a pre-shelves Mac's 404) is remembered and not re-asked per load. Two cases in `ShelvesTests`, both confirmed to fail without the change.
+- **A pull brings the shelves' current counts.** The scope menu's counts were the ones fetched at launch, and a pull re-fetched only the books. A refresh the reader asks for — a pull, *Try again*, *Refresh* — now re-asks the shelves too (`LibraryModel.refresh()`); a sort, a filter or a keystroke still does not. The menu's selection is keyed by the shelf's id rather than the whole `Shelf`, so the open shelf keeps its checkmark once its count has moved.
 
 ## [Unreleased] — 2026-09-29
 

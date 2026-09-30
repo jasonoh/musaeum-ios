@@ -141,7 +141,15 @@ final class LibraryModel {
 
     // MARK: Loading
 
-    func start() async {
+    /// **A refresh the reader asked for** — a pull, *Try again*, *Refresh* — re-asks
+    /// the shelves as well as the list, so their counts are the Mac's current ones
+    /// (the owner's report of 2026-09-30: the counts did not move on a pull). A
+    /// sort, a filter or a keystroke is not a refresh and does not re-ask.
+    func refresh() async {
+        await start(reaskShelves: true)
+    }
+
+    func start(reaskShelves: Bool = false) async {
         generation += 1
         let mine = generation
         // **A list on screen stays on screen** (`isRefreshing`). Only a list, though:
@@ -211,8 +219,9 @@ final class LibraryModel {
             // owner's *the shelves have disappeared*, 2026-09-30. So an unknown is
             // asked again by the next load that succeeds: a reconnect, a retry, a
             // pull. Only an unknown — a 404 is a known answer and stays remembered,
-            // and a confirmed feature is not re-asked per keystroke.
-            if shelvesSupported == nil { await loadShelves() }
+            // and a confirmed feature is not re-asked per keystroke — unless the
+            // reader asked for a refresh (`refresh()`), which re-asks either way.
+            if reaskShelves || shelvesSupported == nil { await loadShelves() }
         } catch is CancellationError {
             // A superseded search is not a failure: reporting it as one would put
             // "the Mac is not answering" under a request the reader replaced.
@@ -1096,9 +1105,9 @@ struct LibraryScreen: View {
     private var scopeMenu: some View {
         Menu {
             Picker("Shelf", selection: scopeSelection) {
-                Text("All Books").tag(Shelf?.none)
+                Text("All Books").tag(String?.none)
                 ForEach(model?.shelves ?? []) { shelf in
-                    Text("\(shelf.name) (\(shelf.count))").tag(Shelf?.some(shelf))
+                    Text("\(shelf.name) (\(shelf.count))").tag(String?.some(shelf.id))
                 }
             }
         } label: {
@@ -1112,13 +1121,22 @@ struct LibraryScreen: View {
         .accessibilityLabel("Shelf")
     }
 
-    private var scopeSelection: Binding<Shelf?> {
+    /// **Keyed by the shelf's id, not the whole `Shelf`.** A `Shelf` carries its
+    /// count and `updatedAt`, so once a refresh brings the Mac's current counts the
+    /// open scope's own copy no longer equals any row, and the menu would lose its
+    /// checkmark on the shelf that is open. The id is the shelf; the rest is news
+    /// about it.
+    private var scopeSelection: Binding<String?> {
         Binding(
-            get: { model?.query.shelf },
-            set: { chosen in
+            get: { model?.query.shelf?.id },
+            set: { id in
                 Task {
-                    if let chosen {
-                        await model?.openShelf(chosen)
+                    if let id {
+                        // A row the list no longer holds opens nothing, rather
+                        // than reading as *All Books*.
+                        if let chosen = model?.shelves.first(where: { $0.id == id }) {
+                            await model?.openShelf(chosen)
+                        }
                     } else {
                         await model?.closeShelf()
                     }
@@ -1458,7 +1476,7 @@ struct LibraryScreen: View {
             case let .failed(message):
                 placeholder {
                     MessageCard(title: "The Mac is not answering", message: message, action: "Try again") {
-                        Task { await model.start() }
+                        Task { await model.refresh() }
                     }
                 }
             case .loaded:
@@ -1486,7 +1504,7 @@ struct LibraryScreen: View {
                 title: "Nothing in the library",
                 message: "The connection works, and the Mac reports no books yet.",
                 action: "Refresh"
-            ) { Task { await model.start() } }
+            ) { Task { await model.refresh() } }
         case let .noMatches(term):
             MessageCard(
                 title: "Nothing matches",
@@ -1597,7 +1615,7 @@ struct LibraryScreen: View {
         }
         // A pull re-runs the *current* query: `start()` composes every request from
         // `query`, so a refresh cannot quietly show the whole library.
-        .refreshable { await model.start() }
+        .refreshable { await model.refresh() }
         // The drawer put the keyboard away when the grid moved; our own field has
         // to ask for that.
         .scrollDismissesKeyboard(.immediately)
