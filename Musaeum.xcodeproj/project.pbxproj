@@ -29,6 +29,7 @@
 		3C9D3441AB0C62BC15ECD0DA /* shelves.json in Resources */ = {isa = PBXBuildFile; fileRef = 3C5F033725549D8F79C0B313 /* shelves.json */; };
 		3CF2407F6E732AB504D945D8 /* ReadingReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60D5354F3BFF5BF1A1EB76A /* ReadingReporter.swift */; };
 		3D63F09DA5B61939AA41005E /* ContentsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA64BCA1807755A8142C08B /* ContentsSheet.swift */; };
+		46576BDF9CFF123C195F0EDF /* LibraryRequeryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF22FAC813010887FF72620 /* LibraryRequeryTests.swift */; };
 		47BFB54BA90D0B5E417BDE89 /* book.json in Resources */ = {isa = PBXBuildFile; fileRef = C7D6F6DBD356A9E3F800BB88 /* book.json */; };
 		4EC9234E1C8DEA1B6BB2C1FD /* UploadInboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 943627836D743EDD21485798 /* UploadInboxTests.swift */; };
 		50B864CFD77600CF2BE0DF98 /* import.json in Resources */ = {isa = PBXBuildFile; fileRef = 7AD0F2A9BD5D649A1595A6D4 /* import.json */; };
@@ -153,6 +154,7 @@
 		9FDD0012F3D8415AC1C59F55 /* InitialFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialFraction.swift; sourceTree = "<group>"; };
 		A64CA110FFDF02DEB00208EC /* membership.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = membership.json; sourceTree = "<group>"; };
 		A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractModels.swift; sourceTree = "<group>"; };
+		AAF22FAC813010887FF72620 /* LibraryRequeryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryRequeryTests.swift; sourceTree = "<group>"; };
 		AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryPagingTests.swift; sourceTree = "<group>"; };
 		AFD07CD9819EF6B777F0EADE /* LibraryQueryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryQueryTests.swift; sourceTree = "<group>"; };
 		B0876647252FEFE073021B0A /* CoverBoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverBoxTests.swift; sourceTree = "<group>"; };
@@ -245,6 +247,7 @@
 				3CF6C673F4216694D54A57BC /* LibraryFilterTests.swift */,
 				AC854F53DC0E5B7E8E62BFF5 /* LibraryPagingTests.swift */,
 				AFD07CD9819EF6B777F0EADE /* LibraryQueryTests.swift */,
+				AAF22FAC813010887FF72620 /* LibraryRequeryTests.swift */,
 				1290B0CBF1415714055A5839 /* LibrarySortTests.swift */,
 				BB36927E3785EC48DFC518F2 /* ReaderFooterLabelTests.swift */,
 				88C2F652ABF4A1803AA3F559 /* ReaderGesturesTests.swift */,
@@ -628,6 +631,7 @@
 				2E259BD6E5770217BB4F71CD /* LibraryFilterTests.swift in Sources */,
 				161D4DF43BAA3CFFA539978D /* LibraryPagingTests.swift in Sources */,
 				7526287B8E561E72C5D5CFFD /* LibraryQueryTests.swift in Sources */,
+				46576BDF9CFF123C195F0EDF /* LibraryRequeryTests.swift in Sources */,
 				E23A2D8E666CF6D9D3A2262E /* LibrarySortTests.swift in Sources */,
 				E1B9DE2223E20EBCC9CC6C9C /* ReaderFooterLabelTests.swift in Sources */,
 				CADAE87462F6195650B577DA /* ReaderGesturesTests.swift in Sources */,

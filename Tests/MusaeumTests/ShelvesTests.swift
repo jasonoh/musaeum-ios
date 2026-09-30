@@ -187,6 +187,39 @@ final class ShelvesTests: XCTestCase {
         XCTAssertNil(model.shelvesSupported, "a Mac that did not answer is not a Mac without shelves")
     }
 
+    /// **The owner's *the shelves have disappeared*, 2026-09-30.** The probe ran
+    /// once, at launch; a launch that met the Mac mid-restart left the answer
+    /// unknown and the scope control hidden for the whole session. The next load
+    /// that lands asks again.
+    func testAnUnansweredProbeIsAskedAgainByTheNextLoadThatLands() async throws {
+        try stub(shelvesStatus: 500, page: try page(ids: ["a"], total: 1))
+        let model = makeModel()
+        await model.start()
+        XCTAssertNil(model.shelvesSupported, "the Mac answered the library but not the probe")
+
+        try stub(page: try page(ids: ["a"], total: 1))
+        await model.start()
+        XCTAssertEqual(model.shelvesSupported, true, "a load that lands re-asks an unknown")
+        XCTAssertEqual(model.shelves.map(\.id), [shelfId])
+    }
+
+    /// The other half of the rule: an answer in hand — yes or no — is not re-asked
+    /// by every sort and settled keystroke.
+    func testAKnownAnswerIsNotAskedAgainByEveryLoad() async throws {
+        for status in [200, 404] {
+            try stub(shelvesStatus: status, page: try page(ids: ["a"], total: 1))
+            let model = makeModel()
+            await model.start()
+            XCTAssertNotNil(model.shelvesSupported, "the first load that lands asks (\(status))")
+            let asked = StubURLProtocol.requests.filter { $0.url?.path.hasSuffix("/api/shelves") == true }.count
+            XCTAssertEqual(asked, 1)
+
+            await model.search("dune")
+            let after = StubURLProtocol.requests.filter { $0.url?.path.hasSuffix("/api/shelves") == true }.count
+            XCTAssertEqual(after, asked, "a known answer (\(status)) is remembered, not re-asked")
+        }
+    }
+
     func testAGoneShelfLeavesTheScopeAndSaysSo() async throws {
         try stub(libraryStatus: 404, page: try page(ids: [], total: 0))
         let model = makeModel()

@@ -63,6 +63,31 @@ final class LibraryModel {
     private let pipeline: CoverPipeline
     private let persistSort: (LibrarySort) -> Void
 
+    /// **A re-query does not take the list away while it waits.** Opening a shelf,
+    /// leaving one, a sort, a filter, a settled keystroke and a pull all used to
+    /// empty the grid to a spinner for the whole round trip — two requests over a
+    /// tailnet — then build a new grid and pop every cover back in one at a time:
+    /// the owner's *visual readjustment lag* of 2026-09-30, on every shelf switch.
+    /// Now the list on screen stays until the new first page lands, and is
+    /// replaced in one step. `true` only while a replacement is in flight over a
+    /// list that is being shown.
+    private(set) var isRefreshing = false
+
+    /// The query the books on screen answer, which is not `query` while a
+    /// replacement is in flight: the bar already names the new order or shelf the
+    /// moment it is chosen, and the grid under it is still the old one.
+    private(set) var shownQuery: LibraryQuery?
+
+    /// The generation whose first page is on screen. The grid is keyed on it, so a
+    /// page that lands is a **new** list — scrolled to its top and every cell's
+    /// cover asked for again — exactly as the old empty-then-fill path gave it,
+    /// minus the spinner in between.
+    private(set) var landed = 0
+
+    /// Showing an answer to a question the reader has already replaced — the grid
+    /// dims for it. A pull re-asks the same question, so its list is not stale.
+    var isShowingStale: Bool { isRefreshing && shownQuery != query }
+
     private var nextOffset = 0
     private var isLastPage = false
     private var loadingMore = false
@@ -119,32 +144,75 @@ final class LibraryModel {
     func start() async {
         generation += 1
         let mine = generation
-        phase = .loading
-        books = []
-        covers = [:]
-        coversFailed = []
-        nextOffset = 0
-        isLastPage = false
+        // **A list on screen stays on screen** (`isRefreshing`). Only a list, though:
+        // an empty card is a sentence about the query — "No books on *that* shelf",
+        // "Nothing matches *that* term" — and the query has already moved, so the
+        // card would name the new question over the old answer. A cold start and a
+        // failure have nothing to keep either; those three still wait on a spinner.
+        if phase == .loaded, !books.isEmpty {
+            isRefreshing = true
+        } else {
+            phase = .loading
+            books = []
+        }
+        // Only the current generation clears the flag: a superseded load returning
+        // must not un-dim the list a newer one is still replacing.
+        defer { if mine == generation { isRefreshing = false } }
         do {
             let health = try await client.health()
             let page = try await request(offset: 0)
             guard mine == generation else { return }
             self.health = health
+            // **The covers already in hand come with the list** — a book on both
+            // the old list and the new one (the shelf's books, going back to *All
+            // Books*) draws its cover in the same frame as its cell, rather than
+            // popping in a second request later. Kept only where the cover's
+            // `version` is unchanged, so a cover the Mac replaced is asked for again;
+            // and only for books on the new page, so the cache is still one page's
+            // worth, as it was when every load emptied it. Failures are retried.
+            let versions = Dictionary(books.map { ($0.id, $0.cover.version) }, uniquingKeysWith: { first, _ in first })
+            let kept = Dictionary(
+                page.books.compactMap { book -> (String, Data)? in
+                    guard let data = covers[book.id], versions[book.id] == book.cover.version else { return nil }
+                    return (book.id, data)
+                },
+                uniquingKeysWith: { first, _ in first }
+            )
+            covers = kept
+            coversFailed = []
+            // The cells are rebuilt (`landed` keys the grid), and a rebuilt cell asks
+            // for its cover again while the old cell's request may still be
+            // unwinding — that request is no longer this list's (see `cover(for:)`).
+            inFlightCovers = []
             books = page.books
             total = page.total
             nextOffset = page.nextOffset
             isLastPage = page.isLastPage
+            shownQuery = query
+            landed = mine
             phase = .loaded
+            // The list has landed; the shelf probe below is not part of it, and
+            // must not hold the new list's paging shut while it runs.
+            isRefreshing = false
             // `first=` is not decoration: the order is the thing this slice is
             // about, and a frame can catch the grid mid-flight — one did, showing
             // the previous order while the log already recorded the new one. The
             // rendered array is what the log reports, so the order is decided by a
             // line the app wrote about itself rather than by reading pixels.
             let showing = books.prefix(3).map(\.title).joined(separator: " | ")
-            Probe.log("library page count=\(books.count) total=\(total) limit=\(page.limit) offline=\(health.library.rawValue) sort=\(query.sort.storedKey) q=\(query.term ?? "-") filters=\(query.filters.probeEncoding.isEmpty ? "-" : query.filters.probeEncoding) first=\(showing)")
+            Probe.log("library page count=\(books.count) total=\(total) limit=\(page.limit) offline=\(health.library.rawValue) sort=\(query.sort.storedKey) q=\(query.term ?? "-") filters=\(query.filters.probeEncoding.isEmpty ? "-" : query.filters.probeEncoding) covers-kept=\(covers.count) first=\(showing)")
             if books.isEmpty {
                 Probe.log("library empty kind=\(emptyState.map(String.init(describing:)) ?? "none") macBooks=\(health.books)")
             }
+            // **A Mac that answers the library can answer the shelf probe.** The
+            // probe used to run once, at launch; a launch that met the Mac mid-
+            // restart left `shelvesSupported` unknown and the scope control hidden
+            // for the rest of the session, with every shelf intact on the Mac — the
+            // owner's *the shelves have disappeared*, 2026-09-30. So an unknown is
+            // asked again by the next load that succeeds: a reconnect, a retry, a
+            // pull. Only an unknown — a 404 is a known answer and stays remembered,
+            // and a confirmed feature is not re-asked per keystroke.
+            if shelvesSupported == nil { await loadShelves() }
         } catch is CancellationError {
             // A superseded search is not a failure: reporting it as one would put
             // "the Mac is not answering" under a request the reader replaced.
@@ -173,7 +241,10 @@ final class LibraryModel {
     }
 
     func loadNextPageIfNeeded(current book: ContractBook) async {
-        guard book.id == books.last?.id, hasMore, !loadingMore else { return }
+        // Not while a replacement is in flight: the list on screen answers the old
+        // query, and its next page composed from the new one would append the new
+        // question's rows to the old question's answer.
+        guard !isRefreshing, book.id == books.last?.id, hasMore, !loadingMore else { return }
         loadingMore = true
         defer { loadingMore = false }
         let mine = generation
@@ -298,10 +369,10 @@ final class LibraryModel {
 
     // MARK: The shelf scope (slice 7a)
 
-    /// Probe `GET /api/shelves` and hold its answer. Called on every load, so a
-    /// Mac that gains the feature — or a base URL pointed at one that has it —
-    /// needs no relaunch, and a 404 is remembered as *no feature* rather than
-    /// re-asked by every screen.
+    /// Probe `GET /api/shelves` and hold its answer. `start` calls it after every
+    /// load that lands while the answer is still **unknown**, so a launch that met
+    /// the Mac asleep or mid-restart needs no relaunch; a 404 is remembered as *no
+    /// feature* rather than re-asked by every load.
     ///
     /// The fresh list also **reconciles the open scope**: a shelf the Mac no
     /// longer has is the same fact as the scoped 404 below, read from the other
@@ -400,12 +471,19 @@ final class LibraryModel {
     func cover(for book: ContractBook, size: String = "thumb") async {
         guard covers[book.id] == nil, !coversFailed.contains(book.id), !inFlightCovers.contains(book.id) else { return }
         guard book.cover.thumb || size == "full" else { return }
+        // **A request belongs to the list it was asked for.** A page landing
+        // rebuilds every cell and clears the in-flight set (`start`), so the rebuilt
+        // cell can ask again at once; the old cell's request, still unwinding its
+        // cancellation, must then neither clear the new one's marker nor write
+        // into the new list's covers.
+        let list = landed
         inFlightCovers.insert(book.id)
-        defer { inFlightCovers.remove(book.id) }
+        defer { if list == landed { inFlightCovers.remove(book.id) } }
         do {
             let data = try await pipeline.data(
                 for: client.coverRequest(id: book.id, size: size, version: book.cover.version)
             )
+            guard list == landed else { return }
             covers[book.id] = data
         } catch is CancellationError {
             // **A cover a refetch replaced is not a cover that failed.** This is
@@ -420,6 +498,7 @@ final class LibraryModel {
             // simply asks again.
             return
         } catch {
+            guard list == landed else { return }
             coversFailed.insert(book.id)
             Probe.log("cover failed id=\(book.id) error=\(String(describing: error))")
         }
@@ -627,8 +706,9 @@ struct LibraryScreen: View {
                 self.model = model
                 let uploadModel = UploadModel()
                 uploads = uploadModel
+                // `start` asks for the shelves itself once the first page lands
+                // (and again on any later load, until the Mac has answered).
                 await model.start()
-                await model.loadShelves()
                 await applyProbeSeam(model, client: client)
                 // **What a share left for a run that was not there yet.** A book
                 // handed over while the app was closed (or not yet configured) is
@@ -1466,6 +1546,22 @@ struct LibraryScreen: View {
                 // `simctl` cannot supply, so this is where a run's legs are driven.
                 .task { await runScrollSeam(proxy, model) }
         }
+        // **One list per landed page.** The grid used to be torn down to a spinner
+        // at the start of every load and built fresh at the end; it now stays up
+        // through the wait (`LibraryModel.isRefreshing`) and is rebuilt when the
+        // page lands — so it still opens at its top, and every cell still asks for
+        // its cover, as a new list did before.
+        .id(model.landed)
+        // **An old answer under a new question is dimmed, and only if the Mac is
+        // slow.** The bar names the new shelf or order the moment it is chosen; the
+        // grid under it is the previous one until the page lands. Most answers land
+        // before the delay runs out, so the grid simply changes; a slow one fades
+        // to say it is on its way. Coming back is immediate.
+        .opacity(model.isShowingStale ? 0.45 : 1)
+        .animation(
+            model.isShowingStale ? .easeIn(duration: 0.2).delay(0.25) : .easeOut(duration: 0.12),
+            value: model.isShowingStale
+        )
     }
 
     /// The list itself — the grid, its footer, and the one reading the header's rule

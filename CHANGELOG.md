@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased] — 2026-09-30
+
+### Changed
+
+- **Switching shelves no longer blanks the library while the Mac answers.** Opening a shelf, going back to *All Books*, a sort, a filter, a settled keystroke and a pull all emptied the grid to a spinner for the whole round trip (a health check and the first page, one after the other), then built a new grid and popped every cover back in — the owner's *visual readjustment lag*, on every switch. The list on screen now stays until the new first page lands and is replaced in one step (`LibraryModel.isRefreshing`); it dims only if the answer takes longer than a quarter second. Covers already in hand come with the new list when their `version` is unchanged, so a book on both lists draws its cover in the same frame as its cell. A stale list fetches no next page, and an empty card still gives way to the spinner, since its sentence names the old query. `LibraryRequeryTests` (4 cases) decides the model's half; the dimming is the view's and has had no live probe yet.
+
+### Fixed
+
+- **The shelves no longer vanish for a whole session after the Mac restarts.** The phone asked the Mac for its shelves once, at launch; a launch that met the Mac mid-restart got no answer, and the scope control stayed hidden until the app was relaunched, with every shelf intact on the Mac. Now any later load that lands — a retry, a pull, a reconnect — asks again while the answer is still unknown. A known answer (the feature, or a pre-shelves Mac's 404) is remembered and not re-asked per load. Two cases in `ShelvesTests`, both confirmed to fail without the change.
+
 ## [Unreleased] — 2026-09-29
 
 ### Fixed
