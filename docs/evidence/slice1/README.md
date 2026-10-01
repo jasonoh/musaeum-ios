@@ -1,6 +1,6 @@
 # Slice 1's evidence
 
-Frames from the live probe of 2026-09-22 — the simulator against a real Musaeum on an isolated profile (8 EPUBs, 7 of them with covers) at `http://100.125.135.108:8788`, iPhone 17 Pro / iOS 26.1. They are committed because the probe profile they came from is throwaway, and a measurement that lives only in a session is not a decider. The numbers beside each frame are in *Built — slice 1* of `docs/specs/2026-09-22-client-v1-design.md`; the command that reproduces them is `scripts/live-probe.sh`.
+Frames from the live probe of 2026-09-22 — the simulator against a real Musaeum on an isolated profile (8 EPUBs, 7 of them with covers) at `http://100.64.0.1:8788`, iPhone 17 Pro / iOS 26.1. They are committed because the probe profile they came from is throwaway, and a measurement that lives only in a session is not a decider. The numbers beside each frame are in *Built — slice 1* of `docs/specs/2026-09-22-client-v1-design.md`; the command that reproduces them is `scripts/live-probe.sh`.
 
 ## The three probe runs
 

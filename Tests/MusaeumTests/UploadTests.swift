@@ -2,7 +2,7 @@ import XCTest
 
 @testable import Musaeum
 
-private let uploadBase = URL(string: "http://100.125.135.108:8788")!
+private let uploadBase = URL(string: "http://100.64.0.1:8788")!
 
 /// The upload: what the phone sends, what it does with each answer, and **what it
 /// refuses to claim**.

@@ -19,7 +19,7 @@ RED (killed)    a control character is left in the name
                 Executed 19 tests, with 1 failure (0 unexpected) in 0.049 (0.054) seconds | 1 cases reddened: testANewlineOrAControlCharacterNeverReachesTheName
 RED (killed)    a name that would be hidden keeps its leading dot
                 suite=MusaeumTests/ShareStagingTests restored=True
-                BUILD ERROR: /Users/jasonoh/Projects/musaeum-ios/Musaeum/Core/Store/ShareStaging.swift:85:18: error: assigning a variable to itself
+                BUILD ERROR: /Users/me/Projects/musaeum-ios/Musaeum/Core/Store/ShareStaging.swift:85:18: error: assigning a variable to itself
 RED (killed)    whitespace is replaced with an underscore rather than collapsed
                 suite=MusaeumTests/ShareStagingTests restored=True
                 Executed 19 tests, with 8 failures (0 unexpected) in 0.062 (0.067) seconds | 7 cases reddened: testABookWithNoAuthorLosesTheBylineRatherThanTheSeparator, testANameThatWouldBeHiddenIsMadeVisible, testANewlineOrAControlCharacterNeverReachesTheName, testAPathSeparatorAndAColonAreRemovedRatherThanSplitIntoFolders, testATitleInsideTheLimitIsLeftExactlyAsItIs, testTheNameIsTheTitleTheAuthorAndTheStoredExtension, testTheShareCarriesTheExtensionOfTheFileThePhoneHolds

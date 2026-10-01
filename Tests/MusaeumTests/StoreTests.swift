@@ -100,8 +100,8 @@ final class StoreTests: XCTestCase {
     // MARK: the base URL a human types (a phone keyboard is not a URL parser)
 
     func testBaseURLNormalisation() {
-        XCTAssertEqual(SettingsStore.normalizeBase("100.125.135.108:8788"), "http://100.125.135.108:8788")
-        XCTAssertEqual(SettingsStore.normalizeBase("  http://100.125.135.108:8788/  "), "http://100.125.135.108:8788")
+        XCTAssertEqual(SettingsStore.normalizeBase("100.64.0.1:8788"), "http://100.64.0.1:8788")
+        XCTAssertEqual(SettingsStore.normalizeBase("  http://100.64.0.1:8788/  "), "http://100.64.0.1:8788")
         XCTAssertEqual(SettingsStore.normalizeBase("http://localhost:8788///"), "http://localhost:8788")
         XCTAssertEqual(SettingsStore.normalizeBase("http://[fd7a::1]:8788"), "http://[fd7a::1]:8788")
         XCTAssertNil(SettingsStore.normalizeBase(""))
@@ -112,9 +112,9 @@ final class StoreTests: XCTestCase {
     func testSettingsRoundTripThroughTheStore() {
         let defaults = UserDefaults(suiteName: "musaeum-tests-\(UUID().uuidString)")!
         let settings = SettingsStore(defaults: defaults, keychain: KeychainStore(service: "dev.jasonoh.Musaeum.tests"))
-        settings.save(base: "100.125.135.108:8788", token: "secret-token")
+        settings.save(base: "100.64.0.1:8788", token: "secret-token")
         XCTAssertTrue(settings.isConfigured)
-        XCTAssertEqual(settings.baseURL?.absoluteString, "http://100.125.135.108:8788")
+        XCTAssertEqual(settings.baseURL?.absoluteString, "http://100.64.0.1:8788")
         settings.clear()
         XCTAssertFalse(settings.isConfigured)
         XCTAssertEqual(settings.token, "")

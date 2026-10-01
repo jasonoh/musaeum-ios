@@ -8,7 +8,7 @@ import XCTest
 /// than two at once does not go faster — it collects refusals and takes the
 /// file-I/O pool away from the Mac app it is reading from.
 final class CoverPipelineTests: XCTestCase {
-    private let base = URL(string: "http://100.125.135.108:8788")!
+    private let base = URL(string: "http://100.64.0.1:8788")!
 
     func testItNeverHasMoreThanTwoTransfersOpen() async throws {
         StubURLProtocol.configure { _ in

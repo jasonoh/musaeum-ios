@@ -7,7 +7,7 @@ import XCTest
 /// half. Decided here rather than against a live server, because what a request
 /// *carries* is not something a live run can show.
 final class ReadingWriteTests: XCTestCase {
-    private let base = URL(string: "http://100.125.135.108:8788")!
+    private let base = URL(string: "http://100.64.0.1:8788")!
 
     private func fixture(_ name: String) -> Data {
         let bundle = Bundle(for: ReadingWriteTests.self)

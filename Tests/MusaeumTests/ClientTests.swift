@@ -8,7 +8,7 @@ import XCTest
 /// and the statuses are its failure table: the point of these cases is that a
 /// refusal is *distinguished* rather than collapsed into one error.
 final class ClientTests: XCTestCase {
-    private let base = URL(string: "http://100.125.135.108:8788")!
+    private let base = URL(string: "http://100.64.0.1:8788")!
 
     private func fixture(_ name: String) -> Data {
         let bundle = Bundle(for: ClientTests.self)

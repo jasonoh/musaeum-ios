@@ -80,7 +80,7 @@ final class SettingsStore {
     }
 
     /// A pure rule, so a case can decide it: what a human types into a phone is
-    /// `100.125.135.108:8788` as often as it is a URL, and a trailing slash must
+    /// `100.64.0.1:8788` as often as it is a URL, and a trailing slash must
     /// not turn `…8788//api/health` into a 404.
     static func normalizeBase(_ raw: String) -> String? {
         var text = raw.trimmingCharacters(in: .whitespacesAndNewlines)

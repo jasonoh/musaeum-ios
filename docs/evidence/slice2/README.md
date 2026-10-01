@@ -1,6 +1,6 @@
 # Slice 2's evidence
 
-Frames from the live probe of 2026-09-23 — the same simulator and the same isolated profile slice 1 used (8 EPUBs at `http://100.125.135.108:8788`, iPhone 17 Pro / iOS 26.1), now exercising the **write** rather than the read.
+Frames from the live probe of 2026-09-23 — the same simulator and the same isolated profile slice 1 used (8 EPUBs at `http://100.64.0.1:8788`, iPhone 17 Pro / iOS 26.1), now exercising the **write** rather than the read.
 
 They are committed because the probe profile is throwaway and a measurement that lives only in a session is not a decider. The numbers beside each frame are in *Built — slice 2* of `docs/specs/2026-09-22-client-v1-design.md`; the command that reproduces them is `scripts/live-probe.sh`, whose header now carries the write recipes.
 
