@@ -21,6 +21,12 @@ xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" tes
 
 Requires Xcode 27+, XcodeGen (`brew install xcodegen`), and **the Mac app running with its server switched on** (Settings → Phone access) for anything that touches the network.
 
+## Unsigned build
+
+Nothing here is set up to distribute: **no App Store, no TestFlight, no Ad Hoc or Enterprise profile, no notarisation.** This is an app built and run on one person's own simulator and phone — treat every build of it as unsigned, and as unsuitable for anyone else's device.
+
+`project.yml` sets `CODE_SIGN_STYLE: Automatic` with a **free personal team** in `DEVELOPMENT_TEAM`, which is what lets a *device* build get past *"Signing for Musaeum requires a development team"*; simulator builds ignore it. A free team grants no capabilities — and this app declares no entitlements, so it needs none. What it costs is that the profile it issues **expires after 7 days**: the app then refuses to launch until it is re-run once from Xcode. To build for your own device, put **your** team in `project.yml` and re-run `xcodegen generate`.
+
 ## Pointing it at the Mac
 
 1. In Musaeum on the Mac: **Settings → Phone access**, turn it on. The row shows the URL to type into the phone and the bearer token beside it.
@@ -65,3 +71,7 @@ scripts/                  the fixture vendoring script, and live-probe.sh — th
 docs/specs/, docs/plans/  this client's own design and the plan for each slice
 docs/evidence/            the frames each slice's live probe produced, with the numbers beside them
 ```
+
+## License
+
+MIT — see [`LICENSE`](LICENSE), the same licence the Mac app declares.
