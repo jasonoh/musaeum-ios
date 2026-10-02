@@ -696,5 +696,5 @@ Gates: `xcodegen generate` then `xcodebuild build` **exit 0**; `xcodebuild test`
 - **The capability 404 and R5's live 404 were not exercised live** — no pre-shelves Mac can be built now, and the run's profile holds a shelf that exists. Both are stub-server cases (`ShelvesTests`), stated as the case's reading rather than a run's.
 - **Creating, renaming and deleting shelves remain the Mac's** (the document's *Not in this version*): the phone scopes and toggles membership and nothing else.
 - **Toggles are refused offline with a sentence, never queued** (F4, taken): the writes are idempotent, so the retry is a second tap. Its reversal condition — shelf edits with the Mac asleep — brings the row-state question with it and is named in `tasks.md`.
-- **The probe profile's final state:** `slice5-smoke` at port **8791**, base `http://100.101.133.118:8791`, three books, one shelf (*To Read* — the two seeds, restored after the runs, `updatedAt` moved), the phone's sort back on `title:asc`. The owner's packaged app (8788) was never touched or signalled.
+- **The probe profile's final state:** `slice5-smoke` at port **8791**, base `http://100.64.0.1:8791`, three books, one shelf (*To Read* — the two seeds, restored after the runs, `updatedAt` moved), the phone's sort back on `title:asc`. The owner's packaged app (8788) was never touched or signalled.
 

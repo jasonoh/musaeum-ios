@@ -29,7 +29,8 @@ HERE="$(cd "$(dirname "$0")/.." && pwd)"
 MAC="${MUSAEUM_REPO:-$(cd "$HERE/../musaeum" && pwd)}"
 S="${PROBE_ROOT:-$HOME/.hermes/profiles/dev/cache/scratch/ios-probe}"
 PORT="${PROBE_PORT:-8789}"
-BIND="${PROBE_BIND:-100.101.133.118}"
+BIND="${PROBE_BIND:-$(tailscale ip -4 2>/dev/null | head -n1)}"
+[ -n "$BIND" ] || { echo "set PROBE_BIND to this Mac's tailnet address (tailscale ip -4)" >&2; exit 1; }
 TOKEN="${PROBE_TOKEN:-$(cat "$S/token.txt" 2>/dev/null || true)}"
 
 [ -d "$MAC/electron/main/schema/migrations" ] || {
