@@ -1,0 +1,17 @@
+# What works today
+
+> Moved verbatim from `README.md` when the README was cut down to a front page. **This text is frozen at slice 6b.** Later work — slice 5 (sharing a downloaded book out) and slice 7 (shelves), plus fixes — is recorded in `CHANGELOG.md` and `tasks.md`, which are the current record.
+
+Slice 1 (the _downward_ path): configure and connect, the paginated library as a cover grid, a book's detail, a download into the app's own storage, and the reader opening at the fraction the Mac holds. Books already downloaded are readable with the Mac asleep or off.
+
+Slice 2 (the _upward_ path): the fraction is written back when the reader closes or the app leaves the foreground, queued on the phone while the Mac cannot take it and flushed when it answers — ordered by the report's own clock, which is what stops a phone's stale reading from dragging the Mac's position backwards.
+
+Slice 3 (finding things): the Mac's own **eight sort orders** and its **full-text search**, so the same query returns the same books in the same order on both machines, plus a **filter sheet** carrying the contract's own vocabulary and the Mac's own counts — read status, format, a rating floor, and the library's own authors, series and tags. The sort is remembered between launches; the search is not.
+
+Slice 4 (sending a book to the Mac): a book picked in the app — or shared to Musaeum from Files, Safari or Mail — goes to the Mac's own importer, so what lands is what a Mac-side import would have produced: the same metadata pass, the same covers, the same rule for a book you already had. The row reports what happened in the Mac's own words and claims nothing before the Mac has answered; a book past the Mac's size limit, or one it cannot take, says _that_ rather than offering a retry, while a Mac that is busy or whose share is unmounted is worth waiting out — and the phone keeps its own copy, so **Try again** sends the same bytes rather than asking for the file again. A book handed over while the Mac cannot be reached waits in the app's own storage and goes out when it can.
+
+Slice 6a (the reader's furniture): the page opens full-bleed with only a faint `Chapter · %` footer; a tap in the middle raises a top bar (✕ to close, the title) and a bottom strip (the book's **contents**, the current chapter in gold), taps at the edges turn the page, and a downward swipe closes the book.
+
+Slice 6b (typography): **Aa** in the raised chrome opens the desktop's own controls — Serif or Sans, size, line height, spacing, and an Ink or Paper page in the desktop's colours — restyling the open page as they move and remembered on the phone. A book's own heading typeface still draws: Readium's reading styles leave headings to the publisher.
+
+**Not built yet:** PDF in the reader; resumable downloads (whole-file today, `docs/specs` CD6); an upload that outlives the app is a _new_ send rather than a resumed one (the route has no `Range` and no idempotency key — a book the Mac already has is added rather than refused, so trying again loses nothing but the transfer); one book at a time; and a file that is not a file on the phone — an undehydrated iCloud Drive placeholder, a Photos item, a link — is reported rather than worked around. Plus the deferred list in `tasks.md`, each item revived only by its own stated condition.
