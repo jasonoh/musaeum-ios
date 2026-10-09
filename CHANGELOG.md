@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased] — 2026-10-09
+
+### Added
+
+- **A PDF-only book can be read on the phone.** Where the Mac says a book has a PDF and no EPUB (`reflow.available`), *Download to this phone* asks it for the PDF laid out as an EPUB, shows the Mac's progress in pages while the pass runs, and keeps the result as an ordinary EPUB the reader already opens. A book the Mac cannot lay out says why instead of failing silently. Measured against a live Mac on a scratch profile: a 4-page text PDF answered `format=reflow` with a 70,641-byte `PK` zip in 0.39 s, and the Mac's smoke reflow section passed. **Not yet seen on a screen**: the download itself and the reader opening it need a tap, so they are the owner's to confirm (`docs/evidence/slice8/`). 243 cases, 0 failures.
+
 ## [Unreleased] — 2026-09-30
 
 ### Changed

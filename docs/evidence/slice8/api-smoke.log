@@ -1,0 +1,116 @@
+api smoke — http://100.101.133.118:8790 (profile /tmp/ios-reflow-probe.OOCO/profile)
+
+--- auth
+PASS  health without a credential answers 401
+PASS  the 401 carries WWW-Authenticate: Bearer
+PASS  health with a wrong credential answers 401
+
+--- health (GET and HEAD)
+PASS  GET /api/health answers 200
+PASS  the payload carries apiVersion 1
+PASS  the payload counts the cache
+PASS  the payload names the library state
+PASS  HEAD /api/health answers 200
+PASS  the HEAD carries the same Content-Length as the GET
+PASS  the HEAD downloads no body
+
+--- library
+PASS  GET /api/library answers 200
+PASS  the page carries books, total, limit and offset
+FAIL  the page carries exactly `limit` rows — expected 2, got 1
+PASS  a page walk repeats no book id
+
+--- library/facets
+PASS  GET /api/library/facets answers 200
+PASS  the facets carry all five lists
+
+--- library?q= (the app own FTS path)
+PASS  GET /api/library?q=The answers 200
+PASS  the search finds the book it was asked for
+
+--- book detail
+PASS  GET /api/books/{id} answers 200
+PASS  the detail is the book that was asked for
+PASS  the payload carries cover and reading objects
+PASS  the payload does not carry the library path
+PASS  an unknown book answers 404
+
+--- the reading report (the first of two writes)
+PASS  PUT /api/books/{id}/reading answers 200
+PASS  the report was applied
+PASS  the answer carries the book it wrote
+PASS  the write landed: reading.percent reads back as 0.42
+PASS  the book payload still carries no position
+PASS  a report dated in the past answers 200
+PASS  a stale report comes back applied: false
+PASS  the refusal wrote nothing — the percent is unchanged
+PASS  a percent outside 0-1 answers 400
+PASS  a body that is not JSON answers 400
+PASS  a report for an unknown book answers 404
+PASS  a GET of the write route answers 404
+
+--- upload (the second write, and the one that creates a book)
+PASS  POST /api/books answers 201
+PASS  the answer names the book it created
+PASS  the title is the filename it was given
+PASS  the format is the parameter it was given
+PASS  the size is the number of bytes it sent
+PASS  nothing in the library collided with it
+PASS  the uploaded book reads back off the detail route
+PASS  the book that reads back is the one that was uploaded
+PASS  the read-back carries the same title
+PASS  an upload with no format answers 400
+PASS  the refusal is the contract body
+PASS  an empty body answers 400
+PASS  a GET of the collection answers 404
+PASS  a HEAD of the collection answers 404
+note  the 1 GiB cap is not exercised here — see the mid-flight 413 case in electron/main/api/upload.test.ts
+
+--- shelves (bookshelves slice 5)
+PASS  GET /api/shelves answers 200
+PASS  the payload carries a shelves array
+PASS  scoping by an unknown shelf answers 404
+PASS  sort=shelf_added without a shelf answers 400
+PASS  a present-but-empty shelf answers 400
+PASS  HEAD /api/shelves answers 200
+PASS  the HEAD downloads no body
+note  the profile holds no shelf — the scoped read and the membership pair were not exercised
+note  the offline 503 on a shelf write is not exercised here — it needs the share taken down; its rules are decided over a socket in electron/main/api/rest.test.ts
+
+--- cover bytes
+PASS  GET /api/books/{id}/cover answers 200
+PASS  the cover is an image
+PASS  the cover has bytes
+PASS  the full size answers 200 for a book that holds one
+PASS  a size that is neither thumb nor full answers 400
+PASS  a cover for an unknown book answers 404
+
+--- file bytes, and a resumed download
+PASS  GET /api/books/{id}/file?format=epub answers 200
+PASS  the Content-Length matches the bytes served
+PASS  the file route advertises ranges
+PASS  the file route names the format own media type
+PASS  a resumed range answers 206
+PASS  the 206 carries Content-Range
+PASS  the 206 serves 1024 bytes
+PASS  a range past the end answers 416
+PASS  the 416 carries the length it could satisfy
+PASS  an unknown format answers 404
+PASS  a format the book does not have (mobi) answers 404
+
+--- the reflow (PDF-only books)
+PASS  book detail carries reflow.available as a boolean
+PASS  format=reflow on a book with an EPUB answers 404
+note  reflow poll: statuses 200, 1 s
+PASS  the reflow answers 200 once the pass is done
+PASS  its type is an EPUB
+PASS  it carries an ETag
+PASS  its first bytes are a zip
+
+--- the shape of a refusal
+PASS  a malformed sort answers 400
+PASS  the refusal is the contract body
+PASS  an unmatched path answers 404
+PASS  the 404 is the contract body
+
+passed 82, failed 1

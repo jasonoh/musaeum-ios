@@ -1,6 +1,6 @@
 # What works today
 
-> Moved verbatim from `README.md` when the README was cut down to a front page. **This text is frozen at slice 6b.** Later work — slice 5 (sharing a downloaded book out) and slice 7 (shelves), plus fixes — is recorded in `CHANGELOG.md` and `tasks.md`, which are the current record.
+> Moved verbatim from `README.md` when the README was cut down to a front page. **This text is frozen at slice 6b, with slice 8 appended.** Later work — slice 5 (sharing a downloaded book out) and slice 7 (shelves), plus fixes — is recorded in `CHANGELOG.md` and `tasks.md`, which are the current record.
 
 Slice 1 (the _downward_ path): configure and connect, the paginated library as a cover grid, a book's detail, a download into the app's own storage, and the reader opening at the fraction the Mac holds. Books already downloaded are readable with the Mac asleep or off.
 
@@ -14,4 +14,6 @@ Slice 6a (the reader's furniture): the page opens full-bleed with only a faint `
 
 Slice 6b (typography): **Aa** in the raised chrome opens the desktop's own controls — Serif or Sans, size, line height, spacing, and an Ink or Paper page in the desktop's colours — restyling the open page as they move and remembered on the phone. A book's own heading typeface still draws: Readium's reading styles leave headings to the publisher.
 
-**Not built yet:** PDF in the reader; resumable downloads (whole-file today, `docs/specs` CD6); an upload that outlives the app is a _new_ send rather than a resumed one (the route has no `Range` and no idempotency key — a book the Mac already has is added rather than refused, so trying again loses nothing but the transfer); one book at a time; and a file that is not a file on the phone — an undehydrated iCloud Drive placeholder, a Photos item, a link — is reported rather than worked around. Plus the deferred list in `tasks.md`, each item revived only by its own stated condition.
+Slice 8 (a PDF-only book, read as a reflowed EPUB): where the Mac's payload says `reflow.available`, the detail's download button asks for `format=reflow`, polls the Mac's layout pass with a page-count progress and keeps the EPUB it returns; the reader is unchanged. The Mac half is measured (`docs/evidence/slice8/`); the tap, the open and the reported fraction are the owner's to confirm.
+
+**Not built yet:** the original PDF's own view, and a PDF the Mac cannot lay out (an image-only scan, about a tenth of the PDFs); resumable downloads (whole-file today, `docs/specs` CD6); an upload that outlives the app is a _new_ send rather than a resumed one (the route has no `Range` and no idempotency key — a book the Mac already has is added rather than refused, so trying again loses nothing but the transfer); one book at a time; and a file that is not a file on the phone — an undehydrated iCloud Drive placeholder, a Photos item, a link — is reported rather than worked around. Plus the deferred list in `tasks.md`, each item revived only by its own stated condition.
