@@ -77,6 +77,17 @@ struct StrictObject {
         return try value(key, as: [String].self)
     }
 
+    /// **The second deliberate exception to the always-present rule (invariant 4).**
+    /// `reflow` is absent from every payload a download stored before slice 8, and a download decodes its
+    /// stored payload on every open — a required read would make each of them unopenable. Absent and `null`
+    /// read as the default; a *present* member is still strict.
+    func objectOrDefault<T: Decodable>(_ key: String, default fallback: T, as: T.Type = T.self) throws -> T {
+        let codingKey = AnyCodingKey(key)
+        guard container.contains(codingKey) else { return fallback }
+        if (try? container.decodeNil(forKey: codingKey)) == true { return fallback }
+        return try value(key, as: T.self)
+    }
+
     /// A member that is always present and may be `null` — the contract's whole
     /// point, and the case synthesized decoding silently gets wrong.
     func optional<T: Decodable>(_ key: String, as: T.Type = T.self) throws -> T? {
@@ -171,6 +182,45 @@ struct CoverInfo: Decodable, Equatable, Hashable, Sendable {
     }
 }
 
+/// What the Mac says about laying a PDF out as an EPUB. `available` is the *server's* eligibility ("a PDF and no
+/// EPUB"); the phone does not re-derive it. Read through `objectOrDefault`: absent in every pre-slice-8 payload.
+struct Reflow: Decodable, Equatable, Hashable, Sendable {
+    let available: Bool
+
+    init(available: Bool) { self.available = available }
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "book.reflow")
+        available = try o.bool("available")
+    }
+}
+
+/// The body of a `202` from `GET /api/books/{id}/file?format=reflow`: the pass is running.
+struct ReflowProgress: Decodable, Equatable, Sendable {
+    let phase: String
+    let completed: Int
+    let total: Int
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "reflow progress")
+        phase = try o.string("phase")
+        completed = try o.int("completed")
+        total = try o.int("total")
+    }
+}
+
+/// The body of a `422`: the Mac looked and cannot lay this book out, and says why.
+struct CannotReflowPayload: Decodable, Equatable, Sendable {
+    let error: String
+    let reason: String
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "cannot reflow")
+        error = try o.string("error")
+        reason = try o.string("reason")
+    }
+}
+
 /// The phone's whole view of where a book is. `percent` is a fraction
 /// (`0.42` = 42%); `null` means the book has never been opened, which is *not*
 /// the same as 0%. The Mac's CFI is deliberately not on the wire.
@@ -223,6 +273,8 @@ struct ContractBook: Decodable, Equatable, Hashable, Identifiable, Sendable {
     /// a refusal (see `StrictObject.stringsOrEmpty`), because a pre-shelves Mac
     /// omits it and the library must still decode.
     let shelves: [String]
+    /// Whether the Mac can lay this book out as an EPUB. Read through `objectOrDefault` (absent = not available).
+    let reflow: Reflow
 
     /// The format this client asks for: the wire's preference order is the
     /// server's own rule, so the client does not re-derive it.
@@ -253,6 +305,7 @@ struct ContractBook: Decodable, Equatable, Hashable, Identifiable, Sendable {
         cover = try o.object("cover", as: CoverInfo.self)
         reading = try o.object("reading", as: Reading.self)
         shelves = try o.stringsOrEmpty("shelves")
+        reflow = try o.objectOrDefault("reflow", default: Reflow(available: false))
     }
 }
 

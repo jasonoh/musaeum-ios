@@ -23,6 +23,32 @@ final class ContractDecodeTests: XCTestCase {
         try JSONDecoder().decode(type, from: try fixture(name))
     }
 
+    func testBookFixtureCarriesReflow() throws {
+        let book = try JSONDecoder().decode(ContractBook.self, from: fixture("book"))
+        XCTAssertEqual(book.reflow, Reflow(available: false))
+    }
+
+    /// **Every payload stored before this slice lacks the key**, and downloads decode their stored payload on every open.
+    func testAPayloadWithoutReflowStillDecodesAsNotAvailable() throws {
+        var object = try JSONSerialization.jsonObject(with: fixture("book")) as! [String: Any]
+        object.removeValue(forKey: "reflow")
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertEqual(try JSONDecoder().decode(ContractBook.self, from: data).reflow.available, false)
+        object["reflow"] = NSNull()
+        let nulled = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertEqual(try JSONDecoder().decode(ContractBook.self, from: nulled).reflow.available, false)
+    }
+
+    func testAPresentButMalformedReflowThrows() throws {
+        var object = try JSONSerialization.jsonObject(with: fixture("book")) as! [String: Any]
+        object["reflow"] = ["available": "yes"]
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(try JSONDecoder().decode(ContractBook.self, from: data))
+        object["reflow"] = [String: Any]()
+        let empty = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(try JSONDecoder().decode(ContractBook.self, from: empty))
+    }
+
     func testHealthDecodes() throws {
         let health = try decode(Health.self, "health")
         XCTAssertEqual(health.apiVersion, 1)
