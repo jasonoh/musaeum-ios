@@ -177,6 +177,43 @@ final class ReflowDownloadTests: XCTestCase {
         }
     }
 
+    func testAHostileRetryAfterOnA202FallsBackToTheDefault() async throws {
+        for header in ["nan", "inf", "-5"] {
+            let script = Script([progress("layout", 1, 2, retryAfter: header), .init(status: 200, body: epub)])
+            let client = client { _ in script.next() }
+            let pauses = Recorder<Duration>()
+            let result = try await run(client, pauses: pauses)
+            try? FileManager.default.removeItem(at: result.file)
+            XCTAssertEqual(pauses.all, [.seconds(2)], "Retry-After \(header)")
+        }
+    }
+
+    func testAHostileRetryAfterOnABusy503FallsBackToOneSecond() async throws {
+        for header in ["nan", "inf", "-5"] {
+            let client = client { _ in .init(status: 503, headers: ["Retry-After": header], body: Data(#"{"error":"busy"}"#.utf8)) }
+            let pauses = Recorder<Duration>()
+            do {
+                _ = try await run(client, pauses: pauses)
+                XCTFail("expected a throw")
+            } catch {
+                XCTAssertEqual(error as? ClientError, .busy(retryAfter: nil), "Retry-After \(header)")
+            }
+            XCTAssertEqual(pauses.all, [.seconds(1), .seconds(1)], "Retry-After \(header)")
+        }
+    }
+
+    func testANegativeRetryAfterDoesNotPostponeTheDeadline() async throws {
+        let client = client { _ in self.progress("layout", 1, 100, retryAfter: "-5") }
+        let pauses = Recorder<Duration>()
+        do {
+            _ = try await run(client, deadline: .seconds(10), pauses: pauses)
+            XCTFail("expected a throw")
+        } catch {
+            XCTAssertEqual(error as? ClientError, .unreachable("the Mac did not finish preparing this book in time"))
+        }
+        XCTAssertEqual(pauses.all.reduce(.zero, +), .seconds(10))
+    }
+
     func testTheDeadlineEndsAStuckPass() async throws {
         let client = client { _ in self.progress("layout", 1, 100) }
         let pauses = Recorder<Duration>()

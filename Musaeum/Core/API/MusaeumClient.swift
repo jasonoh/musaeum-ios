@@ -539,7 +539,11 @@ struct MusaeumClient: Sendable {
     }
 
     static func retryAfter(_ http: HTTPURLResponse) -> TimeInterval? {
-        (http.value(forHTTPHeaderField: "Retry-After")).flatMap(TimeInterval.init)
+        // `TimeInterval("nan")` and `("inf")` parse, `Duration.seconds(.nan)` traps, and a
+        // negative value would lower a caller's running total: none of them is a delay.
+        http.value(forHTTPHeaderField: "Retry-After")
+            .flatMap(TimeInterval.init)
+            .flatMap { $0.isFinite && $0 >= 0 ? $0 : nil }
     }
 
     private func retryDelay(_ error: ClientError) -> TimeInterval? {

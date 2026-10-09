@@ -41,7 +41,13 @@ final class ReflowDetailModelTests: XCTestCase {
         var text = try String(contentsOf: url, encoding: .utf8)
         text = text.replacingOccurrences(of: #""formats": ["epub", "mobi"]"#, with: #""formats": \#(formats)"#)
         text = text.replacingOccurrences(of: #""available": false"#, with: #""available": \#(available)"#)
-        return Data(text.utf8)
+        let data = Data(text.utf8)
+        // The edits are string replacements: prove they landed, so a spacing change in
+        // the fixture cannot quietly turn every case into the unedited book.
+        let decoded = try JSONDecoder().decode(ContractBook.self, from: data)
+        XCTAssertEqual(decoded.reflow.available, available, "the fixture's reflow.available was not replaced")
+        XCTAssertEqual(decoded.formats, try JSONDecoder().decode([String].self, from: Data(formats.utf8)), "the fixture's formats were not replaced")
+        return data
     }
 
     private func decode(_ data: Data) throws -> ContractBook {
