@@ -63,12 +63,29 @@ final class BookDetailModel {
         }
     }
 
+    /// The entry point for the button. `transfer` is set here, synchronously, so a
+    /// second tap in the same turn finds the download already under way. Only the
+    /// reflow poll is kept as a cancellable task: an ordinary download keeps running
+    /// after the screen goes away and lands in the shared store, as it always has.
     func startDownload(_ book: ContractBook) {
         guard !isTransferring else { return }
-        downloadTask = Task { await download(book) }
+        switch DownloadPlan.of(book) {
+        case .reflow:
+            transfer = .preparing(nil)
+            downloadTask = Task { [weak self] in
+                await self?.download(book)
+                self?.downloadTask = nil
+            }
+        case .format:
+            transfer = .working
+            Task { await download(book) }
+        case nil:
+            Task { await download(book) }
+        }
     }
 
-    /// Leaving the screen mid-pass: the poll stops, nothing is adopted.
+    /// Leaving the screen mid-pass: the reflow poll stops, nothing is adopted.
+    /// A no-op for an ordinary download, which is not kept as a task.
     func cancelDownload() {
         downloadTask?.cancel()
     }
@@ -196,6 +213,8 @@ final class BookDetailModel {
                 self?.transfer = .preparing(state)
             }
             try Task.checkCancellation()
+            var pages = 0
+            if case let .preparing(last?) = transfer { pages = last.total }
             let coverData = try? await client.cover(id: book.id, size: "thumb", version: book.cover.version)
             let record = try downloads.adopt(
                 temporaryFile: file,
@@ -205,7 +224,7 @@ final class BookDetailModel {
                 cover: coverData
             )
             transfer = .done
-            Probe.log("reflow downloaded book=\(book.id) bytes=\(record.bytes) cover=\(coverData?.count ?? 0)")
+            Probe.log("reflow downloaded book=\(book.id) bytes=\(record.bytes) pages=\(pages) cover=\(coverData?.count ?? 0)")
         } catch {
             if Task.isCancelled || error is CancellationError {
                 transfer = .idle

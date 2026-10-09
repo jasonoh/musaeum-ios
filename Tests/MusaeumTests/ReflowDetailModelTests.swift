@@ -210,12 +210,54 @@ final class ReflowDetailModelTests: XCTestCase {
         }
         try await Task.sleep(for: .milliseconds(100))
         let before = StubURLProtocol.requests.count
+        let task = try XCTUnwrap(model.downloadTask)
         model.cancelDownload()
-        await model.downloadTask?.value
+        await task.value
+        XCTAssertNil(model.downloadTask)
         try await Task.sleep(for: .milliseconds(150))
 
         XCTAssertEqual(model.transfer, .idle)
         XCTAssertFalse(downloads.isDownloaded(book.id))
         XCTAssertEqual(StubURLProtocol.requests.count, before)
+    }
+
+    private func waitUntilDone(_ model: BookDetailModel) async throws {
+        let deadline = Date().addingTimeInterval(10)
+        while model.transfer != .done, Date() < deadline { try await Task.sleep(for: .milliseconds(20)) }
+    }
+
+    func testLeavingTheScreenDoesNotCancelAnOrdinaryDownload() async throws {
+        let body = try bookJSON(formats: #"["epub", "pdf"]"#, available: false)
+        let book = try decode(body)
+        let downloads = store()
+        let model = model(downloads) { request in
+            if request.url?.path.hasSuffix("/file") == true { return .init(status: 200, body: self.epub, delay: 0.3) }
+            return request.url?.path.hasSuffix("/cover") == true ? .init(status: 404) : .init(status: 200, body: body)
+        }
+
+        model.startDownload(book)
+        try await Task.sleep(for: .milliseconds(100))
+        model.cancelDownload()
+        try await waitUntilDone(model)
+
+        XCTAssertEqual(model.transfer, .done)
+        XCTAssertEqual(downloads.fileURL(for: book.id)?.lastPathComponent, "\(book.id).epub")
+    }
+
+    func testTwoQuickTapsStartOneDownload() async throws {
+        let body = try bookJSON(formats: #"["epub"]"#, available: false)
+        let book = try decode(body)
+        let model = model(store()) { request in
+            if request.url?.path.hasSuffix("/file") == true { return .init(status: 200, body: self.epub, delay: 0.1) }
+            return request.url?.path.hasSuffix("/cover") == true ? .init(status: 404) : .init(status: 200, body: body)
+        }
+
+        model.startDownload(book)
+        model.startDownload(book)
+        try await waitUntilDone(model)
+
+        let requests = StubURLProtocol.requests
+        XCTAssertEqual(requests.filter { $0.url?.path.hasSuffix("/file") == true }.count, 1)
+        XCTAssertEqual(requests.filter { $0.url?.path == "/api/books/\(book.id)" }.count, 1)
     }
 }
