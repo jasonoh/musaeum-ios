@@ -14,6 +14,8 @@ final class BookDetailModel {
     enum Transfer: Equatable {
         case idle
         case working
+        /// A PDF-only book while the Mac lays it out; `nil` until the first 202 says where.
+        case preparing(ReflowProgress?)
         case done
         case failed(String)
     }
@@ -38,10 +40,37 @@ final class BookDetailModel {
 
     private let client: MusaeumClient
     private let downloads: DownloadStore
+    private let pause: @Sendable (Duration) async throws -> Void
 
-    init(client: MusaeumClient, downloads: DownloadStore) {
+    /// The running download, owned here so leaving the screen can cancel the poll.
+    private(set) var downloadTask: Task<Void, Never>?
+
+    init(
+        client: MusaeumClient,
+        downloads: DownloadStore,
+        pause: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
+    ) {
         self.client = client
         self.downloads = downloads
+        self.pause = pause
+    }
+
+    /// True while a download is in flight, whichever kind.
+    var isTransferring: Bool {
+        switch transfer {
+        case .working, .preparing: true
+        default: false
+        }
+    }
+
+    func startDownload(_ book: ContractBook) {
+        guard !isTransferring else { return }
+        downloadTask = Task { await download(book) }
+    }
+
+    /// Leaving the screen mid-pass: the poll stops, nothing is adopted.
+    func cancelDownload() {
+        downloadTask?.cancel()
     }
 
     var book: ContractBook? {
@@ -121,10 +150,19 @@ final class BookDetailModel {
     /// The downward half of the workstream, end to end: the book's payload, its
     /// file, and a cover for the shelf that must work with the Mac asleep.
     func download(_ book: ContractBook) async {
-        guard let format = book.preferredFormat else {
+        guard let plan = DownloadPlan.of(book) else {
             transfer = .failed("the Mac holds no format this app can read")
             return
         }
+        switch plan {
+        case let .format(format):
+            await downloadFormat(book, format: format)
+        case .reflow:
+            await downloadReflow(book)
+        }
+    }
+
+    private func downloadFormat(_ book: ContractBook, format: String) async {
         transfer = .working
         do {
             let payload = try await client.bookData(id: book.id)
@@ -145,6 +183,40 @@ final class BookDetailModel {
         } catch {
             transfer = .failed(String(describing: error))
             Probe.log("download failed book=\(book.id) error=\(error)")
+        }
+    }
+
+    /// A PDF-only book: the Mac lays it out and the phone keeps the EPUB. Nothing is
+    /// adopted unless the 200's file arrived; a cancelled poll leaves the screen idle.
+    private func downloadReflow(_ book: ContractBook) async {
+        transfer = .preparing(nil)
+        do {
+            let payload = try await client.bookData(id: book.id)
+            let (file, _) = try await client.downloadReflow(id: book.id, pause: pause) { [weak self] state in
+                self?.transfer = .preparing(state)
+            }
+            try Task.checkCancellation()
+            let coverData = try? await client.cover(id: book.id, size: "thumb", version: book.cover.version)
+            let record = try downloads.adopt(
+                temporaryFile: file,
+                payload: payload,
+                book: book,
+                format: "epub",
+                cover: coverData
+            )
+            transfer = .done
+            Probe.log("reflow downloaded book=\(book.id) bytes=\(record.bytes) cover=\(coverData?.count ?? 0)")
+        } catch {
+            if Task.isCancelled || error is CancellationError {
+                transfer = .idle
+                Probe.log("reflow cancelled book=\(book.id)")
+            } else if let error = error as? ClientError {
+                transfer = .failed(error.description)
+                Probe.log("reflow failed book=\(book.id) error=\(error)")
+            } else {
+                transfer = .failed(String(describing: error))
+                Probe.log("reflow failed book=\(book.id) error=\(error)")
+            }
         }
     }
 }
@@ -179,6 +251,7 @@ struct BookDetailScreen: View {
         .background(Palette.ink)
         .navigationTitle(book.title)
         .navigationBarTitleDisplayMode(.inline)
+        .onDisappear { model?.cancelDownload() }
         .task {
             guard model == nil, let base = settings.baseURL else { return }
             let model = BookDetailModel(
@@ -280,11 +353,11 @@ struct BookDetailScreen: View {
                 }
             } else {
                 Button {
-                    Task { await model.download(model.book ?? book) }
+                    model.startDownload(model.book ?? book)
                 } label: {
                     HStack {
-                        if model.transfer == .working { ProgressView().tint(Palette.ink) }
-                        Text(model.transfer == .working ? "Downloading…" : "Download to this phone")
+                        if model.isTransferring { ProgressView().tint(Palette.ink) }
+                        Text(model.isTransferring ? "Downloading…" : "Download to this phone")
                             .font(.headline)
                     }
                     .frame(maxWidth: .infinity)
@@ -292,12 +365,14 @@ struct BookDetailScreen: View {
                     .background(Palette.gold, in: .rect(cornerRadius: 12))
                     .foregroundStyle(Palette.ink)
                 }
-                .disabled(model.transfer == .working)
+                .disabled(model.isTransferring)
             }
 
             switch model.transfer {
             case let .failed(message):
                 Text(message).font(.footnote).foregroundStyle(Palette.danger)
+            case let .preparing(state):
+                Text(Self.preparingLine(state)).font(.footnote).foregroundStyle(Palette.muted)
             case .done:
                 Text("Downloaded — it reads with the Mac asleep.").font(.footnote).foregroundStyle(Palette.gold)
             default:
@@ -308,6 +383,11 @@ struct BookDetailScreen: View {
                 Text(shareFailure).font(.footnote).foregroundStyle(Palette.danger)
             }
         }
+    }
+
+    static func preparingLine(_ state: ReflowProgress?) -> String {
+        guard let state, state.total > 0 else { return "Preparing a readable copy…" }
+        return "Preparing a readable copy… \(state.completed) of \(state.total) pages"
     }
 
     /// **A share is a file leaving, and it needs no Mac at all.** What the door
