@@ -41,6 +41,9 @@ enum ClientError: Error, Equatable, CustomStringConvertible {
     case unsupportedAPIVersion(Int)
     /// The payload did not match the contract.
     case decoding(ContractError)
+    /// The Mac looked at this PDF and cannot lay it out (`422` on `format=reflow`).
+    /// A settled answer, not a transient one: asking again hears the same refusal.
+    case cannotReflow(String)
 
     var description: String {
         switch self {
@@ -56,6 +59,7 @@ enum ClientError: Error, Equatable, CustomStringConvertible {
         case .server: "the Mac hit an error serving that"
         case let .unsupportedAPIVersion(v): "the Mac speaks contract version \(v); this app speaks \(supportedAPIVersion)"
         case let .decoding(err): err.description
+        case let .cannotReflow(reason): "the Mac could not make a readable copy of this PDF — \(reason)"
         }
     }
 
@@ -63,7 +67,8 @@ enum ClientError: Error, Equatable, CustomStringConvertible {
     var isRetryable: Bool {
         switch self {
         case .busy, .libraryOffline, .unreachable: true
-        default: false
+        case .badBaseURL, .unauthorized, .badRequest, .notFound, .rangeNotSatisfiable, .tooLarge,
+             .server, .unsupportedAPIVersion, .decoding, .cannotReflow: false
         }
     }
 
@@ -310,6 +315,95 @@ struct MusaeumClient: Sendable {
             }
         }
         throw ClientError.unreachable("the transfer never settled")
+    }
+
+    /// `GET /api/books/{id}/file?format=reflow`, polled to its end.
+    ///
+    /// Not `download`: that treats any 2xx as the file, and a reflow `202` is
+    /// "still running" with a JSON progress body. Here 200 is the book, 202 reports
+    /// progress and asks again after `Retry-After` (clamped to 1…10 s, default 2),
+    /// 422 is the Mac's settled refusal, and every other status keeps its ordinary
+    /// meaning through `mapStatus`. `deadline` counts the pauses *requested*, not
+    /// wall time, so a test with an instant `pause` ends a stuck pass at once.
+    func downloadReflow(
+        id: String,
+        deadline: Duration = .seconds(25 * 60),
+        pause: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) },
+        onProgress: @MainActor @Sendable (ReflowProgress) -> Void
+    ) async throws -> (file: URL, bytes: Int) {
+        var waited: Duration = .zero
+        var busyRetries = 0
+        while true {
+            try Task.checkCancellation()
+            let temporary: URL
+            let http: HTTPURLResponse
+            do {
+                let (file, response) = try await session.download(for: fileRequest(id: id, format: "reflow"))
+                guard let r = response as? HTTPURLResponse else {
+                    try? FileManager.default.removeItem(at: file)
+                    throw ClientError.unreachable("no HTTP response")
+                }
+                temporary = file
+                http = r
+            } catch let error as ClientError {
+                throw error
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                throw ClientError.unreachable(error.localizedDescription)
+            }
+
+            switch http.statusCode {
+            case 200:
+                let size = (try? FileManager.default.attributesOfItem(atPath: temporary.path)[.size] as? Int) ?? nil
+                return (temporary, size ?? 0)
+            case 202:
+                let body = try? Data(contentsOf: temporary)
+                try? FileManager.default.removeItem(at: temporary)
+                let state = body.flatMap { try? JSONDecoder().decode(ReflowProgress.self, from: $0) }
+                    ?? ReflowProgress(phase: "start", completed: 0, total: 0)
+                await onProgress(state)
+                busyRetries = 0
+                try await wait(Self.reflowDelay(http), waited: &waited, deadline: deadline, pause: pause)
+            case 422:
+                let body = try? Data(contentsOf: temporary)
+                try? FileManager.default.removeItem(at: temporary)
+                let reason = body.flatMap { try? JSONDecoder().decode(CannotReflowPayload.self, from: $0) }?.reason
+                throw ClientError.cannotReflow(reason ?? "the Mac gave no reason")
+            default:
+                let body = try? Data(contentsOf: temporary)
+                try? FileManager.default.removeItem(at: temporary)
+                var failure: ClientError = .server
+                do {
+                    try Self.mapStatus(http, body: body)
+                    failure = .unreachable("unexpected status \(http.statusCode)")
+                } catch let error as ClientError {
+                    failure = error
+                }
+                guard failure.isRetryable, busyRetries < 2 else { throw failure }
+                busyRetries += 1
+                try await wait(retryDelay(failure) ?? 1, waited: &waited, deadline: deadline, pause: pause)
+            }
+        }
+    }
+
+    /// The next poll's delay: the Mac's `Retry-After`, held to 1…10 s, 2 s when absent.
+    private static func reflowDelay(_ http: HTTPURLResponse) -> TimeInterval {
+        min(max(retryAfter(http) ?? 2, 1), 10)
+    }
+
+    private func wait(
+        _ seconds: TimeInterval,
+        waited: inout Duration,
+        deadline: Duration,
+        pause: @Sendable (Duration) async throws -> Void
+    ) async throws {
+        let delay = Duration.seconds(seconds)
+        try await pause(delay)
+        waited += delay
+        if waited >= deadline {
+            throw ClientError.unreachable("the Mac did not finish preparing this book in time")
+        }
     }
 
     // MARK: The one write

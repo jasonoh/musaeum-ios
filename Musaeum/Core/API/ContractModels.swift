@@ -201,6 +201,12 @@ struct ReflowProgress: Decodable, Equatable, Sendable {
     let completed: Int
     let total: Int
 
+    init(phase: String, completed: Int, total: Int) {
+        self.phase = phase
+        self.completed = completed
+        self.total = total
+    }
+
     init(from decoder: any Decoder) throws {
         let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "reflow progress")
         phase = try o.string("phase")
