@@ -10,6 +10,10 @@ Gates on the committed tree (run 2026-10-06 on `632b422`): `xcodegen generate`, 
 
 **Nothing on the wire moved for any of it.** No route added, no field changed, no design decision (CD1–CD8) re-opened — the contract is still the Mac's `docs/rest-api.md` at `apiVersion` 1. A client slice that needs a route the document does not carry **cannot start**: the fixtures are extracted from the document itself, so the contract slice lands in the Mac repo first.
 
+## Planned, not started
+
+- **Ask about the page you're on (slices 3 and 4 of the phone-ask design).** A reader sheet that asks the Mac's model about the current page, behind an `AskBackend` interface so a phone-direct backend can be added later without moving the UI. **Blocked on the Mac half** — a new streaming route, `POST /api/ai/ask`, and an additive `health.ai` member — which must land in the Mac repo first, because this repo's models and fixtures derive from that document (invariant 1). Design: `../musaeum-macos/docs/superpowers/specs/2026-10-13-phone-ask-design.md`; plan: `../musaeum-macos/docs/superpowers/plans/2026-10-13-phone-ask-ios.md`. Nothing is built. It will need `AGENTS.md` invariant 4 amended (a third deliberate exception: `health.ai` is absent on an older Mac) when it lands.
+
 ## Deferred, with the condition that would revive it
 
 - **Resumable downloads.** The wire supports a single `Range` today (the smoke run re-confirms `206` and `416`); this is client-only work. Revived by one transfer large enough that restarting it hurts — 80 books in this library hold an EPUB over 100 MB, the largest 528 MB, so the tailnet is what decides how often it bites.
