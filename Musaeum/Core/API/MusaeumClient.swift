@@ -488,6 +488,91 @@ struct MusaeumClient: Sendable {
         )
     }
 
+    // MARK: Ask
+
+    /// How long a stream may be silent before `URLSession` gives up on it. The Mac writes a
+    /// `: ping` comment every 15 s while a model thinks, so three of them missed is a dead
+    /// connection, not a slow model.
+    static let askIdleTimeout: TimeInterval = 45
+
+    /// The ask route's request, composed where a case can read it.
+    static func askRequest(base: URL, token: String, request: AskRequest) throws -> URLRequest {
+        var urlRequest = Self.request(
+            base: base, token: token, path: "api/ai/ask", method: "POST", body: try request.body())
+        urlRequest.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        urlRequest.timeoutInterval = askIdleTimeout
+        return urlRequest
+    }
+
+    /// `POST /api/ai/ask`, as a stream of events.
+    ///
+    /// **The stream finishes only after a terminal event.** A `done` or an `error` event is the
+    /// Mac saying it is finished; bytes that simply stop are the Mac quitting, the tailnet
+    /// dropping or the app being backgrounded, and report as `unreachable`. Cancelling the task
+    /// that consumes the stream closes the connection, which the Mac reads as the reader leaving.
+    ///
+    /// The bytes are framed one **line** at a time rather than through `AsyncBytes.lines`, which
+    /// drops blank lines — and a blank line is what ends an event.
+    func ask(_ request: AskRequest) -> AsyncThrowingStream<AskEvent, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    let urlRequest = try Self.askRequest(base: base, token: token, request: request)
+                    let (bytes, response) = try await session.bytes(for: urlRequest)
+                    guard let http = response as? HTTPURLResponse else {
+                        throw ClientError.unreachable("no HTTP response")
+                    }
+                    if !(200..<300).contains(http.statusCode) {
+                        var body = Data()
+                        for try await byte in bytes {
+                            body.append(byte)
+                            if body.count >= 4096 { break }
+                        }
+                        try Self.mapStatus(http, body: body)
+                        throw ClientError.server
+                    }
+
+                    var parser = SSEParser()
+                    var line = Data()
+                    var terminal = false
+                    for try await byte in bytes {
+                        line.append(byte)
+                        guard byte == 0x0A else { continue }
+                        let text = String(decoding: line, as: UTF8.self)
+                        line.removeAll(keepingCapacity: true)
+                        for frame in parser.push(text) {
+                            guard let event = try AskEvent.decode(name: frame.event, data: Data(frame.data.utf8))
+                            else { continue }
+                            continuation.yield(event)
+                            switch event {
+                            case .done, .error: terminal = true
+                            default: break
+                            }
+                        }
+                    }
+                    guard terminal else {
+                        throw ClientError.unreachable("the answer stopped arriving before the Mac finished it")
+                    }
+                    continuation.finish()
+                } catch is CancellationError {
+                    continuation.finish(throwing: CancellationError())
+                } catch let error as URLError where error.code == .cancelled {
+                    // A cancelled URLSession task throws this, not CancellationError.
+                    continuation.finish(throwing: CancellationError())
+                } catch let error as ClientError {
+                    continuation.finish(throwing: error)
+                } catch let error as ContractError {
+                    continuation.finish(throwing: ClientError.decoding(error))
+                } catch let error as DecodingError {
+                    continuation.finish(throwing: ClientError.decoding(Self.contractError(from: error)))
+                } catch {
+                    continuation.finish(throwing: ClientError.unreachable((error as NSError).localizedDescription))
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
     // MARK: Plumbing
 
     private func sendJSON<T: Decodable>(_ request: URLRequest) async throws -> T {

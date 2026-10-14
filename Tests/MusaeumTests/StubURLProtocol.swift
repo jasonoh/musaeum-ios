@@ -10,6 +10,8 @@ final class StubURLProtocol: URLProtocol {
         var headers: [String: String] = [:]
         var body: Data = Data()
         var delay: TimeInterval = 0
+        /// A body delivered in pieces, one `didLoad` each — the shape of a streamed response.
+        var chunks: [Data] = []
     }
 
     private static let lock = NSLock()
@@ -17,6 +19,7 @@ final class StubURLProtocol: URLProtocol {
     nonisolated(unsafe) private static var inFlight = 0
     nonisolated(unsafe) private static var peak = 0
     nonisolated(unsafe) private static var log: [URLRequest] = []
+    nonisolated(unsafe) private static var stopped = 0
 
     static func configure(_ handler: @escaping (URLRequest) -> Response) {
         lock.lock()
@@ -25,12 +28,20 @@ final class StubURLProtocol: URLProtocol {
         inFlight = 0
         peak = 0
         log = []
+        stopped = 0
     }
 
     static var requests: [URLRequest] {
         lock.lock()
         defer { lock.unlock() }
         return log
+    }
+
+    /// How many loads the session has abandoned — a cancelled request closes its connection.
+    static var stoppedLoads: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return stopped
     }
 
     static var peakConcurrency: Int {
@@ -70,12 +81,18 @@ final class StubURLProtocol: URLProtocol {
                 headerFields: response.headers
             )!
             self.client?.urlProtocol(self, didReceive: http, cacheStoragePolicy: .notAllowed)
-            if !response.body.isEmpty {
+            if !response.chunks.isEmpty {
+                for chunk in response.chunks { self.client?.urlProtocol(self, didLoad: chunk) }
+            } else if !response.body.isEmpty {
                 self.client?.urlProtocol(self, didLoad: response.body)
             }
             self.client?.urlProtocolDidFinishLoading(self)
         }
     }
 
-    override func stopLoading() {}
+    override func stopLoading() {
+        Self.lock.lock()
+        Self.stopped += 1
+        Self.lock.unlock()
+    }
 }

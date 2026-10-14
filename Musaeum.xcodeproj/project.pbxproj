@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04BE8EA0EB916614038D258D /* AskBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63655441E1D7CF3EA9EC78B0 /* AskBackend.swift */; };
 		058525E91FECCCAE9AECB2A3 /* AskContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34EF82939B409982F9D9060 /* AskContractTests.swift */; };
 		09FBF3994BE9FF2F7184439E /* BarMarginTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AAE973C42B53AD813E4C0FB /* BarMarginTests.swift */; };
 		0B5B4B4122B6EBD2ED15FFC6 /* ask-delta.json in Resources */ = {isa = PBXBuildFile; fileRef = 251C1A30994606D5667F9745 /* ask-delta.json */; };
@@ -64,6 +65,7 @@
 		98279CE527523DCFED68DFEF /* ReaderHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9F1D01B1824F1AC625C667 /* ReaderHost.swift */; };
 		9923E11469CFDC75F8B4AF82 /* library.json in Resources */ = {isa = PBXBuildFile; fileRef = EE5094E33088020887D199CF /* library.json */; };
 		9B08F710D31EB946A8A36CA5 /* ReaderPrefsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F409391556EBEB5326882ACA /* ReaderPrefsTests.swift */; };
+		9D64120F89CB8B6E47A31DF2 /* AskClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723F289745B72C243B80E832 /* AskClientTests.swift */; };
 		A003E4A55A2DD123C46E498C /* SSEParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7886365170CCE95AD65E3872 /* SSEParser.swift */; };
 		A294B7F8EA337ED6578EA795 /* ReaderInsets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26FAA1EAA3C774C0E6C2EB4E /* ReaderInsets.swift */; };
 		A418F78B272DA58E98E34ACF /* FilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BC2EBDAF3E4239A9692C34 /* FilterSheet.swift */; };
@@ -149,9 +151,11 @@
 		578AFE52A9D1202FDB87FD9C /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		59AA610D06CC7B3DD6D2C9A3 /* health.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = health.json; sourceTree = "<group>"; };
 		5A3FF654C46D7B19B16848A5 /* ConnectScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectScreen.swift; sourceTree = "<group>"; };
+		63655441E1D7CF3EA9EC78B0 /* AskBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskBackend.swift; sourceTree = "<group>"; };
 		64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusaeumClient.swift; sourceTree = "<group>"; };
 		6D4512DC0B93D19548F957A5 /* error.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = error.json; sourceTree = "<group>"; };
 		705A94184FA87C433B903CA4 /* DownloadsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsScreen.swift; sourceTree = "<group>"; };
+		723F289745B72C243B80E832 /* AskClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskClientTests.swift; sourceTree = "<group>"; };
 		73D5FA4ADC9ED8D63C302BA3 /* ReaderFooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFooterLabel.swift; sourceTree = "<group>"; };
 		7455D0B8DF55C8A88BD73138 /* DownloadPlanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadPlanTests.swift; sourceTree = "<group>"; };
 		771ED48F3450F3D1D1D66D38 /* UploadInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadInbox.swift; sourceTree = "<group>"; };
@@ -271,6 +275,7 @@
 		2EEFFF2A81597B6C9A684B63 /* MusaeumTests */ = {
 			isa = PBXGroup;
 			children = (
+				723F289745B72C243B80E832 /* AskClientTests.swift */,
 				E34EF82939B409982F9D9060 /* AskContractTests.swift */,
 				2AAE973C42B53AD813E4C0FB /* BarMarginTests.swift */,
 				9BF9D90F9757172EE9EAE639 /* ClientTests.swift */,
@@ -354,6 +359,7 @@
 		77845C1FCDB6459B28A33C7E /* API */ = {
 			isa = PBXGroup;
 			children = (
+				63655441E1D7CF3EA9EC78B0 /* AskBackend.swift */,
 				771F5EA8CA2D5F750132ED5E /* AskContract.swift */,
 				A73A5B0BEB9C18CB327F6AD2 /* ContractModels.swift */,
 				016D9C9511EC68185420617F /* CoverPipeline.swift */,
@@ -621,6 +627,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04BE8EA0EB916614038D258D /* AskBackend.swift in Sources */,
 				D5F266829DBFF9999DEE45A1 /* AskContract.swift in Sources */,
 				D88275CC50AA9E968C9A22F3 /* BarMargin.swift in Sources */,
 				C66D9F99ECE56D99EAF440D9 /* BookDetailScreen.swift in Sources */,
@@ -672,6 +679,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9D64120F89CB8B6E47A31DF2 /* AskClientTests.swift in Sources */,
 				058525E91FECCCAE9AECB2A3 /* AskContractTests.swift in Sources */,
 				09FBF3994BE9FF2F7184439E /* BarMarginTests.swift in Sources */,
 				18B77594E5F98C554440A482 /* ClientTests.swift in Sources */,
