@@ -64,7 +64,7 @@ struct StrictObject {
     func bool(_ key: String) throws -> Bool { try value(key, as: Bool.self) }
     func strings(_ key: String) throws -> [String] { try value(key, as: [String].self) }
 
-    /// **The one deliberate exception to the always-present rule (invariant 4).**
+    /// **The first of three deliberate exceptions to the always-present rule (invariant 4).**
     /// `shelves` is absent on a Mac older than the shelf slice: the member is not
     /// sent at all, and a required read would throw — taking the whole library
     /// down over a field the reader never sees. Absent and `null` both read as

@@ -30,6 +30,7 @@
 		2D3323D6A3FF17BC981C8ABE /* ReadingReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCFB7B06790C00536FDD1F8C /* ReadingReport.swift */; };
 		2DE23AA31BC4F37C882DB905 /* UploadSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D760338EA134B5E6B03898A /* UploadSheet.swift */; };
 		2E259BD6E5770217BB4F71CD /* LibraryFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF6C673F4216694D54A57BC /* LibraryFilterTests.swift */; };
+		2FB1C9D85D01A1D6B7165489 /* AskEndpointLineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E6848896DFBDE9C990DC41B /* AskEndpointLineTests.swift */; };
 		31319E2DDD414BE94DC93A94 /* ask-done.json in Resources */ = {isa = PBXBuildFile; fileRef = 95E1F48E2C41E7C43C7E4F96 /* ask-done.json */; };
 		375124D1855727F546A02226 /* facets.json in Resources */ = {isa = PBXBuildFile; fileRef = FFD8E3BB2E41D8521208E684 /* facets.json */; };
 		3897F8B16DE196FF21634649 /* InitialFraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FDD0012F3D8415AC1C59F55 /* InitialFraction.swift */; };
@@ -73,6 +74,7 @@
 		A418F78B272DA58E98E34ACF /* FilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BC2EBDAF3E4239A9692C34 /* FilterSheet.swift */; };
 		A4A54F195361D549F45C2D0A /* ReaderInsetsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42FA6C0074B2C0FFDE4EFC9 /* ReaderInsetsTests.swift */; };
 		A6AF3F646A4C7FD918CDB616 /* UploadModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ACC2BB482D74A107EE0A5C2 /* UploadModel.swift */; };
+		A7535E43E196F23525C73F83 /* AskEndpointLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ECAAEC6092B00DD63BCE423 /* AskEndpointLine.swift */; };
 		A955D005F98F32B8AC1BD626 /* DownloadsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705A94184FA87C433B903CA4 /* DownloadsScreen.swift */; };
 		B27BCAA24150CFEB65404255 /* ask-verdict.json in Resources */ = {isa = PBXBuildFile; fileRef = BB4C315E3F3D16FAA5041BCF /* ask-verdict.json */; };
 		B2DD820F69C73961513D06A4 /* ReadiumNavigator in Frameworks */ = {isa = PBXBuildFile; productRef = 25104749B30496EF12C0D950 /* ReadiumNavigator */; };
@@ -161,11 +163,13 @@
 		578AFE52A9D1202FDB87FD9C /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
 		59AA610D06CC7B3DD6D2C9A3 /* health.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = health.json; sourceTree = "<group>"; };
 		5A3FF654C46D7B19B16848A5 /* ConnectScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectScreen.swift; sourceTree = "<group>"; };
+		5E6848896DFBDE9C990DC41B /* AskEndpointLineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskEndpointLineTests.swift; sourceTree = "<group>"; };
 		63655441E1D7CF3EA9EC78B0 /* AskBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskBackend.swift; sourceTree = "<group>"; };
 		64B69A1F31F2BDC65A51C4E3 /* MusaeumClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusaeumClient.swift; sourceTree = "<group>"; };
 		65BF1608F893997A962C4680 /* SectionTextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionTextTests.swift; sourceTree = "<group>"; };
 		66EEA7CDDAC1D1C8A83CA343 /* AskSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskSessionTests.swift; sourceTree = "<group>"; };
 		6D4512DC0B93D19548F957A5 /* error.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = error.json; sourceTree = "<group>"; };
+		6ECAAEC6092B00DD63BCE423 /* AskEndpointLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskEndpointLine.swift; sourceTree = "<group>"; };
 		705A94184FA87C433B903CA4 /* DownloadsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsScreen.swift; sourceTree = "<group>"; };
 		723F289745B72C243B80E832 /* AskClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskClientTests.swift; sourceTree = "<group>"; };
 		73D5FA4ADC9ED8D63C302BA3 /* ReaderFooterLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderFooterLabel.swift; sourceTree = "<group>"; };
@@ -294,6 +298,7 @@
 				3E0E990678D7E2C85818E0FF /* AskCitationsTests.swift */,
 				723F289745B72C243B80E832 /* AskClientTests.swift */,
 				E34EF82939B409982F9D9060 /* AskContractTests.swift */,
+				5E6848896DFBDE9C990DC41B /* AskEndpointLineTests.swift */,
 				66EEA7CDDAC1D1C8A83CA343 /* AskSessionTests.swift */,
 				2AAE973C42B53AD813E4C0FB /* BarMarginTests.swift */,
 				9BF9D90F9757172EE9EAE639 /* ClientTests.swift */,
@@ -462,6 +467,7 @@
 			isa = PBXGroup;
 			children = (
 				86A53AA3F395E495C20FF2E8 /* AskCitations.swift */,
+				6ECAAEC6092B00DD63BCE423 /* AskEndpointLine.swift */,
 				E4BA3375527E69CD9D323DF6 /* AskSession.swift */,
 				9FDD0012F3D8415AC1C59F55 /* InitialFraction.swift */,
 				73D5FA4ADC9ED8D63C302BA3 /* ReaderFooterLabel.swift */,
@@ -654,6 +660,7 @@
 				04BE8EA0EB916614038D258D /* AskBackend.swift in Sources */,
 				BD66BAFEFCBDDAB307844B35 /* AskCitations.swift in Sources */,
 				D5F266829DBFF9999DEE45A1 /* AskContract.swift in Sources */,
+				A7535E43E196F23525C73F83 /* AskEndpointLine.swift in Sources */,
 				F3F1F41966EB8BCB64E9D723 /* AskSession.swift in Sources */,
 				E685444FC13241CFDC0A1561 /* AskSheet.swift in Sources */,
 				D88275CC50AA9E968C9A22F3 /* BarMargin.swift in Sources */,
@@ -711,6 +718,7 @@
 				269C3160E48D6C20AD1F7AD9 /* AskCitationsTests.swift in Sources */,
 				9D64120F89CB8B6E47A31DF2 /* AskClientTests.swift in Sources */,
 				058525E91FECCCAE9AECB2A3 /* AskContractTests.swift in Sources */,
+				2FB1C9D85D01A1D6B7165489 /* AskEndpointLineTests.swift in Sources */,
 				45C4AC3958E0F96A598544FE /* AskSessionTests.swift in Sources */,
 				09FBF3994BE9FF2F7184439E /* BarMarginTests.swift in Sources */,
 				18B77594E5F98C554440A482 /* ClientTests.swift in Sources */,

@@ -182,6 +182,20 @@ final class AskSessionTests: XCTestCase {
         guard case .ready = session.availability else { return XCTFail("the sheet should stay usable") }
     }
 
+    func testABusyProbeIsNotAVerdictSoTheNextOpenProbesAgain() async {
+        let (session, backend, _) = make()
+        backend.thrown = ClientError.busy(retryAfter: 1)
+        await session.open()
+        XCTAssertNil(session.verdict, "a transient refusal learned nothing about the book")
+        guard case .ready = session.availability else { return XCTFail("the sheet should stay usable") }
+
+        backend.thrown = nil
+        backend.script = { $0.mode == .probe ? [.verdict(.strong), .done(.stop)] : [.done(.stop)] }
+        await session.open()
+        XCTAssertEqual(backend.requests(.probe).count, 2)
+        XCTAssertEqual(session.verdict, .strong)
+    }
+
     func testAnAIUnavailableDuringTheProbeEndsAvailability() async {
         let (session, backend, _) = make()
         backend.thrown = ClientError.aiUnavailable("No model set")

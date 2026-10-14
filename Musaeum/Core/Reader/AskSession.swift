@@ -151,13 +151,22 @@ final class AskSession {
                 availability = .unavailable(reason)
                 return
             }
+            // A transient the contract names (`503 busy`): it learned nothing about the book, so —
+            // like a cancel — it leaves the verdict nil and the next open probes again.
+            if case .busy = error { return }
         } catch {
             // Dropped: unverified, and the sheet stays usable. (A cancel is handled below.)
         }
         // A cancelled consumer ends the stream cleanly, so reaching here proves nothing.
         if Task.isCancelled { return }
         verdict = landed
-        Probe.log("ask verdict=\(landed)")
+        Self.log("ask verdict=\(landed)")
+    }
+
+    /// The probe's readings only: nothing about a conversation is on disk in a normal run (AC24),
+    /// and `Probe.log` writes `Documents/probe.log`, so these lines exist only when a probe is driving.
+    private static func log(_ message: String) {
+        if Probe.isActive { Probe.log(message) }
     }
 
     // MARK: the disclosure line
@@ -179,7 +188,7 @@ final class AskSession {
                 if case let .disclosure(line) = event, generation == disclosureGeneration { disclosure = line }
             }
         } catch {
-            if !Task.isCancelled { Probe.log("ask preview failed: \(Self.sentence(error))") }
+            if !Task.isCancelled { Self.log("ask preview failed: \(Self.sentence(error))") }
         }
     }
 
@@ -256,7 +265,7 @@ final class AskSession {
                 failure = ownFailure
             }
         }
-        Probe.log(
+        Self.log(
             Task.isCancelled
                 ? "ask cancelled chars=\(chars)" : "ask answered chars=\(chars) failure=\(ownFailure ?? "none")")
     }
@@ -271,7 +280,7 @@ final class AskSession {
         let carriesText = mode == .probe || effective == .passage
         if carriesText, mode != .preview {
             // The offset the phone sent, for the probe's own record — numbers only, never the text.
-            Probe.log(
+            Self.log(
                 "ask offset=\(reader.section.offset.map(String.init) ?? "nil") units=\(reader.section.text?.utf16.count ?? 0) truncated=\(reader.section.truncated)"
             )
         }

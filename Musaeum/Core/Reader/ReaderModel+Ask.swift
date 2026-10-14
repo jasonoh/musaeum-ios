@@ -45,12 +45,27 @@ extension ReaderModel: AskContextProviding {
         // The navigator's href may carry a fragment or differ in encoding from the iterator's.
         let resource = location.href.removingFragment()
         var pieces: [SectionText.Piece] = []
-        for await element in content.sequence() {
-            if Task.isCancelled { return nil }
+        // The iterator, not `content.sequence()`: the sequence's `next()` swallows an error and
+        // calls itself again, and a resource whose parse failed (XHTML that is not valid UTF-8, in
+        // this resource or the next one we read into to find the section's end) fails the same
+        // way every time — so the loop body, and its cancellation check, would never run and
+        // `askContext()` would never return. A throw here ends the section with what we have.
+        let iterator = ElementIterator(content.iterator())
+        while !Task.isCancelled {
+            guard let element = await iterator.next() else { break }
             if !element.locator.href.removingFragment().isEquivalentTo(resource) { break }
             guard let block = element as? TextContentElement, let text = block.text, !text.isEmpty else { continue }
             pieces.append(SectionText.Piece(text: text, progression: element.locator.locations.progression))
         }
         return Task.isCancelled ? nil : pieces
     }
+}
+
+/// Readium's `ContentIterator` is not `Sendable`, and its `next()` is a nonisolated `async` call, which
+/// Swift 6 will not let the main actor make. This loop is the only thing that ever touches the
+/// iterator, one `next()` at a time, so the box says so. A throw becomes `nil`: the end of the section.
+private final class ElementIterator: @unchecked Sendable {
+    private let base: ContentIterator
+    init(_ base: ContentIterator) { self.base = base }
+    func next() async -> ContentElement? { try? await base.next() }
 }

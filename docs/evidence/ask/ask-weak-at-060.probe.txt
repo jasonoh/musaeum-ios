@@ -1,5 +1,5 @@
 === launched (ask-weak-at-060) ===
-dev.jasonoh.Musaeum: 19080
+dev.jasonoh.Musaeum: 25495
 === probe lines ===
 MUSAEUM_PROBE|library side inset=0.0 margin=16.0
 MUSAEUM_PROBE|library screen width=402.0
@@ -32,4 +32,4 @@ MUSAEUM_PROBE|ask answered chars=104 failure=none
 === staged for a share ===
 (end of the staged listing)
 === the Mac's own row for 660e57bd-cf5f-4e07-bd9b-a10dd9876f58 ===
-reading|0.6|2026-10-14T16:05:35.209Z|(null)
+unread|0.6|2026-10-14T16:22:45.636Z|(null)

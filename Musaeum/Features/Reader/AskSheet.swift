@@ -111,15 +111,15 @@ struct AskSheet: View {
     private func composer(_ capability: AskCapability) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             if let line = session.disclosure {
+                // The Mac's own sentence, whole: it names the endpoint and model, which are the point.
                 Text(line.text).font(.caption).foregroundStyle(Palette.muted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text(
-                capability.isLocal
-                    ? "Local — nothing leaves your Mac."
-                    : "Remote — \(capability.host) receives this."
-            )
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(capability.isLocal ? Palette.muted : Palette.gold)
+            let endpoint = AskEndpointLine.make(disclosure: session.disclosure, capability: capability)
+            Text(endpoint.text)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(endpoint.isLocal ? Palette.muted : Palette.gold)
+                .fixedSize(horizontal: false, vertical: true)
 
             Toggle(
                 "Send the passage too",

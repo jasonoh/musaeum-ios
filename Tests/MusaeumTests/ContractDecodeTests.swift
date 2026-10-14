@@ -214,8 +214,8 @@ final class ContractDecodeTests: XCTestCase {
         XCTAssertEqual(book.shelves, ["b2c3d4e5-6f70-4182-93a4-b5c6d7e8f901"])
     }
 
-    /// **The one deliberate exception to the always-present rule** (invariant 4,
-    /// and D11 names it): a pre-shelves Mac omits `shelves`, and a required read
+    /// **The first of three deliberate exceptions to the always-present rule**
+    /// (invariant 4 names all three; D11 names this one): a pre-shelves Mac omits `shelves`, and a required read
     /// would take the whole library down over a member the reader never sees.
     /// Absent reads as `[]`; so does an explicit `null` — both mean *this Mac
     /// reports no shelves*. Every other member's absence still throws, which the
