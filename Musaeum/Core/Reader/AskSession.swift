@@ -70,6 +70,10 @@ final class AskSession {
     @ObservationIgnored private let backend: (any AskBackend)?
     @ObservationIgnored private weak var context: (any AskContextProviding)?
     @ObservationIgnored private var current: Task<Void, Never>?
+    /// Bumped by every preview and every send. A disclosure is shown only if nothing newer has
+    /// started since its request went out: previews finish in any order, and the line says what
+    /// leaves the phone, so an older one must not overwrite a newer one.
+    @ObservationIgnored private var disclosureGeneration = 0
 
     init(bookId: String, backend: (any AskBackend)?, context: any AskContextProviding) {
         self.bookId = bookId
@@ -89,7 +93,9 @@ final class AskSession {
             availability = .unavailable("This app is not connected to a Mac.")
             return
         }
-        if case .ready = availability, verdict != nil {
+        // Ready and probed — or ready with a probe already in flight, which this open must neither
+        // repeat nor knock back to `.checking`.
+        if case .ready = availability, verdict != nil || probing {
             await refreshPreview()
             return
         }
@@ -118,25 +124,33 @@ final class AskSession {
     /// tries again. So does one that is **cancelled** (the sheet was dismissed mid-probe): it
     /// learned nothing, and locking `unknown` would deny the whole session a real verdict. One
     /// that runs and fails lands `unknown`, which is what is actually known, and is not repeated.
+    /// `aiUnavailable` is not a verdict either: a Mac that later gains a model should be probed.
+    ///
+    /// `probing` is claimed **before** the first suspension, so two overlapping opens cannot both
+    /// pass the guard while one waits for the reader's context.
     private func probeIfNeeded() async {
-        guard verdict == nil, !probing, let backend, let reader = await context?.askContext(),
-            reader.section.text != nil, !Task.isCancelled
-        else { return }
+        guard verdict == nil, !probing, let backend else { return }
         probing = true
         defer { probing = false }
+        guard let reader = await context?.askContext(), reader.section.text != nil, !Task.isCancelled
+        else { return }
 
+        let generation = disclosureGeneration
         var landed = RecallVerdict.unknown
         do {
             for try await event in backend.ask(makeRequest(.probe, reader, question: nil)) {
                 switch event {
-                case let .disclosure(line): disclosure = line
+                case let .disclosure(line): if generation == disclosureGeneration { disclosure = line }
                 case let .verdict(value): landed = value
                 case .delta, .done, .error: break
                 }
             }
         } catch let error as ClientError {
             if Task.isCancelled { return }
-            if case let .aiUnavailable(reason) = error { availability = .unavailable(reason) }
+            if case let .aiUnavailable(reason) = error {
+                availability = .unavailable(reason)
+                return
+            }
         } catch {
             // Dropped: unverified, and the sheet stays usable. (A cancel is handled below.)
         }
@@ -156,12 +170,13 @@ final class AskSession {
     /// Ask the Mac what the next send would contain. A preview calls no model; a failed one is not
     /// something the reader can act on, and the send reports its own.
     func refreshPreview() async {
-        guard !Task.isCancelled, case .ready = availability, let backend,
-            let reader = await context?.askContext(), !Task.isCancelled
-        else { return }
+        guard !Task.isCancelled, case .ready = availability, let backend else { return }
+        disclosureGeneration += 1
+        let generation = disclosureGeneration
+        guard let reader = await context?.askContext(), !Task.isCancelled else { return }
         do {
             for try await event in backend.ask(makeRequest(.preview, reader, question: Self.previewPlaceholder)) {
-                if case let .disclosure(line) = event { disclosure = line }
+                if case let .disclosure(line) = event, generation == disclosureGeneration { disclosure = line }
             }
         } catch {
             if !Task.isCancelled { Probe.log("ask preview failed: \(Self.sentence(error))") }
@@ -170,58 +185,80 @@ final class AskSession {
 
     // MARK: asking
 
-    /// The entry the sheet and the probe use: starts an answer and remembers it, cancelling any
-    /// answer still in flight.
+    /// **The entry point the sheet uses** (with `cancel()`): starts an answer and remembers its
+    /// task, cancelling any answer still in flight.
     func ask(_ question: String) {
         cancel()
         current = Task { [weak self] in await self?.send(question) }
     }
 
     /// Stop the answer in flight. What arrived is kept as text and marked finished at once — the
-    /// transcript does not wait for the cancelled task to notice.
+    /// transcript does not wait for the cancelled task to notice. It owns only the task `ask(_:)`
+    /// started: a `send(_:)` awaited directly is cancelled by cancelling its caller, not by this.
     func cancel() {
         current?.cancel()
         current = nil
         for turn in turns where turn.streaming { finish(turn.id) }
     }
 
+    /// The body of an answer. The sheet calls `ask(_:)`, not this: `ask(_:)` is what `cancel()` can
+    /// stop. This is internal so a test can await a whole answer.
     func send(_ question: String) async {
         let text = question.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, case .ready = availability, let backend, !Task.isCancelled else { return }
-        guard let reader = await context?.askContext() else {
+        let read = await context?.askContext()
+        // Replaced or dismissed while the reader's context was being read: nothing was shown,
+        // nothing is sent, and no sentence is written for an answer nobody is waiting on.
+        if Task.isCancelled { return }
+        guard let reader = read else {
             failure = "The book is still opening — try again in a moment."
             return
         }
-        // Replaced or dismissed while the reader's context was being read: nothing was shown, so nothing is sent.
-        if Task.isCancelled { return }
         failure = nil
+        disclosureGeneration += 1
         turns.append(Turn(role: .reader, text: text, streaming: false))
         let answer = Turn(role: .model, text: "", streaming: true)
         turns.append(answer)
         defer { finish(answer.id) }
 
+        // This answer's own figures, for its own log line — `turns` and `failure` may be another's by then.
+        var chars = 0
+        var ownFailure: String?
         do {
             for try await event in backend.ask(makeRequest(.ask, reader, question: text)) {
                 if Task.isCancelled { break }
                 switch event {
                 case let .disclosure(line): disclosure = line
-                case let .delta(piece): append(piece, to: answer.id)
-                case let .error(message): failure = message
+                case let .delta(piece):
+                    chars += piece.count
+                    append(piece, to: answer.id)
+                case let .error(message):
+                    ownFailure = message
+                    failure = message
                 case let .done(reason):
-                    if reason == .timeout { failure = "The model stopped answering." }
+                    if reason == .timeout {
+                        ownFailure = "The model stopped answering."
+                        failure = ownFailure
+                    }
                 case .verdict: break
                 }
             }
         } catch is CancellationError {
         } catch let error as ClientError {
             if !Task.isCancelled {
-                failure = Self.sentence(error)
+                ownFailure = Self.sentence(error)
+                failure = ownFailure
                 if case let .aiUnavailable(reason) = error { availability = .unavailable(reason) }
             }
         } catch {
-            if !Task.isCancelled { failure = Self.sentence(error) }
+            if !Task.isCancelled {
+                ownFailure = Self.sentence(error)
+                failure = ownFailure
+            }
         }
-        Probe.log("ask answered chars=\(turns.last(where: { $0.role == .model })?.text.count ?? 0) failure=\(failure ?? "none")")
+        Probe.log(
+            Task.isCancelled
+                ? "ask cancelled chars=\(chars)" : "ask answered chars=\(chars) failure=\(ownFailure ?? "none")")
     }
 
     // MARK: building a request

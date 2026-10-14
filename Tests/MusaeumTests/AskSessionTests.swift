@@ -27,6 +27,10 @@ final class AskSessionTests: XCTestCase {
         var hangs = false
         /// When set, a probe stream yields its script and then never finishes (a dismissed sheet).
         var probeHangs = false
+        /// When set, a preview's events arrive this long after the request (out-of-order previews).
+        var previewDelay: (@Sendable (AskRequest) -> Duration)?
+        /// When set, the capability check takes this long (the Mac answering `/api/health`).
+        var capabilityDelay: Duration?
 
         var requests: [AskRequest] { lock.lock(); defer { lock.unlock() }; return _requests }
         func requests(_ mode: AskMode) -> [AskRequest] { requests.filter { $0.mode == mode } }
@@ -35,7 +39,10 @@ final class AskSessionTests: XCTestCase {
         func terminated(_ mode: AskMode) -> Int { lock.lock(); defer { lock.unlock() }; return _terminated.filter { $0 == mode }.count }
         private func noteTermination(_ mode: AskMode) { lock.lock(); _terminated.append(mode); lock.unlock() }
 
-        func capability() async throws -> AskCapability { try capabilityResult.get() }
+        func capability() async throws -> AskCapability {
+            if let capabilityDelay { try? await Task.sleep(for: capabilityDelay) }
+            return try capabilityResult.get()
+        }
 
         func ask(_ request: AskRequest) -> AsyncThrowingStream<AskEvent, Error> {
             lock.lock()
@@ -46,6 +53,16 @@ final class AskSessionTests: XCTestCase {
             // Only an answer or a probe hangs: a preview that never finished would stall `open()`
             let hangs = (hangs && request.mode == .ask) || (probeHangs && request.mode == .probe)
             let mode = request.mode
+            if mode == .preview, let delay = previewDelay?(request) {
+                return AsyncThrowingStream { continuation in
+                    let task = Task {
+                        try? await Task.sleep(for: delay)
+                        for event in events { continuation.yield(event) }
+                        continuation.finish()
+                    }
+                    continuation.onTermination = { _ in task.cancel() }
+                }
+            }
             return AsyncThrowingStream { continuation in
                 continuation.onTermination = { [weak self] _ in self?.noteTermination(mode) }
                 for event in events { continuation.yield(event) }
@@ -55,10 +72,18 @@ final class AskSessionTests: XCTestCase {
     }
 
     final class FakeContext: AskContextProviding {
+        /// When set, reading the context suspends this long (the engine laying out).
+        var delay: Duration?
+        /// How many times the context has been asked for.
+        var reads = 0
         var context: AskReaderContext? = AskReaderContext(
             label: "Chapter 4", fraction: 0.4, selection: nil,
             section: SectionText(text: "It was the best of times.", offset: 3, truncated: false))
-        func askContext() async -> AskReaderContext? { context }
+        func askContext() async -> AskReaderContext? {
+            reads += 1
+            if let delay { try? await Task.sleep(for: delay) }
+            return context
+        }
     }
 
     /// The session holds its context `weak` (the reader owns the session, not the reverse), so a
@@ -162,6 +187,15 @@ final class AskSessionTests: XCTestCase {
         backend.thrown = ClientError.aiUnavailable("No model set")
         await session.open()
         XCTAssertEqual(session.availability, .unavailable("No model set"))
+        XCTAssertNil(session.verdict, "not a verdict: a Mac that gains a model is probed")
+        XCTAssertFalse(session.probing)
+
+        // The Mac gets a model; the next open probes.
+        backend.thrown = nil
+        backend.script = { $0.mode == .probe ? [.verdict(.strong), .done(.stop)] : [.done(.stop)] }
+        await session.open()
+        XCTAssertEqual(backend.requests(.probe).count, 2)
+        XCTAssertEqual(session.verdict, .strong)
     }
 
     /// The Mac panel waits for the section before it probes (`!section` returns early), and for the
@@ -175,6 +209,53 @@ final class AskSessionTests: XCTestCase {
         XCTAssertTrue(backend.requests(.probe).isEmpty)
         XCTAssertNil(session.verdict, "not probed — the next open tries again")
         guard case .ready = session.availability else { return XCTFail("the sheet should still be usable") }
+    }
+
+    func testASectionThatGainsTextIsProbedOnTheNextOpen() async {
+        let (session, backend, context) = make()
+        context.context?.section = SectionText(text: nil, offset: nil, truncated: false)
+        await session.open()
+        XCTAssertTrue(backend.requests(.probe).isEmpty)
+
+        context.context?.section = SectionText(text: "Now there is text.", offset: 0, truncated: false)
+        await session.open()
+        XCTAssertEqual(backend.requests(.probe).count, 1)
+        XCTAssertEqual(backend.requests(.probe).first?.section.text, "Now there is text.")
+        XCTAssertNotNil(session.verdict)
+    }
+
+    /// `probing` must be claimed before the reader's context is awaited, or two opens that overlap
+    /// while it is read each send a probe.
+    func testTwoOverlappingOpensSendOneProbe() async {
+        let (session, backend, context) = make()
+        context.delay = .milliseconds(60)
+        backend.script = { $0.mode == .probe ? [.verdict(.strong), .done(.stop)] : [.done(.stop)] }
+
+        let first = Task { await session.open() }
+        await waitUntil("the first open to be reading the context") { context.reads >= 1 }
+        let second = Task { await session.open() }
+        await first.value
+        await second.value
+
+        XCTAssertEqual(backend.requests(.probe).count, 1, "one probe per (book, session)")
+        XCTAssertEqual(session.verdict, .strong)
+        guard case .ready = session.availability else { return XCTFail("the sheet should end ready") }
+    }
+
+    /// A second open while a probe is in flight must not knock a ready sheet back to `.checking`.
+    func testASecondOpenDuringTheProbeLeavesTheSheetReady() async {
+        let (session, backend, context) = make()
+        context.delay = .milliseconds(60)
+        let first = Task { await session.open() }
+        await waitUntil("the first open to be reading the context") { context.reads >= 1 }
+        // Slow the capability check, so that a second open which wrongly re-checked would be seen
+        // sitting at `.checking` while the first is still waiting.
+        backend.capabilityDelay = .milliseconds(80)
+        let second = Task { await session.open() }
+        await Task.yield()
+        if case .ready = session.availability {} else { XCTFail("the second open reset a ready sheet to checking") }
+        await first.value
+        await second.value
     }
 
     func testAReaderThatIsNotReadyDoesNotProbeAndDoesNotCrash() async {
@@ -328,6 +409,36 @@ final class AskSessionTests: XCTestCase {
         XCTAssertEqual(session.turns.last?.role, .model)
         XCTAssertNil(session.failure, "a cancel the reader asked for is not a failure")
         await waitUntil("the stream to be let go") { backend.terminated(.ask) == 1 }
+    }
+
+    func testALatePreviewDoesNotOverwriteANewerOne() async {
+        let (session, backend, _) = make()
+        backend.script = { request in
+            request.mode == .preview ? [.disclosure(makeDisclosure("rung=\(request.rung.rawValue)")), .done(.stop)] : [.done(.stop)]
+        }
+        await session.open()
+
+        // The passage preview is slow, the pointer one that follows it is fast.
+        backend.previewDelay = { $0.rung == .passage ? .milliseconds(150) : .milliseconds(5) }
+        let slow = Task { await session.setPassageOverride(true) }
+        await waitUntil("the passage preview to be asked") { backend.requests(.preview).last?.rung == .passage }
+        await session.setPassageOverride(false)
+        await slow.value
+
+        XCTAssertEqual(session.rung, .pointer)
+        XCTAssertEqual(session.disclosure?.text, "rung=pointer", "the line must describe the latest request")
+    }
+
+    func testAnErrorAfterSomeTokensKeepsThePartialAnswer() async {
+        let (session, backend, _) = make()
+        backend.script = { request in request.mode == .ask ? [.delta("Half an"), .error("the model fell over")] : [.done(.stop)] }
+        await session.open()
+        await session.send("q")
+
+        XCTAssertEqual(session.turns.last?.role, .model)
+        XCTAssertEqual(session.turns.last?.text, "Half an")
+        XCTAssertEqual(session.turns.last?.streaming, false)
+        XCTAssertEqual(session.failure, "the model fell over")
     }
 
     func testAskingAgainCancelsTheAnswerInFlight() async {
