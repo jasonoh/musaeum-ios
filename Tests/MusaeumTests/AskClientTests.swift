@@ -70,7 +70,8 @@ final class AskClientTests: XCTestCase {
     func testEventsArrivingInPiecesStillDecode() async throws {
         let text = try frame("delta", "ask-delta") + frame("done", "ask-done")
         let bytes = Array(text.utf8)
-        // Cut into 7-byte reads — some will end inside a frame, some inside a multi-byte character
+        // Cut into 7-byte reads. `ask` splits on newlines byte by byte, so it is independent of read
+        // boundaries and this passes whatever the cut; it guards a future move to chunk-based reads.
         let chunks = stride(from: 0, to: bytes.count, by: 7).map { Data(bytes[$0 ..< min($0 + 7, bytes.count)]) }
         let client = client { _ in StubURLProtocol.Response(status: 200, chunks: chunks) }
 
@@ -83,6 +84,24 @@ final class AskClientTests: XCTestCase {
         let client = client { _ in StubURLProtocol.Response(status: 200, body: Data(text.utf8)) }
         let events = try await collect(client.ask(request))
         XCTAssertEqual(events, [.done(.stop)])
+    }
+
+    /// The Mac may hold the connection open after `done`. The stream must finish at the terminal
+    /// event, yielding nothing after it and decoding nothing after it.
+    func testNothingAfterTheTerminalEventIsReadOrYielded() async throws {
+        let tails = [
+            ("an extra event", try frame("delta", "ask-delta")),
+            ("a broken event", "event: delta\ndata: {\"nope\":1}\n\n"),
+            ("a partial line", "event: delta\ndata: {\"te"),
+            ("garbage", "\u{0}\u{1}not sse at all\n\n"),
+        ]
+        for (label, tail) in tails {
+            let text = try frame("delta", "ask-delta") + frame("done", "ask-done") + tail
+            let client = client { _ in StubURLProtocol.Response(status: 200, body: Data(text.utf8)) }
+            let events = try await collect(client.ask(request))
+            XCTAssertEqual(events.count, 2, "after \(label)")
+            XCTAssertEqual(events.last, .done(.stop), "after \(label)")
+        }
     }
 
     func testAnErrorEventEndsTheStreamAsAnOutcomeNotAThrow() async throws {

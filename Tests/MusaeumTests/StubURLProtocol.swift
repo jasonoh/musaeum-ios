@@ -60,6 +60,12 @@ final class StubURLProtocol: URLProtocol {
 
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
+    /// Guarded by `lock`: whether this load's delivery block has begun, and whether `stopLoading`
+    /// got there first. `inFlight` is decremented exactly once per load, by whichever comes first.
+    private var delivering = false
+    private var abandoned = false
+    private var delivery: DispatchWorkItem?
+
     override func startLoading() {
         Self.lock.lock()
         Self.inFlight += 1
@@ -69,30 +75,47 @@ final class StubURLProtocol: URLProtocol {
         Self.lock.unlock()
 
         let response = handler?(request) ?? Response(status: 500)
-        DispatchQueue.global().asyncAfter(deadline: .now() + response.delay) {
+        let item = DispatchWorkItem { [self] in
             Self.lock.lock()
+            if abandoned {
+                Self.lock.unlock()
+                return
+            }
+            delivering = true
             Self.inFlight -= 1
             Self.lock.unlock()
 
             let http = HTTPURLResponse(
-                url: self.request.url!,
+                url: request.url!,
                 statusCode: response.status,
                 httpVersion: "HTTP/1.1",
                 headerFields: response.headers
             )!
-            self.client?.urlProtocol(self, didReceive: http, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didReceive: http, cacheStoragePolicy: .notAllowed)
             if !response.chunks.isEmpty {
-                for chunk in response.chunks { self.client?.urlProtocol(self, didLoad: chunk) }
+                for chunk in response.chunks { client?.urlProtocol(self, didLoad: chunk) }
             } else if !response.body.isEmpty {
-                self.client?.urlProtocol(self, didLoad: response.body)
+                client?.urlProtocol(self, didLoad: response.body)
             }
-            self.client?.urlProtocolDidFinishLoading(self)
+            client?.urlProtocolDidFinishLoading(self)
         }
+        Self.lock.lock()
+        delivery = item
+        Self.lock.unlock()
+        DispatchQueue.global().asyncAfter(deadline: .now() + response.delay, execute: item)
     }
 
+    /// A cancelled request must not leave its delayed delivery behind to run against state a later
+    /// test has reset: cancel the block, and if it never began, give back the slot it took.
     override func stopLoading() {
         Self.lock.lock()
         Self.stopped += 1
+        if !delivering && !abandoned {
+            abandoned = true
+            Self.inFlight -= 1
+        }
+        let item = delivery
         Self.lock.unlock()
+        item?.cancel()
     }
 }

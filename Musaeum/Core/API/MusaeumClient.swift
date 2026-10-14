@@ -510,6 +510,9 @@ struct MusaeumClient: Sendable {
     /// Mac saying it is finished; bytes that simply stop are the Mac quitting, the tailnet
     /// dropping or the app being backgrounded, and report as `unreachable`. Cancelling the task
     /// that consumes the stream closes the connection, which the Mac reads as the reader leaving.
+    /// A consumer-side cancel ends the stream cleanly (no thrown error), so a caller that cancelled
+    /// must not treat that end as a completed answer. Reading stops at the first terminal event;
+    /// whatever follows it on the wire is never read.
     ///
     /// The bytes are framed one **line** at a time rather than through `AsyncBytes.lines`, which
     /// drops blank lines — and a blank line is what ends an event.
@@ -535,7 +538,10 @@ struct MusaeumClient: Sendable {
                     var parser = SSEParser()
                     var line = Data()
                     var terminal = false
-                    for try await byte in bytes {
+                    // The first terminal event is the end: stop reading there rather than at EOF, so a
+                    // Mac that holds the connection open after `done` does not turn a finished answer
+                    // into a 45 s wait and an `unreachable`, and nothing after it is yielded or decoded.
+                    reading: for try await byte in bytes {
                         line.append(byte)
                         guard byte == 0x0A else { continue }
                         let text = String(decoding: line, as: UTF8.self)
@@ -548,6 +554,7 @@ struct MusaeumClient: Sendable {
                             case .done, .error: terminal = true
                             default: break
                             }
+                            if terminal { break reading }
                         }
                     }
                     guard terminal else {
