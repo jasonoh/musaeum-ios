@@ -39,6 +39,7 @@ A reading client for [Musaeum](https://github.com/jasonoh/musaeum-macos). It bro
 | 🔁 **Position**        | Travels both ways                | Opens at the fraction the Mac last recorded, and reports back when you close the book — queued while the Mac is away, ordered so a stale reading can never rewind it.  |
 | ⬆️ **Send to the Mac** | From Files, Safari or Mail       | Pick a book, or share one to Musaeum. It goes through the Mac's own importer, and the row reports what happened in the Mac's own words.                                |
 | 📤 **Share out**       | AirDrop, Mail, Save to Files     | Share a downloaded book under the title and author you know it by, with no extra copy on the phone.                                                                    |
+| 💬 **Ask**             | About the page you're on         | Ask about the page you're on; the Mac's model answers, and the sheet says what leaves the Mac before you send. |
 
 ## 🚀 Getting started
 

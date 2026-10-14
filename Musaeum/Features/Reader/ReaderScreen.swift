@@ -16,8 +16,9 @@ struct ReaderScreen: View {
     @State private var model: ReaderModel
     @State private var showingContents = false
     @State private var showingTypography = false
-    @State private var showingAsk = false
+    /// The conversation, kept for as long as the screen is; `shownAsk` is only whether its sheet is up.
     @State private var askSession: AskSession?
+    @State private var shownAsk: AskSession?
 
     init(request: ReadingRequest) {
         self.request = request
@@ -85,12 +86,13 @@ struct ReaderScreen: View {
                 prefs: Binding(get: { model.prefs }, set: { model.apply($0) })
             )
         }
-        .sheet(isPresented: $showingAsk) {
-            if let askSession {
-                AskSheet(session: askSession, toc: model.toc) { entry in
-                    showingAsk = false
-                    Task { await model.jump(to: entry) }
-                }
+        // An item sheet, not `isPresented` + `if let askSession`: the session is created in the
+        // same turn that raises the sheet, and the Bool form built its content once, with the
+        // session still `nil` — a first open drew an empty sheet (measured live, 2026-10-14).
+        .sheet(item: $shownAsk) { session in
+            AskSheet(session: session, toc: model.toc) { entry in
+                shownAsk = nil
+                Task { await model.jump(to: entry) }
             }
         }
         .task {
@@ -200,7 +202,7 @@ struct ReaderScreen: View {
                 backend: makeClient().map { RelayBackend(client: $0) },
                 context: model)
         }
-        showingAsk = true
+        shownAsk = askSession
     }
 
     private func makeClient() -> MusaeumClient? {

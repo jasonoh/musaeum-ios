@@ -1,0 +1,32 @@
+=== launched (ask-unknown) ===
+dev.jasonoh.Musaeum: 13003
+=== probe lines ===
+MUSAEUM_PROBE|library side inset=0.0 margin=16.0
+MUSAEUM_PROBE|library screen width=402.0
+MUSAEUM_PROBE|library safe top=62.0
+MUSAEUM_PROBE|library chrome width=206 height=157 screen=402 overflow=-196
+MUSAEUM_PROBE|library bar capsule=154 screen=402 margin=16
+MUSAEUM_PROBE|library chrome width=206 height=219 screen=402 overflow=-196
+MUSAEUM_PROBE|library chrome width=206 height=233 screen=402 overflow=-195
+MUSAEUM_PROBE|library chrome width=402 height=219 screen=402 overflow=0
+MUSAEUM_PROBE|library bar capsule=186 screen=402 margin=16
+MUSAEUM_PROBE|library page count=10 total=10 limit=100 offline=online sort=title:asc q=- filters=- covers-kept=0 first=Boss Rove | The Changing Face of Empire | The divide
+MUSAEUM_PROBE|shelves count=0 names=
+MUSAEUM_PROBE|probe downloaded id=660e57bd-cf5f-4e07-bd9b-a10dd9876f58 format=epub serverPercent=nil
+MUSAEUM_PROBE|library list band=219 header=180 viewport=620 content=1033
+MUSAEUM_PROBE|reader opened book=660e57bd-cf5f-4e07-bd9b-a10dd9876f58 requested=0.0 local=0.0 server=nil
+MUSAEUM_PROBE|reader landed=0.0 atHref=OEBPS/ch1.xhtml
+MUSAEUM_PROBE|ask offset=0 units=30100 truncated=false
+MUSAEUM_PROBE|ask verdict=unknown
+MUSAEUM_PROBE|probe reader=ask chapter=Chapter 1: The Quay toc=5
+MUSAEUM_PROBE|ask answered chars=104 failure=none
+=== frame === /Users/jasonoh/.hermes/profiles/dev/cache/scratch/ios-probe/frame-ask-unknown.png
+=== what the phone holds ===
+<container>/Library/Application Support/Musaeum/Books/660e57bd-cf5f-4e07-bd9b-a10dd9876f58.epub
+<container>/Library/Application Support/Musaeum/Books/660e57bd-cf5f-4e07-bd9b-a10dd9876f58.cover.jpg
+<container>/Library/Application Support/Musaeum/downloads.json
+<container>/Library/Application Support/Musaeum/positions.json
+=== staged for a share ===
+(end of the staged listing)
+=== the Mac's own row for 660e57bd-cf5f-4e07-bd9b-a10dd9876f58 ===
+unread|(null)|(null)|(null)

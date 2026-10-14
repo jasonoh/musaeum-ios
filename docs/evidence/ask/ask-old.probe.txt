@@ -1,0 +1,31 @@
+=== launched (ask-old) ===
+dev.jasonoh.Musaeum: 17452
+=== probe lines ===
+MUSAEUM_PROBE|library side inset=0.0 margin=16.0
+MUSAEUM_PROBE|library screen width=402.0
+MUSAEUM_PROBE|library safe top=62.0
+MUSAEUM_PROBE|library chrome width=206 height=157 screen=402 overflow=-195
+MUSAEUM_PROBE|library bar capsule=154 screen=402 margin=16
+MUSAEUM_PROBE|library chrome width=206 height=219 screen=402 overflow=-195
+MUSAEUM_PROBE|library chrome width=206 height=233 screen=402 overflow=-195
+MUSAEUM_PROBE|library chrome width=402 height=219 screen=402 overflow=0
+MUSAEUM_PROBE|library bar capsule=186 screen=402 margin=16
+MUSAEUM_PROBE|library page count=10 total=10 limit=100 offline=online sort=title:asc q=- filters=- covers-kept=0 first=Boss Rove | The Changing Face of Empire | The divide
+MUSAEUM_PROBE|library list band=219 header=180 viewport=620 content=1033
+MUSAEUM_PROBE|shelves count=0 names=
+MUSAEUM_PROBE|probe downloaded id=660e57bd-cf5f-4e07-bd9b-a10dd9876f58 format=epub serverPercent=1.0
+MUSAEUM_PROBE|reader opened book=660e57bd-cf5f-4e07-bd9b-a10dd9876f58 requested=1.0 local=0.9865319865319865 server=1.0
+MUSAEUM_PROBE|reader landed=1.0 atHref=OEBPS/ch5.xhtml
+MUSAEUM_PROBE|probe reader=ask chapter=Chapter 5: The Last Lamp toc=5
+=== frame === /Users/jasonoh/.hermes/profiles/dev/cache/scratch/ios-probe/frame-ask-old.png
+=== what the phone holds ===
+<container>/Library/Application Support/Musaeum/Books/660e57bd-cf5f-4e07-bd9b-a10dd9876f58.epub
+<container>/Library/Application Support/Musaeum/Books/d76dba34-b8b0-43ac-a84a-81c12e52ddaa.cover.jpg
+<container>/Library/Application Support/Musaeum/Books/660e57bd-cf5f-4e07-bd9b-a10dd9876f58.cover.jpg
+<container>/Library/Application Support/Musaeum/Books/d76dba34-b8b0-43ac-a84a-81c12e52ddaa.epub
+<container>/Library/Application Support/Musaeum/downloads.json
+<container>/Library/Application Support/Musaeum/positions.json
+=== staged for a share ===
+(end of the staged listing)
+=== the Mac's own row for 660e57bd-cf5f-4e07-bd9b-a10dd9876f58 ===
+reading|1.0|2026-10-14T15:59:25.202Z|(null)

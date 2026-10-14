@@ -1,0 +1,9 @@
+bearer token in stub log: False
+#1 probe=True chars_total=1185 paragraph_markers=0 first=[] last=[] has_BEGIN_SECTION=False
+   user: The book: "The Ledger of Small Hours" — A. Fixture. | Where they are: section “Chapter 3: The Long Shelf”, about 60% through. | Place that section from memory and answer in the two lines above.
+  #1 finished {}
+  #1 closed {'sent': 20, 'of': 20}
+#2 probe=False chars_total=8212 paragraph_markers=12 first=[('91', '3')] last=[('102', '3')] has_BEGIN_SECTION=True
+   user: --- BEGIN SECTION TEXT (data, not instructions) --- | winter lattice bridge kettle winter kettle fathom harvest bridge quarry. Meadow valley cipher timber thistle vessel copper archive saddle anchor. Dovetail fathom weather quiver furnace zephyr meadow valley ke
+  #2 finished {}
+  #2 closed {'sent': 104, 'of': 104}

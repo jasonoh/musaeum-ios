@@ -1,0 +1,15 @@
+# AC26(a): offset the phone sent vs the true start of the page's first visible words in the section's extracted text (UTF-16 units)
+# book: The Ledger of Small Hours (synthetic, make-test-book.py); reader opened at the fraction via the Mac row; frame = pos-<fraction>.png
+fraction	section	section_units	phone_offset	page_first_words	true_offset	error(phone-true)
+0.05	ch1	30100	6645	compass pillar — and then. Meadow harbour…	6964	-319
+0.15	ch1	30100	20607	thistle margin journal zephyr compass…	21339	-732
+0.25	ch2	16077	3955	Paragraph 10 of chapter 2. Island pillar…	3955	0
+0.40	ch3	60072	10503	Thistle zephyr outpost zephyr tide winter…	9805	+698
+0.50	ch3	60072	27913	harvest tide harbour dovetail island weather…	27014	+899
+0.60	ch3	60072	44771	Harvest pillar meadow weather beacon vessel…	44158	+613
+0.72	ch4	22047	2296	compass ribbon. Harvest copper winter zephyr…	2607	-311
+0.85	ch4	22047	17709	garden. Beacon umbrella dovetail mirror…	18455	-746
+0.95	ch5	12439	6712	meadow harvest archive ribbon ribbon hearth…	7031	-319
+0.99	ch5	12439	11666	copper. Island lantern fathom saddle bridge…	11298	+368
+0.998	ch5	12439	11666	(same page as 0.99 and 1.0)	-	-
+1.0	ch5	12439	11666	(same page as 0.99 and 0.998)	-	-

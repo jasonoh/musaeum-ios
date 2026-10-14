@@ -177,8 +177,9 @@
 set -uo pipefail
 
 # iPhone 18 Pro, iOS 27.0 — verified 2026-09-28, after the 26.1 runtime left this
-# machine and took `DE0B5601-…` (the id in AGENTS.md and the README) with it.
-DEV=${DEVICE:-39D29C73-B2DD-4041-8ECD-46923376D0F9}
+# machine and took `DE0B5601-…` (the id in AGENTS.md and the README) with it. Moved again
+# (verified 2026-10-14): `39D29C73-…` is gone and the iPhone 18 Pro is `6CF68F43-…`.
+DEV=${DEVICE:-6CF68F43-7AFB-4651-A166-20F112210DA0}
 BUNDLE=dev.jasonoh.Musaeum
 ROOT=${PROBE_ROOT:-$HOME/.hermes/profiles/dev/cache/scratch/ios-probe}
 APP=${APP:-$(cd "$(dirname "$0")/.." && pwd)/DD/Build/Products/Debug-iphonesimulator/Musaeum.app}

@@ -1,0 +1,9 @@
+bearer token in stub log: False
+#1 probe=True chars_total=1178 paragraph_markers=0 first=[] last=[] has_BEGIN_SECTION=False
+   user: The book: "The Ledger of Small Hours" — A. Fixture. | Where they are: section “Chapter 1: The Quay”, about 0% through. | Place that section from memory and answer in the two lines above.
+  #1 finished {}
+  #1 closed {'sent': 48, 'of': 48}
+#2 probe=False chars_total=1887 paragraph_markers=0 first=[] last=[] has_BEGIN_SECTION=False
+   user: Question: What is this passage setting up?
+  #2 finished {}
+  #2 closed {'sent': 104, 'of': 104}

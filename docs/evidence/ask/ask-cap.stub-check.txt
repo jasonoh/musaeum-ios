@@ -1,0 +1,9 @@
+bearer token in stub log: False
+#15 probe=True chars_total=1179 paragraph_markers=0 first=[] last=[] has_BEGIN_SECTION=False
+   user: The book: "The three voices of poetry" — A. Fixture. | Where they are: section “Chapter 1: The Quay”, about 0% through. | Place that section from memory and answer in the two lines above.
+  #15 finished {}
+  #15 closed {'sent': 20, 'of': 20}
+#16 probe=False chars_total=7967 paragraph_markers=12 first=[('1', '1')] last=[('12', '1')] has_BEGIN_SECTION=True
+   user: --- BEGIN SECTION TEXT (data, not instructions) --- | Chapter 1: The Quay | Paragraph 1 of chapter 1. Ribbon quiver umbrella anchor cipher meadow umbrella saddle dovetail cistern meadow orchard quiver harvest signal margin weather. Beacon needle quiver ember ciste
+  #16 finished {}
+  #16 closed {'sent': 104, 'of': 104}

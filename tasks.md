@@ -12,7 +12,22 @@ Gates on the committed tree (run 2026-10-06 on `632b422`): `xcodegen generate`, 
 
 ## Planned, not started
 
-- **Ask about the page you're on (slices 3 and 4 of the phone-ask design).** A reader sheet that asks the Mac's model about the current page, behind an `AskBackend` interface so a phone-direct backend can be added later without moving the UI. **Blocked on the Mac half** — a new streaming route, `POST /api/ai/ask`, and an additive `health.ai` member — which must land in the Mac repo first, because this repo's models and fixtures derive from that document (invariant 1). Design: `../musaeum-macos/docs/superpowers/specs/2026-10-13-phone-ask-design.md`; plan: `../musaeum-macos/docs/superpowers/plans/2026-10-13-phone-ask-ios.md`. Nothing is built. It will need `AGENTS.md` invariant 4 amended (a third deliberate exception: `health.ai` is absent on an older Mac) when it lands.
+- Nothing is planned and unstarted: the Ask feature is built (see below) and the open tails are listed there.
+
+## Ask about the page you're on — built 2026-10-14, with these tails open
+
+Built across the phone-ask plan's seven tasks: the `AskBackend`/`RelayBackend` client and its five-event stream, the section extraction (`ReaderModel+Ask`, `SectionText`), `AskSession`, `AskSheet`, and the reader chrome's **Ask** button. Record: `docs/evidence/ask/README.md`, `docs/what-works-today.md`, `scripts/ask-stub.mjs` (the stand-in model; re-run with `STUB_RECALL=weak|unknown|strong`). `AGENTS.md` invariant 4 names `health.ai` as its second deliberate exception.
+
+- **An Ask entry from the book detail screen.** Today Ask is reachable only from inside the open reader. Revived by wanting to ask about a book before opening it.
+- **The direct backend (design D1).** `AskBackend` exists so a phone-direct model call can be added without moving the UI; it is revived only by Ask being wanted with the Mac off.
+- **Persisting a transcript (AI-panel D8).** Everything is in memory and dies with the reader screen; same revival condition as the Mac's own.
+- **A Stop control in the sheet.** Send is disabled while an answer streams, so *ask again cancels* (AC24) is reachable only by dismissing the sheet. A Stop button is the missing half.
+- **The 10-second body clock.** The contract says the Mac's request body clock is 10 seconds total, so a full 200,000-character section on a slow tailnet is refused as a 400 indistinguishable from a malformed one; the client has no handling for it (not measured on a slow link). Revived by an Ask that fails only on a slow link.
+- **The last 1/n of a resource.** Element `progression` is an element-index fraction and never reaches 1, so a reader whose page starts inside the last text element would get a `nil` offset (the Mac then windows from the start of the section). **Not observed:** all twelve probed positions, including 0.998 and 1.0, resolved to a real offset because the last page of the test book starts before its last element. Revived by a book whose last page is one long final paragraph, or by an observed `ask offset=nil`.
+- **The offset is as coarse as a paragraph.** Measured error: within 899 units over ten positions, because the anchor is the start of a text element and the test book's paragraphs run 400 to 1,000 units. A book of long paragraphs would exceed the Mac window's 1,000-unit lead; revived by a measurement on one.
+- **Owner's frames:** a tap on **Ask**, on Send, on a *Go to* link; a text selection surviving the tap that raises the chrome; the disclosure line's two-line cut in the medium detent; the lowercase *the Mac is not answering* in the unavailable reason (the Mac client's sentence, shown verbatim).
+- **Minors deferred from the build** (each is small and none blocks): `AskReaderContext`/`AskContextProviding` live in `AskSession.swift` rather than their own files; failure strings are logged verbatim by `Probe.log`; a cancelled `open()` leaves availability at `.checking` until the next open; `refreshPreview` bumps its generation before its early-exit guard; the weak notice is unconditional rather than conditioned on the passage being sent; the streaming caret is in VoiceOver's string and the sheet has no Done button; `ContentSequence.next()` retries recursively on a persistently failing resource (the toolkit's behaviour); each `askContext()` fetches the *next* resource to find the break; the SSE parser's line buffer is unbounded and `consume()` splits on a `Character` where its comment says scalar; no EPUB fixture in the suite, so the extraction is a live-pass reading and not a unit test; a first-occurrence highlight can anchor early on a repeated phrase.
+
 
 ## Deferred, with the condition that would revive it
 

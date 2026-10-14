@@ -7,7 +7,7 @@
 ```bash
 xcodegen generate          # project.yml → Musaeum.xcodeproj (committed output; regenerate after adding a file)
 open Musaeum.xcodeproj     # or, from the command line — the destination is an id, never a device name:
-DEV=DE0B5601-7874-455E-A965-9AD80567C30E   # iPhone 17 Pro on iOS 26.1
+DEV=6CF68F43-7AFB-4651-A166-20F112210DA0   # iPhone 18 Pro on iOS 27.0 (verified 2026-10-14; ids move — `xcrun simctl list devices available`)
 xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" build
 xcodebuild -project Musaeum.xcodeproj -scheme Musaeum -destination "id=$DEV" test
 ```

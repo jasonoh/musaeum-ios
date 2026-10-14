@@ -311,3 +311,8 @@ final class AskSession {
         (error as? ClientError)?.description ?? error.localizedDescription
     }
 }
+
+/// So the reader screen can present its sheet as an item.
+extension AskSession: Identifiable {
+    nonisolated var id: ObjectIdentifier { ObjectIdentifier(self) }
+}
