@@ -2,5 +2,12 @@
   "apiVersion": 1,
   "version": "0.5.0",
   "books": 7100,
-  "library": "online"
+  "library": "online",
+  "ai": {
+    "available": true,
+    "reason": null,
+    "isLocal": true,
+    "host": "localhost:11434",
+    "model": "llama3.2"
+  }
 }

@@ -235,6 +235,22 @@ final class ClientTests: XCTestCase {
         )
     }
 
+    func testA503AIUnavailableCarriesTheMacsReasonAndIsNotRetryable() throws {
+        let http = HTTPURLResponse(url: base, statusCode: 503, httpVersion: nil, headerFields: [:])!
+        let body = Data(#"{"error":"ai unavailable","reason":"No model set — add one in Settings."}"#.utf8)
+        XCTAssertThrowsError(try MusaeumClient.mapStatus(http, body: body)) { error in
+            XCTAssertEqual(error as? ClientError, .aiUnavailable("No model set — add one in Settings."))
+            XCTAssertFalse((error as? ClientError)?.isRetryable ?? true)
+        }
+    }
+
+    func testA503BusyStillMeansBusy() throws {
+        let http = HTTPURLResponse(url: base, statusCode: 503, httpVersion: nil, headerFields: ["Retry-After": "1"])!
+        XCTAssertThrowsError(try MusaeumClient.mapStatus(http, body: Data(#"{"error":"busy"}"#.utf8))) { error in
+            XCTAssertEqual(error as? ClientError, .busy(retryAfter: 1))
+        }
+    }
+
     /// The Mac asleep is the ordinary case, not an exception (D14).
     func testAnUnreachableServerIsAnOrdinaryOutcome() async throws {
         // A port nothing listens on: the app's own story for "the Mac is shut".

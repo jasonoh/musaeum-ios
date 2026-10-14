@@ -44,6 +44,9 @@ enum ClientError: Error, Equatable, CustomStringConvertible {
     /// The Mac looked at this PDF and cannot lay it out (`422` on `format=reflow`).
     /// A settled answer, not a transient one: asking again hears the same refusal.
     case cannotReflow(String)
+    /// 503 `ai unavailable` — the Mac has no model to relay to. Carries the Mac's own sentence.
+    /// **Not retryable:** only the owner at the Mac can fix it, so a retry hears the same refusal.
+    case aiUnavailable(String)
 
     var description: String {
         switch self {
@@ -60,6 +63,7 @@ enum ClientError: Error, Equatable, CustomStringConvertible {
         case let .unsupportedAPIVersion(v): "the Mac speaks contract version \(v); this app speaks \(supportedAPIVersion)"
         case let .decoding(err): err.description
         case let .cannotReflow(reason): "the Mac could not make a readable copy of this PDF — \(reason)"
+        case let .aiUnavailable(reason): "the Mac cannot answer questions — \(reason)"
         }
     }
 
@@ -68,7 +72,7 @@ enum ClientError: Error, Equatable, CustomStringConvertible {
         switch self {
         case .busy, .libraryOffline, .unreachable: true
         case .badBaseURL, .unauthorized, .badRequest, .notFound, .rangeNotSatisfiable, .tooLarge,
-             .server, .unsupportedAPIVersion, .decoding, .cannotReflow: false
+             .server, .unsupportedAPIVersion, .decoding, .cannotReflow, .aiUnavailable: false
         }
     }
 
@@ -531,6 +535,10 @@ struct MusaeumClient: Sendable {
         case 500: throw ClientError.server
         case 503:
             let retry = retryAfter(http)
+            if payload?.error == "ai unavailable" {
+                let reason = body.flatMap { try? JSONDecoder().decode(AIUnavailablePayload.self, from: $0) }?.reason
+                throw ClientError.aiUnavailable(reason ?? "no model is set on the Mac")
+            }
             if payload?.error == "library offline" { throw ClientError.libraryOffline(retryAfter: retry) }
             throw ClientError.busy(retryAfter: retry)
         default:

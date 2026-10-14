@@ -1,0 +1,9 @@
+{
+  "text": "Sends: title, author, section “Chapter 4”, position (42%), your question → http://localhost:11434/v1 · llama3.2",
+  "members": ["title", "author", "section", "position", "question"],
+  "rung": "pointer",
+  "windowed": false,
+  "truncated": [],
+  "endpoint": { "host": "localhost:11434", "isLocal": true },
+  "model": "llama3.2"
+}

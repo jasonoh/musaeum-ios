@@ -1,0 +1,14 @@
+{
+  "bookId": "6f1a1f2e-3c4d-4e5f-8a9b-0c1d2e3f4a5b",
+  "mode": "ask",
+  "rung": "pointer",
+  "section": {
+    "label": "Chapter 4",
+    "text": "It was the best of times, it was the worst of times…",
+    "offset": 8302,
+    "truncated": false
+  },
+  "fraction": 0.42,
+  "selection": "it was the age of wisdom",
+  "question": "What does the repetition do here?"
+}

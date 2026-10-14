@@ -4,7 +4,8 @@
 # repo's fixtures, not a hand copy of them.
 #
 # `../musaeum/docs/rest-api.md` carries one fenced block per payload, tagged
-# `json payload=<name>`, and the Mac repo's own suite parses those same blocks to
+# `json payload=<name>` (and, for a route that takes a body, `json request=<name>`,
+# extracted as `request-<name>.json`), and the Mac repo's own suite parses those same blocks to
 # decide its shaper. This script extracts them here, so the client's decoding
 # tests and the server's payload goldens read the same text — a field the
 # document names and the app cannot decode, or a field the app requires and the
@@ -31,6 +32,7 @@ mkdir -p "$OUT"
 
 awk -v out="$OUT" '
     /^```json payload=/ { name = substr($0, index($0, "payload=") + 8); inside = 1; next }
+    /^```json request=/ { name = "request-" substr($0, index($0, "request=") + 8); inside = 1; next }
     /^```[[:space:]]*$/  { inside = 0; next }
     inside               { print >> (out "/" name ".json") }
 ' "$DOC"

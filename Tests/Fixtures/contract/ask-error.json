@@ -1,0 +1,3 @@
+{
+  "message": "Nothing is listening at http://localhost:11434/v1 — is your local model server running?"
+}

@@ -88,6 +88,19 @@ struct StrictObject {
         return try value(key, as: T.self)
     }
 
+    /// **The third deliberate exception to the always-present rule (invariant 4).**
+    /// `health.ai` is absent from a Mac older than the ask route, and the connect check is the
+    /// first thing every launch decodes — a required read would make the whole app refuse an
+    /// older Mac over a capability it never offered. Absent and `null` both read as `nil`,
+    /// which the Ask sheet reports as "this Mac cannot answer questions"; a *present* member
+    /// is still strict.
+    func objectIfPresent<T: Decodable>(_ key: String, as: T.Type = T.self) throws -> T? {
+        let codingKey = AnyCodingKey(key)
+        guard container.contains(codingKey) else { return nil }
+        if (try? container.decodeNil(forKey: codingKey)) == true { return nil }
+        return try value(key, as: T.self)
+    }
+
     /// A member that is always present and may be `null` — the contract's whole
     /// point, and the case synthesized decoding silently gets wrong.
     func optional<T: Decodable>(_ key: String, as: T.Type = T.self) throws -> T? {
@@ -144,6 +157,8 @@ struct Health: Decodable, Equatable, Sendable {
     let version: String
     let books: Int
     let library: LibraryState
+    /// Whether the Mac can relay a question, and to what. `nil` on a Mac that predates the route.
+    let ai: HealthAI?
 
     init(from decoder: any Decoder) throws {
         let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "health")
@@ -155,6 +170,48 @@ struct Health: Decodable, Equatable, Sendable {
             throw ContractError.malformedField("library", at: "health", value: raw)
         }
         library = state
+        ai = try o.objectIfPresent("ai", as: HealthAI.self)
+    }
+}
+
+/// `health.ai` — never the key, and no `hasKey`: the phone has no use for either.
+struct HealthAI: Decodable, Equatable, Sendable {
+    let available: Bool
+    /// Why Ask is off, in the Mac's own words. `nil` when it is on.
+    let reason: String?
+    /// The endpoint is loopback, so nothing sent to it leaves the Mac.
+    let isLocal: Bool
+    /// `host[:port]` of the Mac's model endpoint.
+    let host: String
+    let model: String?
+
+    init(available: Bool, reason: String?, isLocal: Bool, host: String, model: String?) {
+        self.available = available
+        self.reason = reason
+        self.isLocal = isLocal
+        self.host = host
+        self.model = model
+    }
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "health.ai")
+        available = try o.bool("available")
+        reason = try o.optionalString("reason")
+        isLocal = try o.bool("isLocal")
+        host = try o.string("host")
+        model = try o.optionalString("model")
+    }
+}
+
+/// 503 `ai unavailable`'s body: the error word and the Mac's own sentence.
+struct AIUnavailablePayload: Decodable, Equatable, Sendable {
+    let error: String
+    let reason: String
+
+    init(from decoder: any Decoder) throws {
+        let o = StrictObject(container: try decoder.container(keyedBy: AnyCodingKey.self), path: "ai unavailable")
+        error = try o.string("error")
+        reason = try o.string("reason")
     }
 }
 
