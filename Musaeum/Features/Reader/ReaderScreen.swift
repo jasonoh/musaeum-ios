@@ -16,6 +16,8 @@ struct ReaderScreen: View {
     @State private var model: ReaderModel
     @State private var showingContents = false
     @State private var showingTypography = false
+    @State private var showingAsk = false
+    @State private var askSession: AskSession?
 
     init(request: ReadingRequest) {
         self.request = request
@@ -66,7 +68,8 @@ struct ReaderScreen: View {
                     hasContents: !model.toc.isEmpty,
                     onClose: { dismiss() },
                     onContents: { showingContents = true },
-                    onTypography: { showingTypography = true }
+                    onTypography: { showingTypography = true },
+                    onAsk: { openAsk() }
                 )
             }
         }
@@ -81,6 +84,14 @@ struct ReaderScreen: View {
             TypographySheet(
                 prefs: Binding(get: { model.prefs }, set: { model.apply($0) })
             )
+        }
+        .sheet(isPresented: $showingAsk) {
+            if let askSession {
+                AskSheet(session: askSession, toc: model.toc) { entry in
+                    showingAsk = false
+                    Task { await model.jump(to: entry) }
+                }
+            }
         }
         .task {
             await model.load(
@@ -167,9 +178,29 @@ struct ReaderScreen: View {
             prefs.lineHeight = ReaderPrefs.lineHeightRange.upperBound
             model.apply(prefs)
         case "reset": model.apply(.default)
+        case "ask":
+            openAsk()
+            if let question = Probe.ask {
+                // The sheet's `.task` probes and previews first; give them the wait they need.
+                // The question is never logged.
+                try? await Task.sleep(for: .seconds(4))
+                askSession?.ask(question)
+            }
         default: break
         }
         Probe.log("probe reader=\(reader) chapter=\(model.chapterTitle ?? "nil") toc=\(model.toc.count)")
+    }
+
+    /// The session is made on first use and kept for as long as the reader screen is: a
+    /// conversation survives closing the sheet, and ends with the book (design D8).
+    private func openAsk() {
+        if askSession == nil {
+            askSession = AskSession(
+                bookId: request.book.id,
+                backend: makeClient().map { RelayBackend(client: $0) },
+                context: model)
+        }
+        showingAsk = true
     }
 
     private func makeClient() -> MusaeumClient? {

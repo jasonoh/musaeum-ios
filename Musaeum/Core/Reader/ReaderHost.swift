@@ -66,6 +66,8 @@ final class ReaderModel {
     let book: ContractBook
     private(set) var phase: Phase = .loading
     private(set) var navigator: EPUBNavigatorViewController?
+    /// The opened publication, kept so the Ask sheet can read the current section's text.
+    private(set) var publication: Publication?
 
     /// The fraction the engine actually landed at, read off `currentLocation`
     /// rather than assumed from what we handed it. The live probe quotes this
@@ -134,6 +136,9 @@ final class ReaderModel {
             if let fraction {
                 initial = await publication.locate(progression: fraction)
             }
+            // Kept only after the last `await` on it: once it is main-actor state, Swift 6 refuses to
+            // send it to Readium's nonisolated async calls.
+            self.publication = publication
 
             let navigator = try EPUBNavigatorViewController(
                 publication: publication,

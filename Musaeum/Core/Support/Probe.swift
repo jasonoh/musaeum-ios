@@ -99,9 +99,14 @@ enum Probe {
 
     /// Which reader surface the run raises once the book has laid out: `chrome`
     /// or `contents` (slice 6a), `typography`, `ink` or `paper` (6b), `large` (the
-    /// largest size and line height, for the footer's clearance) or `reset`. A tap is the
-    /// only other way to any of them.
+    /// largest size and line height, for the footer's clearance), `reset`, or `ask` (the Ask
+    /// sheet, with `MUSAEUM_PROBE_ASK` as its question). A tap is the only other way to any of them.
     static var reader: String? { value("MUSAEUM_PROBE_READER") }
+
+    /// A question the run asks once the Ask sheet is up, so the answer path is decidable without a
+    /// tap or a keyboard (`simctl` can drive neither). Used with `READER=ask`. The text itself is
+    /// never logged.
+    static var ask: String? { value("MUSAEUM_PROBE_ASK") }
 
     /// The shelf a run opens (`ACTION=shelf`) or toggles (`ACTION=shelf-toggle`).
     /// `simctl` can present no menu and tap no check, so this is the only way a

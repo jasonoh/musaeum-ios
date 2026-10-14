@@ -44,6 +44,7 @@
 #   TAG=library ./scripts/live-probe.sh                        # the grid, covers
 #   TAG=read    BOOK=<id> ./scripts/live-probe.sh              # download + read
 #   TAG=chrome  READER=chrome BOOK=<id> ./scripts/live-probe.sh # the reader's raised chrome (slice 6; also contents|typography|ink|paper)
+#   TAG=ask READER=ask ASK='What is this book about?' BOOK=<id> ./scripts/live-probe.sh   # the Ask sheet (needs a Mac with a model set, or the stub in scripts/ask-stub.mjs)
 #   # stop the Mac app, then the run that matters most:
 #   TAG=offline BOOK=<id> ./scripts/live-probe.sh              # read with it off
 #
@@ -252,6 +253,7 @@ SIMCTL_CHILD_MUSAEUM_PROBE_DETAIL="${DETAIL:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_DOWNLOADS="${DOWNLOADS:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_SCROLL="${SCROLL:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_READER="${READER:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_ASK="${ASK:-}" \
   xcrun simctl launch "$DEV" "$BUNDLE" | cat
 sleep "$WAIT"
 

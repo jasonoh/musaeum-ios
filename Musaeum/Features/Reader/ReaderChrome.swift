@@ -13,6 +13,7 @@ struct ReaderChrome: View {
     let onClose: () -> Void
     let onContents: () -> Void
     let onTypography: (() -> Void)?
+    let onAsk: (() -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -74,6 +75,13 @@ struct ReaderChrome: View {
             }
             .foregroundStyle(hasContents ? Palette.gold : Palette.muted)
             .disabled(!hasContents)
+            if let onAsk {
+                Button(action: onAsk) {
+                    Label("Ask", systemImage: "questionmark.bubble").font(.subheadline)
+                }
+                .foregroundStyle(Palette.gold)
+                .accessibilityLabel("Ask about this book")
+            }
             Spacer(minLength: 8)
             progressLabel
         }
