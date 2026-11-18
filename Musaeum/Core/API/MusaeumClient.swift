@@ -247,6 +247,50 @@ struct MusaeumClient: Sendable {
         return result.book
     }
 
+    /// **A book's place in a reading queue**, as the contract takes it: one member,
+    /// `{"to":"top"}` or `{"to":"bottom"}`, and no third place — the wire carries no
+    /// `before`/`after` anchor, and the phone's two rows are the ends.
+    ///
+    /// Composed where a case can read it, like the membership pair: the method, the
+    /// two ids in the path and the body are each part of what the route decides.
+    static func moveRequest(
+        base: URL,
+        token: String,
+        shelfId: String,
+        bookId: String,
+        to edge: ShelfMoveEdge
+    ) throws -> URLRequest {
+        request(
+            base: base,
+            token: token,
+            path: "api/shelves/\(shelfId)/books/\(bookId)/position",
+            method: "PUT",
+            body: try moveBody(to: edge)
+        )
+    }
+
+    /// The place route's body — **exactly one member**, and a test reads the key
+    /// set back rather than trusting this line.
+    static func moveBody(to edge: ShelfMoveEdge) throws -> Data {
+        try JSONEncoder().encode(MoveRequestBody(to: edge.rawValue))
+    }
+
+    /// `PUT /api/shelves/{id}/books/{bookId}/position` — the answer is the book as
+    /// it stands **after** the write (`{ "book": … }`, the membership routes' own
+    /// shape), so a move and its confirmation are one round trip. The Mac's move is
+    /// idempotent (a book already at that end keeps the order it has), which is what
+    /// makes a retry safe.
+    ///
+    /// A `404` from this call is the client's **capability reading**: the contract
+    /// says a Mac without the route answers it, and the caller's answer to that is
+    /// the Move menu's absence, not a sentence about a missing book.
+    func moveInShelf(shelfId: String, bookId: String, to edge: ShelfMoveEdge) async throws -> ContractBook {
+        let result: MembershipResult = try await sendJSON(
+            Self.moveRequest(base: base, token: token, shelfId: shelfId, bookId: bookId, to: edge)
+        )
+        return result.book
+    }
+
     func book(id: String) async throws -> ContractBook {
         try await sendJSON(request(path: "api/books/\(id)"))
     }
@@ -686,4 +730,9 @@ private struct ReadingRequestBody: Encodable {
         try container.encode(percent, forKey: AnyCodingKey("percent"))
         try container.encodeIfPresent(at, forKey: AnyCodingKey("at"))
     }
+}
+
+/// The place route's body: one member and no more — `{"to":"top"}`.
+private struct MoveRequestBody: Encodable {
+    let to: String
 }

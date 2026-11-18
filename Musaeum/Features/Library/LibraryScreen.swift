@@ -42,6 +42,16 @@ final class LibraryModel {
     private(set) var shelves: [Shelf] = []
     private(set) var shelvesSupported: Bool?
 
+    /// **What this session knows about the place route** (`PUT …/books/{bookId}/position`),
+    /// which is a different fact from *does this Mac have queues at all*.
+    ///
+    /// The two landed in one wire slice, so a Mac that lists a `kind: "queue"` shelf
+    /// serves the route too — that is why a fresh shelf list resets this to
+    /// `unknown`. A `404` *on the route* is the contract's own reading for a Mac
+    /// without it, and it is the one thing that withdraws the Move menu
+    /// (`ShelfScope.offersMove`). See the annex's R4 for the residual.
+    private(set) var moveRoute: QueueMoveRoute = .unknown
+
     /// The sort that was on before a shelf was opened, restored when it is left
     /// (F2). Session state, never persisted: the stored key is the reader's
     /// *All Books* order.
@@ -208,7 +218,7 @@ final class LibraryModel {
             // rendered array is what the log reports, so the order is decided by a
             // line the app wrote about itself rather than by reading pixels.
             let showing = books.prefix(3).map(\.title).joined(separator: " | ")
-            Probe.log("library page count=\(books.count) total=\(total) limit=\(page.limit) offline=\(health.library.rawValue) sort=\(query.sort.storedKey) q=\(query.term ?? "-") filters=\(query.filters.probeEncoding.isEmpty ? "-" : query.filters.probeEncoding) covers-kept=\(covers.count) first=\(showing)")
+            Probe.log("library page count=\(books.count) total=\(total) limit=\(page.limit) offline=\(health.library.rawValue) sort=\(query.sort?.storedKey ?? "shelf-default") q=\(query.term ?? "-") filters=\(query.filters.probeEncoding.isEmpty ? "-" : query.filters.probeEncoding) covers-kept=\(covers.count) first=\(showing)")
             if books.isEmpty {
                 Probe.log("library empty kind=\(emptyState.map(String.init(describing:)) ?? "none") macBooks=\(health.books)")
             }
@@ -284,8 +294,8 @@ final class LibraryModel {
         try await client.library(
             limit: Self.pageSize,
             offset: offset,
-            sort: query.sort.wireField,
-            direction: query.sort.wireDirection,
+            sort: query.sort?.wireField,
+            direction: query.sort?.wireDirection,
             query: query.term,
             shelf: query.shelf?.id,
             filters: query.filters.queryItems
@@ -307,15 +317,74 @@ final class LibraryModel {
     /// Choosing a sort is remembering it. The persistence is a parameter of the
     /// model rather than a call the screen has to remember to make *beside* this
     /// one, so no second path can change the order and forget to record it.
-    func chooseSort(_ sort: LibrarySort) async {
+    ///
+    /// **`nil` is the queue's own order**, reachable only from inside a queue: it
+    /// asks the Mac for the order it keeps, and it is never remembered — the
+    /// persisted key is the reader's *All Books* sort, whose type has no `nil`.
+    func chooseSort(_ sort: LibrarySort?) async {
         guard sort != query.sort else { return }
+        guard sort != nil || ShelfScope.isQueue(query.shelf) else { return }
         query.sort = sort
         scopeNotice = nil
         // **A sort chosen inside a shelf is the scope's own order and is not
         // remembered** (F2): leaving restores the reader's *All Books* sort, and
         // `shelf_added` is meaningless — and a 400 — outside a shelf.
-        if query.shelf == nil { persistSort(sort) }
+        if query.shelf == nil, let sort { persistSort(sort) }
         await start()
+    }
+
+    // MARK: A book's place in a queue
+
+    /// **Whether this book may be moved right now** — the one rule the card's
+    /// context menu exists or does not exist by (`ShelfScope.offersMove`).
+    func offersMove(for book: ContractBook) -> Bool {
+        ShelfScope.offersMove(in: query.shelf, route: moveRoute)
+    }
+
+    /// **Move a book to an end of the open queue** — the two items the context menu
+    /// draws, one `PUT`, then the list re-queried through `start()` so the new order
+    /// is the Mac's own answer rather than a local re-sort (the existing shelf
+    /// re-query rule; the scope is kept, and the grid rebuilds at its top).
+    ///
+    /// **A `404` is the capability reading, not a failure to report**: the contract
+    /// says a Mac without the route answers it, so the menu is withdrawn for the
+    /// session and one plain sentence says why — the reader acted, and the surface
+    /// changing with nothing said would be the worse defect (CD7). Every other
+    /// refusal puts the Mac's own sentence in the scope's notice row.
+    func move(_ book: ContractBook, to edge: ShelfMoveEdge) async {
+        guard let shelf = query.shelf, offersMove(for: book) else { return }
+        do {
+            let moved = try await client.moveInShelf(shelfId: shelf.id, bookId: book.id, to: edge)
+            moveRoute = .available
+            // **A move that worked clears what the last one said.** The notice row is
+            // the scope's one line, and a failure sentence still sitting there after a
+            // successful retry is the screen disagreeing with itself — the same class
+            // as a stale label, and it outlives the failure it describes.
+            scopeNotice = nil
+            Probe.log("shelf move book=\(book.id) to=\(edge.rawValue) result=ok title=\(moved.title)")
+            await start()
+        } catch let error as ClientError {
+            if case .notFound = error {
+                moveRoute = .unavailable
+                scopeNotice = "This Mac can't move books in a queue."
+                Probe.log("shelf move book=\(book.id) to=\(edge.rawValue) result=route-absent (404) — the Move menu is withheld")
+                // **A `404` here is not proof the *shelf* still exists.** The contract
+                // answers an unknown shelf on this route with the same uniform 404, so
+                // the scope is re-read: if the queue has been deleted, the existing
+                // scoped-404 rule leaves it and says so — which replaces this sentence
+                // with the truer one — and if it has not, the list is simply read again
+                // and the sentence stands. Without this, a deleted queue would sit on
+                // screen under a sentence about the Mac, with the menu gone for the
+                // session, until the reader happened to pull.
+                await start()
+            } else {
+                scopeNotice = "Couldn't move that book — \(error.description)"
+                Probe.log("shelf move book=\(book.id) to=\(edge.rawValue) result=refused \(error)")
+            }
+        } catch {
+            scopeNotice = "Couldn't move that book — \(String(describing: error))"
+            Probe.log("shelf move book=\(book.id) to=\(edge.rawValue) result=failed \(error)")
+        }
     }
 
     // MARK: The filters
@@ -390,6 +459,11 @@ final class LibraryModel {
         do {
             shelves = try await client.shelves()
             shelvesSupported = true
+            // **A Mac that lists a queue serves the place route** — the two landed in
+            // one wire slice — so a fresh list is what makes a withdrawn Move menu
+            // come back after a pull. Only the *list* resets it: a 404 on the route
+            // itself is an answer, and nothing else here is evidence.
+            if shelves.contains(where: { ShelfScope.isQueue($0) }) { moveRoute = .unknown }
             Probe.log("shelves count=\(shelves.count) names=\(shelves.map(\.name).joined(separator: " | "))")
             if let open = query.shelf, !shelves.contains(where: { $0.id == open.id }) {
                 await leaveGoneShelf(name: open.name)
@@ -407,16 +481,19 @@ final class LibraryModel {
         }
     }
 
-    /// **Open a shelf:** scope the list, and mirror the Mac's own default (D8) —
-    /// *Date Added to Shelf, newest first*, sent explicitly rather than left to
-    /// the server's default. The sort that was on is remembered and restored on
-    /// the way out; the scope itself is session state, so a relaunch is
-    /// unshelved, like a relaunch is unsearched.
+    /// **Open a shelf:** scope the list, and open it in the order the Mac keeps for
+    /// it — a manual shelf on *Date Added to Shelf, newest first* (D8, sent
+    /// explicitly as slice 7a decided), a **queue on its own order**, which is the
+    /// absence of a `sort`: the contract's default for a queue *is* its order, so
+    /// sending nothing is the only encoding of it that cannot drift or be persisted
+    /// (`ShelfScope.openingSort`). The sort that was on is remembered and restored on
+    /// the way out; the scope itself is session state, so a relaunch is unshelved,
+    /// like a relaunch is unsearched.
     func openShelf(_ shelf: Shelf) async {
         guard query.shelf?.id != shelf.id else { return }
-        if priorSort == nil { priorSort = query.sort }
+        if priorSort == nil, let current = query.sort { priorSort = current }
         query.shelf = shelf
-        query.sort = LibrarySort(field: .shelfAdded, direction: .desc)
+        query.sort = ShelfScope.openingSort(for: shelf)
         scopeNotice = nil
         await start()
     }
@@ -1045,18 +1122,28 @@ struct LibraryScreen: View {
     private var sortMenu: some View {
         Menu {
             Picker("Sort", selection: sortSelection) {
+                // **A queue's own order is a row, not a sort.** Its value is `nil` —
+                // the Mac keeps this order and the phone asks for it by asking for
+                // nothing — so it never enters `LibrarySort.options`, and the guard
+                // that every row there is a value the contract accepts stays exact.
+                if ShelfScope.isQueue(model?.query.shelf) {
+                    Text("Queue Order").tag(LibrarySort?.none)
+                }
                 ForEach(LibrarySort.options(inShelf: model?.query.shelf != nil), id: \.self) { option in
-                    Text(option.label).tag(option)
+                    Text(option.label).tag(LibrarySort?.some(option))
                 }
             }
         } label: {
-            barControl("arrow.up.arrow.down", model?.query.sort.barLabel ?? LibrarySort.default.barLabel)
+            // **No model yet is not a queue.** Before the first page lands the bar
+            // draws the phone's own default order; only a model whose sort is `nil`
+            // is inside a queue, and that is what *Queue Order* names.
+            barControl("arrow.up.arrow.down", model.map { $0.query.sort?.barLabel ?? "Queue Order" } ?? LibrarySort.default.barLabel)
         }
     }
 
-    private var sortSelection: Binding<LibrarySort> {
+    private var sortSelection: Binding<LibrarySort?> {
         Binding(
-            get: { model?.query.sort ?? LibrarySort.default },
+            get: { model?.query.sort },
             set: { chosen in Task { await model?.chooseSort(chosen) } }
         )
     }
@@ -1388,6 +1475,50 @@ struct LibraryScreen: View {
                 Probe.log("probe: shelf \(id) is not among the \(model.shelves.count) this Mac reports")
             }
         }
+        // **A move through the app's own door.** `LibraryModel.move` is what the
+        // card's two menu items call, so a run decides the composed request, the
+        // Mac's answer, the capability reading and the re-query with no hold at all —
+        // which is the only instrument there is, because `simctl` can neither hold a
+        // card nor photograph the menu it raises. The popup itself stays the owner's
+        // frame; *offered* against *withheld* is what these two lines decide.
+        if Probe.action == "shelf-move", Probe.shelfID == nil {
+            Probe.log("probe: shelf-move needs SHELF=<queue id> — this run decides nothing")
+        }
+        if Probe.action == "shelf-move", let id = Probe.shelfID {
+            guard let edge = Probe.moveTo.flatMap(ShelfMoveEdge.init(rawValue:)) else {
+                Probe.log("probe: shelf-move needs TO=top|bottom — this run decides nothing")
+                return
+            }
+            guard model.shelvesSupported == true, let shelf = model.shelves.first(where: { $0.id == id }) else {
+                Probe.log("probe: shelf \(id) is not among the \(model.shelves.count) this Mac reports")
+                return
+            }
+            if model.query.shelf?.id != shelf.id { await model.openShelf(shelf) }
+            // **The book is the one the run named, or the run says it found nothing.**
+            // A silent fall back to the page's first book would move a book nobody
+            // asked to move and log a reading that reads as success — the seam's one
+            // failure mode that a log line cannot undo.
+            let book: ContractBook
+            if let wanted = Probe.moveBookID {
+                guard let found = model.books.first(where: { $0.id == wanted }) else {
+                    Probe.log("probe: shelf-move: no book \(wanted) on the page for \(shelf.name) — this run decides nothing")
+                    return
+                }
+                book = found
+            } else if let first = model.books.first {
+                book = first
+            } else {
+                Probe.log("probe: shelf-move found no book to move on \(shelf.name)")
+                return
+            }
+            Probe.log(
+                "probe: shelf-move scope=\(shelf.name) kind=\(shelf.kind) sort=\(model.query.sort?.storedKey ?? "shelf-default") book=\(book.id) to=\(edge.rawValue) move-menu=\(model.offersMove(for: book) ? "offered" : "absent")"
+            )
+            await model.move(book, to: edge)
+            Probe.log(
+                "probe: shelf-move after move-menu=\(model.offersMove(for: book) ? "offered" : "absent") notice=\(model.scopeNotice ?? "-")"
+            )
+        }
         if let path = Probe.uploadPath, let uploads {
             await uploads.send(file: URL(fileURLWithPath: path), to: client)
         }
@@ -1582,6 +1713,42 @@ struct LibraryScreen: View {
         )
     }
 
+    /// **One card, and the only long-press surface this app has** (slice 9, F1):
+    /// inside a queue the card can be held for **Move to Top** / **Move to End**.
+    ///
+    /// The modifier is attached **inside an `if`**, so where there is no move to
+    /// offer there is no menu at all — the contract's *absent, not disabled*. The
+    /// tap is untouched: a card still opens its book, and the hold is the addition.
+    ///
+    /// A `.contextMenu` is a system presentation `simctl` can neither raise nor
+    /// photograph, so the popup itself is the owner's frame; what a run decides is
+    /// the rule (`LibraryModel.offersMove`) and the effect of the item (the move
+    /// probe drives `move` through the app's own door).
+    @ViewBuilder
+    private func bookCell(_ book: ContractBook, _ model: LibraryModel) -> some View {
+        let cell = Button { detail = book } label: {
+            BookGridCell(book: book, cover: model.covers[book.id], isDownloaded: false)
+        }
+        .buttonStyle(.plain)
+
+        if model.offersMove(for: book) {
+            cell.contextMenu {
+                Button {
+                    Task { await model.move(book, to: .top) }
+                } label: {
+                    Label("Move to Top", systemImage: "arrow.up.to.line")
+                }
+                Button {
+                    Task { await model.move(book, to: .bottom) }
+                } label: {
+                    Label("Move to End", systemImage: "arrow.down.to.line")
+                }
+            }
+        } else {
+            cell
+        }
+    }
+
     /// The list itself — the grid, its footer, and the one reading the header's rule
     /// is fed from.
     private func list(_ model: LibraryModel) -> some View {
@@ -1591,14 +1758,11 @@ struct LibraryScreen: View {
                 spacing: 18
             ) {
                 ForEach(model.books) { book in
-                    Button { detail = book } label: {
-                        BookGridCell(book: book, cover: model.covers[book.id], isDownloaded: false)
-                    }
-                    .buttonStyle(.plain)
-                    .task {
-                        await model.cover(for: book)
-                        await model.loadNextPageIfNeeded(current: book)
-                    }
+                    bookCell(book, model)
+                        .task {
+                            await model.cover(for: book)
+                            await model.loadNextPageIfNeeded(current: book)
+                        }
                 }
             }
             .padding(.horizontal, barMargin)

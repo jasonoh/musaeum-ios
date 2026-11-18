@@ -197,7 +197,17 @@ struct LibrarySort: Equatable, Hashable, Sendable {
 ///   ("a search whose default were title order would disagree with the Mac's own
 ///   results"), and the Mac's own established behaviour.
 struct LibraryQuery: Equatable, Sendable {
-    var sort: LibrarySort = .default
+    /// **The order this screen asks for — or `nil`, which asks for none.**
+    ///
+    /// `nil` means *this scope's own order, whatever the Mac keeps it as*, and it
+    /// is reachable in exactly one place: opening a reading queue
+    /// (`ShelfScope.openingSort(for:)`), whose order is the queue's own and whose
+    /// Mac-side default is that order. Everywhere else — a chosen sort, a manual
+    /// shelf, the restored *All Books* preference — this carries a value, so the
+    /// request names its order explicitly as it always has. A `nil` is never
+    /// persisted: `SettingsStore` stores a `LibrarySort`, and `LibrarySort.stored`
+    /// decodes one.
+    var sort: LibrarySort? = LibrarySort.default
     var text: String = ""
     /// The shelf this screen is scoped to (slice 7a), or `nil` for the whole
     /// library. It sits here for the same reason `filters` does: every request

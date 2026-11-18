@@ -114,6 +114,14 @@ enum Probe {
     /// while the picker open and the sheet itself stay frames for the owner.
     static var shelfID: String? { value("MUSAEUM_PROBE_SHELF") }
 
+    /// **The book a `ACTION=shelf-move` run moves, and which end of the queue it
+    /// goes to** (`top` or `bottom`). Its own variables rather than `OPEN`: `OPEN`
+    /// also opens the reader, which would cover the very list the move is read on —
+    /// and a hold on a card, which is the only other way to any menu, is not
+    /// something `simctl` can do at all.
+    static var moveBookID: String? { value("MUSAEUM_PROBE_MOVE_BOOK") }
+    static var moveTo: String? { value("MUSAEUM_PROBE_TO") }
+
     /// What the probe is exercising, so `library` and `read` runs are distinct.
     /// `write` additionally reports the fraction the reader landed at **through
     /// the app's own door** and reads the row back — the upward path's live

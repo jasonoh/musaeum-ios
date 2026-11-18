@@ -169,6 +169,25 @@
 #   TAG=shelf-add    ACTION=shelf-toggle BOOK=<id> SHELF=<id> ./scripts/live-probe.sh
 #   TAG=shelf-remove ACTION=shelf-toggle BOOK=<id> SHELF=<id> ./scripts/live-probe.sh
 #
+# **The queue's Move items (slice 9) are a third**, and they exist because a hold
+# on a card — the only other way to that menu — is something `simctl` cannot do:
+# `ACTION=shelf-move SHELF=<queue id> MOVE_BOOK=<book id> TO=top|bottom` opens the
+# queue through the app's own door, logs whether the menu is **offered** for that
+# book, calls `LibraryModel.move` (exactly what the two items call), and logs
+# whether the menu is offered afterwards. The run's `sort=` line reads
+# `shelf-default` inside a queue — no sort is sent, and the Mac's own order applies —
+# and `first=` is the order on screen after the move. `MOVE_BOOK` is its own
+# variable rather than `BOOK`, because `BOOK` also opens the reader and would cover
+# the list this run reads. The popup itself stays the owner's frame:
+#
+#   TAG=move-top    ACTION=shelf-move SHELF=q-1 MOVE_BOOK=b2 TO=top    ./scripts/live-probe.sh
+#   TAG=move-bottom ACTION=shelf-move SHELF=q-1 MOVE_BOOK=b2 TO=bottom ./scripts/live-probe.sh
+#
+# The two legs are each other's inverse — the queue ends as it began — and the
+# script prints the Mac's own order for the shelf below, so one run decides both
+# halves: what the phone shows and what the Mac holds. Against a Mac that lacks the
+# route, `scripts/stub-old-mac.py` serves the same shape and answers 404 to the move.
+#
 # Every run prints the Mac's own row for $BOOK at the end, read straight out of the
 # probe profile's SQLite — so the decider is the Mac's number rather than the app's.
 #
@@ -211,7 +230,7 @@ sleep 1
 # already refuses for a missing base URL. Measured on this slice's first share run,
 # which reported four ordinary lines and no `share` line at all.
 case "${TAG:-}" in
-  share|upload|write|shelf|shelf-add|shelf-remove|shelf-toggle)
+  share|upload|write|shelf|shelf-add|shelf-remove|shelf-toggle|shelf-move|move-top|move-bottom)
     if [ -z "$ACTION" ]; then
       echo "warning: TAG=$TAG names an action but ACTION is empty — pass ACTION=$TAG" >&2
     fi
@@ -244,6 +263,8 @@ SIMCTL_CHILD_MUSAEUM_PROBE_TOKEN="${TOKEN:-$(cat "$ROOT/token.txt")}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_OPEN="${BOOK:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_ACTION="$ACTION" \
 SIMCTL_CHILD_MUSAEUM_PROBE_SHELF="${SHELF:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_MOVE_BOOK="${MOVE_BOOK:-}" \
+SIMCTL_CHILD_MUSAEUM_PROBE_TO="${TO:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_QUERY="${QUERY:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_SORT="${SORT:-}" \
 SIMCTL_CHILD_MUSAEUM_PROBE_FILTERS="${FILTERS:-}" \
@@ -278,6 +299,15 @@ if [ -n "${SHELF:-}" ]; then
   echo "=== the Mac's own count for shelf $SHELF ==="
   if [ -f "$DB" ]; then
     sqlite3 "$DB" "select count(*) from shelf_books where shelf_id='$SHELF';" 2>/dev/null || echo "(could not read $DB)"
+    # **The queue's order, as the Mac holds it** — the rank is the order, there is
+    # no per-book position on the wire, and `shelf_books.position` is the array index
+    # the cache copied from `shelves.json`. A move run's decider is this line beside
+    # the app's own `first=`.
+    echo "=== the Mac's own kind and order for $SHELF ==="
+    sqlite3 "$DB" "select kind from shelves where id='$SHELF';" 2>/dev/null || echo "(could not read $DB)"
+    sqlite3 "$DB" \
+      "select group_concat(book_id, ',') from (select book_id from shelf_books where shelf_id='$SHELF' order by position, book_id);" \
+      2>/dev/null || echo "(could not read $DB)"
     if [ -n "${BOOK:-}" ]; then
       echo "=== the Mac's own membership of $BOOK on it (1 = on) ==="
       sqlite3 "$DB" "select count(*) from shelf_books where shelf_id='$SHELF' and book_id='$BOOK';" 2>/dev/null || echo "(could not read $DB)"

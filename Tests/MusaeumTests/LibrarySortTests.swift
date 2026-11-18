@@ -148,12 +148,20 @@ final class LibrarySortTests: XCTestCase {
 
     /// The sort stays live while searching: one state, not two, which is what
     /// makes the same query return the same order on both machines.
+    ///
+    /// **The one query that carries no sort is the reading queue's** (slice 9), where
+    /// `nil` means *the Mac's own order for this scope* — so every read here is
+    /// optional, and the pair of assertions after this one name what that absence
+    /// means rather than leaving it to a `!`.
     func testASearchKeepsItsSort() {
         let query = LibraryQuery(sort: LibrarySort(field: .author, direction: .desc), text: "dune")
-        XCTAssertEqual(query.sort.wireField, "author")
-        XCTAssertEqual(query.sort.wireDirection, "desc")
+        XCTAssertEqual(query.sort?.wireField, "author")
+        XCTAssertEqual(query.sort?.wireDirection, "desc")
         XCTAssertEqual(query.term, "dune")
         XCTAssertTrue(query.isSearching)
+
+        XCTAssertNil(LibraryQuery(sort: nil, text: "dune").sort, "no sort is a query's own state, not a default")
+        XCTAssertEqual(LibraryQuery(text: "dune").sort, LibrarySort.default, "and an unasked one is still the phone's default")
     }
 
     // MARK: Nothing to show
