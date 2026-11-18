@@ -190,17 +190,27 @@ final class ContractDecodeTests: XCTestCase {
         XCTAssertEqual(zero.books[0].reading.percent, 0)
     }
 
-    // MARK: the shelves (slice 7)
+    // MARK: the shelves (slice 7, both kinds since slice 9)
 
-    func testShelvesPayloadDecodes() throws {
+    /// **Both kinds the contract carries, strictly** — the golden gained the queue
+    /// when the reading-queue wire landed, and this case is the client's half of
+    /// that payload: `kind` stays a plain string, and a queue decodes into the same
+    /// `Shelf` as a manual shelf.
+    func testShelvesPayloadDecodesBothKinds() throws {
         let payload = try decode(Shelves.self, "shelves")
-        XCTAssertEqual(payload.shelves.count, 1)
-        let shelf = try XCTUnwrap(payload.shelves.first)
-        XCTAssertEqual(shelf.id, "b2c3d4e5-6f70-4182-93a4-b5c6d7e8f901")
-        XCTAssertEqual(shelf.name, "To Read")
-        XCTAssertEqual(shelf.kind, "manual")
-        XCTAssertEqual(shelf.count, 3)
-        XCTAssertNotNil(shelf.updatedAt)
+        XCTAssertEqual(payload.shelves.count, 2)
+        let manual = try XCTUnwrap(payload.shelves.first)
+        XCTAssertEqual(manual.id, "b2c3d4e5-6f70-4182-93a4-b5c6d7e8f901")
+        XCTAssertEqual(manual.name, "To Read")
+        XCTAssertEqual(manual.kind, "manual")
+        XCTAssertEqual(manual.count, 3)
+        XCTAssertNotNil(manual.updatedAt)
+
+        let queue = try XCTUnwrap(payload.shelves.last)
+        XCTAssertEqual(queue.name, "Up Next")
+        XCTAssertEqual(queue.kind, "queue", "the wire's second kind, decoded as what it is: a string")
+        XCTAssertEqual(queue.count, 7)
+        XCTAssertNotNil(queue.updatedAt)
     }
 
     func testMembershipReplyDecodes() throws {

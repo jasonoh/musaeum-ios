@@ -46,9 +46,17 @@ final class ShelvesTests: XCTestCase {
         return try JSONSerialization.data(withJSONObject: object)
     }
 
-    /// The one shelf the golden names, as the model would hold it.
+    /// The shelves the golden names, as the model would hold them — taken from the
+    /// golden rather than typed here, and by kind since slice 9's fixture carries two.
     private nonisolated func shelf() throws -> Shelf {
-        try JSONDecoder().decode(Shelves.self, from: fixture("shelves")).shelves[0]
+        try XCTUnwrap(
+            try JSONDecoder().decode(Shelves.self, from: fixture("shelves")).shelves
+                .first { $0.kind == "manual" }
+        )
+    }
+
+    private nonisolated func shelfIDs() throws -> [String] {
+        try JSONDecoder().decode(Shelves.self, from: fixture("shelves")).shelves.map(\.id)
     }
 
     /// Answers health, the shelves route, the library and the membership path.
@@ -112,7 +120,7 @@ final class ShelvesTests: XCTestCase {
         await model.start()
         await model.loadShelves()
         XCTAssertEqual(model.shelvesSupported, true)
-        XCTAssertEqual(model.shelves.map(\.id), [shelfId])
+        XCTAssertEqual(model.shelves.map(\.id), try shelfIDs(), "the golden's two kinds, in the contract's own order")
 
         let before = libraryRequests().count
         await model.openShelf(try shelf())
@@ -200,7 +208,7 @@ final class ShelvesTests: XCTestCase {
         try stub(page: try page(ids: ["a"], total: 1))
         await model.start()
         XCTAssertEqual(model.shelvesSupported, true, "a load that lands re-asks an unknown")
-        XCTAssertEqual(model.shelves.map(\.id), [shelfId])
+        XCTAssertEqual(model.shelves.map(\.id), try shelfIDs())
     }
 
     /// **A refresh the reader asked for brings the Mac's current counts** — the
