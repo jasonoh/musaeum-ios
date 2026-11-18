@@ -1,0 +1,36 @@
+
+> musaeum@0.5.0 dev
+> electron-vite dev
+
+vite v6.4.3 building SSR bundle for development...
+transforming...
+✓ 115 modules transformed.
+[plugin vite:reporter] 
+(!) /Users/jasonoh/Projects/musaeum-macos/electron/main/services/theme/resolve-css.ts is dynamically imported by /Users/jasonoh/Projects/musaeum-macos/electron/main/services/theme/importer.ts, /Users/jasonoh/Projects/musaeum-macos/electron/main/services/theme/index.ts but also statically imported by /Users/jasonoh/Projects/musaeum-macos/electron/main/index.ts, dynamic import will not move module into another chunk.
+
+rendering chunks...
+out/main/index.js  402.48 kB
+✓ built in 440ms
+
+build the electron main process successfully
+
+-----
+
+vite v6.4.3 building SSR bundle for development...
+transforming...
+✓ 2 modules transformed.
+rendering chunks...
+out/preload/index.js  10.20 kB
+✓ built in 10ms
+
+build the electron preload files successfully
+
+-----
+
+dev server running for the electron renderer process at:
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+start electron app...
+

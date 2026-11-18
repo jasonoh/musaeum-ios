@@ -698,3 +698,82 @@ Gates: `xcodegen generate` then `xcodebuild build` **exit 0**; `xcodebuild test`
 - **Toggles are refused offline with a sentence, never queued** (F4, taken): the writes are idempotent, so the retry is a second tap. Its reversal condition — shelf edits with the Mac asleep — brings the row-state question with it and is named in `tasks.md`.
 - **The probe profile's final state:** `slice5-smoke` at port **8791**, base `http://100.64.0.1:8791`, three books, one shelf (*To Read* — the two seeds, restored after the runs, `updatedAt` moved), the phone's sort back on `title:asc`. The owner's packaged app (8788) was never touched or signalled.
 
+
+---
+
+## Built — slice 9 (2026-11-18) — a reading queue, moved from the phone
+
+**The client half of the Mac's reading-queue D7, and AC16's two halves.** Annex: `docs/plans/2026-11-18-slice9-reading-queue.md`. The wire is the Mac's (`../musaeum-macos/docs/rest-api.md`, landed at its `32919f9`); **nothing here restated it, and nothing in the Mac repo was edited.**
+
+New: `Musaeum/Core/Library/ShelfScope.swift` (the pure rules — `isQueue`, `openingSort(for:)`, `offersMove(in:route:)`, and the `QueueMoveRoute`/`ShelfMoveEdge` types), `Tests/MusaeumTests/QueueMoveTests.swift` (8 cases), `scripts/stub-old-mac.py` (the 404 instrument), `docs/evidence/reading-queue/`. Edited: `LibraryQuery` (`sort` becomes `LibrarySort?`, where `nil` means *the scope's own order — send nothing*), `MusaeumClient` (the place route's composed request, its one-member body, and the call), `Probe` (two variables), `LibraryScreen` (the model's `moveRoute` and `move(_:to:)`, `openShelf` through `ShelfScope`, the optional sort in the request and the log line, the sort menu's **Queue Order** row, the card's conditional `.contextMenu`, the `shelf-move` seam), `scripts/live-probe.sh` (`ACTION=shelf-move` with `MOVE_BOOK=`/`TO=`, and the Mac's own *kind and order* for a shelf), `ShelvesTests`/`ContractDecodeTests`/`LibrarySortTests` (reconciled to the re-vendored golden and the optional sort), and `Tests/Fixtures/contract/shelves.json` (re-vendored: **+7 lines, the queue entry the document has carried since the Mac's slice 3, and no other fixture moved**).
+
+**The fork the annex settled first, as built:** `.contextMenu` on the grid card — attached **inside an `if`**, so where no move is offered there is no menu at all. It beat a menu inside the detail screen (two taps and a navigation in front of a re-order of the list you are looking at) and a sheet (a screen to dismiss for two buttons). Reversal: if a hold proves undiscoverable, the fix is an affordance glyph on cards inside a queue, not a new surface.
+
+### Gates
+
+`xcodegen generate`, then `xcodebuild build` **exit 0**, no warnings in this repo's files; `xcodebuild test` **exit 0 — 347 cases, 0 failures, 37 suites**, from the **338 / 36** the tree carried. **The whole move is this slice's own 9 cases in `QueueMoveTests`** (347 − 338 = 9; 37 − 36 = 1), and the per-suite lines were read rather than the total: `QueueMoveTests` 9, `ShelvesTests` 16, `ContractDecodeTests` unchanged in count.
+
+### The campaign
+
+**11 mutations, 11 killed**, every row restored sha256-identical, run against `MusaeumTests/QueueMoveTests` after a green baseline:
+
+| Mutation | Killed by (cases reddened) |
+| --- | --- |
+| a queue opens on *Date Added to Shelf* instead of its own order | 3 — the requery case, the sort case, and the opens-with-no-sort case |
+| a manual shelf opens with no sort at all | 2 — the opens-with-no-sort case, the pure-rules case |
+| the move's body always names the top | 1 — the request case |
+| the move is a `POST` | 1 — the request case |
+| a successful move does not re-query the list | 1 — the requery case |
+| a `404` is reported as an ordinary refusal | 1 — the 404 case (3 assertions) |
+| a `404` does not withdraw the menu | 1 — the 404 case (2 assertions) |
+| a sort chosen inside a queue is persisted as the library's | 1 — the sort case (2 assertions) |
+| the menu is offered outside a queue | 2 — the outside-a-queue case, the pure-rules case |
+| a fresh shelf list does not restore a withdrawn menu | 1 — the 404 case |
+| *"no order"* is accepted outside a queue | 1 — the sort case |
+
+Two rows redden a second case each, and both are the same fact seen twice (the pure rule and its reason); no row reddened more than it can explain.
+
+### The readings (`docs/evidence/reading-queue/`)
+
+| What a probe run decided | The reading |
+| --- | --- |
+| `ACTION=shelf SHELF=q-1` on the probe Mac | `library page … sort=shelf-default … first=Charlie \| Alpha \| Bravo` — **a queue opens sending no `sort` and no `dir`**, and the list is the Mac's own `shelf_books.position` order (`b3,b1,b2`) — the defect this slice exists for, gone |
+| its frame (`frame-queue-sort.png`) | the bar at **Queue Order**, the scope chip **Up Next** gold, the grid **Charlie / Alpha / Bravo**, footer **3 books** — and the bar's own numbers (`capsule=216 screen=402 overflow=0`) say slice 7's width defect is not back |
+| `ACTION=shelf-move SHELF=q-1 MOVE_BOOK=b2 TO=top` | `move-menu=offered` → `shelf move … result=ok` → `library page … sort=shelf-default … first=Bravo \| Charlie \| Alpha` → `after move-menu=offered notice=-`; **the Mac's own order `b2,b3,b1`** |
+| `… TO=bottom`, the same book | `first=Charlie \| Alpha \| Bravo`, **the Mac's own order back to `b3,b1,b2`** — the two legs are each other's inverse, so the runs restore what they moved |
+| `ACTION=shelf-move` against `scripts/stub-old-mac.py` | `move-menu=offered` → `result=route-absent (404) — the Move menu is withheld` → `after move-menu=absent notice=This Mac can't move books in a queue.`, and the frame shows the queue unchanged with that one sentence under the search row — **absent, not disabled**, and the reader is told |
+
+The stub is the fourth run's server: it serves the vendored goldens (health, the shelf list **carrying a queue**, a three-book page in queue order) and answers `404` to `…/position`. **A real older Mac cannot produce the state worth deciding** — the wire's `kind` and the route landed in one Mac slice, so an older build shows no queue and the 404 reading is never reached — and the brief names a stub as the instrument. Nothing in `Musaeum/` knows it exists; it is a server, not a client change. Confirmed against the live Mac as well: the route is *present* there, proved **without writing** by the manual shelf's **400** on the same path, and the queue's order after the 400 and after a malformed body (`{"to":"middle"}` → **400**) was unchanged.
+
+### Corrections and deviations this build made
+
+1. **The annex's file table gave `LibrarySortTests` a job the build did not need, and the simpler shape is the stronger one.** It said the contract-vocabulary guard would learn a `nil` row. The build put **Queue Order** in the *menu* as `LibrarySort?.none` and left `LibrarySort.options(inShelf:)` exactly as landed — so the guard still asserts that **every** row there is a value the contract accepts, with no exception to carry. `LibrarySortTests` changed only where the optional sort forced it (`query.sort?.wireField`), plus two assertions naming what `nil` and an unasked sort each mean.
+2. **The re-vendor moved exactly one fixture**, by +7 lines: `shelves.json` gained the queue the document has carried since the Mac's slice 3 and this repo's copy predated. Its ripple was two assertions that read "the golden names one shelf" — `ShelvesTests`'s id comparison and `ContractDecodeTests`'s count — both reconciled to the two kinds rather than narrowed back to one, which is what makes the client's decode of `kind: "queue"` decided by the golden at all.
+3. **The tests' stub page is keyed on *how many moves have landed*, not on a captured variable.** `StubURLProtocol` calls its handler off the main thread, so a test that mutated a `var` from outside would be a race the compiler allows (the closure is not `@Sendable`) and the run pays for; deriving the answer from `StubURLProtocol.requests` — which the stub logs under its own lock before calling the handler — is both safe and the honest model of *the Mac's order changed because a move landed*.
+4. **The move probe needed its own variables.** `BOOK` sets `MUSAEUM_PROBE_OPEN`, which opens the reader and covers the very list the move is read on, so `MOVE_BOOK`/`TO` are separate — and the script refuses to run a `shelf-move` without them by **logging that the run decides nothing**, the same discipline `SORT=` and `FILTERS=` already have.
+
+### The review pass and its one repair
+
+An independent review of the diff (a separate agent, read-only, against `4477e9a`) found **no blocking defect** and two things worth acting on:
+
+1. **A successful move did not clear a sentence an earlier failure left** — *should-fix, taken.* `move`'s success path set `moveRoute = .available` and re-queried, but `scopeNotice` kept whatever the previous refusal wrote, so a reader who retried after the Mac came back saw the failure line standing over a list that had moved. Fixed in `move` (`scopeNotice = nil` beside `moveRoute = .available`), with the reason written at the line; decided by two new assertions in `testARefusedMoveQuotesTheMacAndLeavesTheMenuInPlace` (a 503, then a 200 — the sentence is gone and the order moved).
+2. **The bar drew *Queue Order* before a model existed** — *note, and already fixed while the review ran.* The label's fallback made the launch-time bar claim a queue. It now reads the phone's default order until there is a model, and only a model whose sort is `nil` is inside a queue. No case can decide it (the pre-model bar is a frame), so it is recorded as the review found it rather than claimed as a test's.
+
+**Repair campaign: 1 mutation, 1 killed, restored sha256-identical** — *a successful move leaves the previous failure's sentence standing* reddens exactly `testARefusedMoveQuotesTheMacAndLeavesTheMenuInPlace` (1 case, against a green 8-case baseline). **Gates re-run after this first repair: build exit 0, `xcodebuild test` exit 0 — 346 cases, 0 failures, 37 suites** (the repair added assertions to a case that already existed, so the total was the same number for a stronger suite).
+
+The same review turned up two more, and both were taken on its second pass:
+
+3. **A move's `404` does not prove the *shelf* exists** — *note, taken as a defect once its consequence was followed through.* The contract answers an unknown shelf on this route with the same uniform `404` as a missing route, so a queue deleted on the Mac read as *this Mac can't move*, and — because the failure path did not re-query — the existing scoped-`404` rule that would have left the scope was never reached: the reader sat on a dead queue, under a sentence about the Mac, with the menu gone, until a pull. The `404` path now re-reads the scope through `start()`; the scoped `404` that comes back leaves the scope and **replaces** the sentence with *“Up Next” is gone from the Mac.*, while a Mac that still lists the queue keeps the route sentence. Decided by `testAMoveThatFindsTheQueueDeletedLeavesTheScopeAndSaysSo` (a stub whose deleted queue stops being listed, so the reset rule cannot mask it) and by the `reads + 1` assertion in the 404 case. **Second repair campaign: 1 mutation, 1 killed** — *a move 404 does not re-read the scope* reddens exactly those two cases (against a green 9-case baseline).
+4. **The `shelf-move` seam could move a book nobody named** — *note, taken.* `MOVE_BOOK=<an id not on the page>` fell back to the page's first book, so a typo moved something and the log read as success. It now logs *no book on this page — this run decides nothing* and returns, like the `SHELF=`/`TO=` guards. No unit case can reach a probe seam; the fourth run's committed log named a book that exists on page one, and the log was **re-measured** after this change so it carries the `404` re-read too.
+5. **Two claims the annex made about the build that the build did not make** — the plan's `options(inShelf:)` → `options(inQueue:)` rename, and its `LibrarySortTests` row; both corrected in the annex in place, because a plan that describes a diff which does not exist teaches the next session the wrong tree.
+
+**Across the slice: 13 mutation rows, 13 killed** — the eleven planned ones, plus one per repair finding that has a decider — every row restored sha256-identical, and each read against the cases it reddened rather than only its count.
+
+### Handed to the owner's own judgement, and the residuals
+
+- **The menu itself, and its two rows' words.** A `.contextMenu` is a system presentation: `simctl` holds no card and photographs no popup. What the runs decide is the rule (*offered*/*absent*) and the effect of an item (the move, through the app's own door). The hold, the popup and *Move to Top* / *Move to End* on it are his frame.
+- **A `404` from a book that has left the queue reads as *this Mac can't move*.** The contract answers that case with the same uniform 404 as a missing route, so the two are indistinguishable; the menu withdraws until a fresh shelf list resets it (a pull re-probes). Named in the annex (R4) as accepted, with the alternative — an up-front malformed-body probe per queue open — rejected and priced.
+- **The phone says *Move to End* where the Mac's menu says *Move to Bottom*** — D7's and AC16's word, recorded in the annex (R3) rather than harmonised silently.
+- **A *Move to End* leaves the grid at its top**, because the re-query is `start()` and a landed page is a new list (`landed`, `:1572`). Deferred with its revival condition (the owner reporting the jump) and its fix named (`scrollTo` through the existing `ScrollViewReader`).
+- **No drag-to-reorder on the phone** — a non-goal of the design, not a debt of this slice.
+- **The probe profile's final state:** `s3pass`, port **8799** bound to `127.0.0.1`, four books (`b1 Alpha`, `b2 Bravo`, `b3 Charlie`, one smoke upload), queue `q-1` *Up Next* back on **`b3,b1,b2`** in both `shelves.json` and `shelf_books`, its `updated_at` moved to `2026-11-18T17:05:16.785Z` by the two legs; manual shelf `s-1` untouched. The owner's packaged app (8788/8789) was never touched or signalled.

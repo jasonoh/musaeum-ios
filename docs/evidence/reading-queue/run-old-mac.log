@@ -1,0 +1,46 @@
+=== launched (old-mac) ===
+dev.jasonoh.Musaeum: 82020
+=== probe lines ===
+MUSAEUM_PROBE|library side inset=0.0 margin=16.0
+MUSAEUM_PROBE|library screen width=402.0
+MUSAEUM_PROBE|library safe top=62.0
+MUSAEUM_PROBE|library chrome width=206 height=157 screen=402 overflow=-195
+MUSAEUM_PROBE|library bar capsule=154 screen=402 margin=16
+MUSAEUM_PROBE|library chrome width=206 height=219 screen=402 overflow=-195
+MUSAEUM_PROBE|library chrome width=206 height=233 screen=402 overflow=-195
+MUSAEUM_PROBE|library chrome width=402 height=219 screen=402 overflow=0
+MUSAEUM_PROBE|library bar capsule=186 screen=402 margin=16
+MUSAEUM_PROBE|library page count=3 total=3 limit=100 offline=online sort=title:asc q=- filters=- covers-kept=0 first=Charlie | Alpha | Bravo
+MUSAEUM_PROBE|library list band=219 header=180 viewport=620 content=296
+MUSAEUM_PROBE|shelves count=2 names=To Read | Up Next
+MUSAEUM_PROBE|cover failed id=b2 error=the Mac does not have that
+MUSAEUM_PROBE|cover failed id=b1 error=the Mac does not have that
+MUSAEUM_PROBE|cover failed id=b3 error=the Mac does not have that
+MUSAEUM_PROBE|library bar capsule=216 screen=402 margin=16
+MUSAEUM_PROBE|library page count=3 total=3 limit=100 offline=online sort=shelf-default q=- filters=- covers-kept=0 first=Charlie | Alpha | Bravo
+MUSAEUM_PROBE|probe: shelf-move scope=Up Next kind=queue sort=shelf-default book=b2 to=top move-menu=offered
+MUSAEUM_PROBE|shelf move book=b2 to=top result=route-absent (404) — the Move menu is withheld
+MUSAEUM_PROBE|cover failed id=b1 error=the Mac does not have that
+MUSAEUM_PROBE|cover failed id=b2 error=the Mac does not have that
+MUSAEUM_PROBE|cover failed id=b3 error=the Mac does not have that
+MUSAEUM_PROBE|library chrome width=402 height=243 screen=402 overflow=0
+MUSAEUM_PROBE|library page count=3 total=3 limit=100 offline=online sort=shelf-default q=- filters=- covers-kept=0 first=Charlie | Alpha | Bravo
+MUSAEUM_PROBE|probe: shelf-move after move-menu=absent notice=This Mac can't move books in a queue.
+MUSAEUM_PROBE|cover failed id=b3 error=the Mac does not have that
+MUSAEUM_PROBE|cover failed id=b2 error=the Mac does not have that
+MUSAEUM_PROBE|cover failed id=b1 error=the Mac does not have that
+=== frame === /Users/jasonoh/.hermes/profiles/dev/cache/scratch/s3pass/frame-old-mac.png
+=== what the phone holds ===
+<container>/Library/Application Support/Musaeum/Books/660e57bd-cf5f-4e07-bd9b-a10dd9876f58.epub
+<container>/Library/Application Support/Musaeum/Books/d76dba34-b8b0-43ac-a84a-81c12e52ddaa.cover.jpg
+<container>/Library/Application Support/Musaeum/Books/660e57bd-cf5f-4e07-bd9b-a10dd9876f58.cover.jpg
+<container>/Library/Application Support/Musaeum/Books/3564e6df-5dd0-4d5f-ad1d-9591e00b4a3d.epub
+<container>/Library/Application Support/Musaeum/Books/d76dba34-b8b0-43ac-a84a-81c12e52ddaa.epub
+<container>/Library/Application Support/Musaeum/downloads.json
+<container>/Library/Application Support/Musaeum/positions.json
+=== staged for a share ===
+(end of the staged listing)
+=== the Mac's own count for shelf c3d4e5f6-7081-4293-a4b5-c6d7e8f90123 ===
+0
+=== the Mac's own kind and order for c3d4e5f6-7081-4293-a4b5-c6d7e8f90123 ===
+

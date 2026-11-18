@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased] — 2026-11-18
+
+### Added
+
+- **Reading queues, on the phone — and a book you can move in one.** A queue is a shelf whose order is yours, and the phone now opens it in **that** order rather than in the order the books were added to it. Hold a book's cover inside a queue and two rows appear — **Move to Top** and **Move to End** — and the list re-reads the Mac's own order, so what you see is what the Mac holds. The sort control says *Queue Order* while you are in one, and the library sorts are still there if you want them for a visit. Against a Mac too old to move a book, the rows simply are not there, and the screen says *This Mac can't move books in a queue* rather than failing. Measured on a scratch library: a queue folded to `Charlie, Alpha, Bravo` opened in exactly that order, `Bravo` moved to the top and the Mac's file agreed, and the same book moved back to the end restored the queue byte-for-byte. 347 cases, 0 failures.
+
 ## [Unreleased] — 2026-10-09
 
 ### Added
